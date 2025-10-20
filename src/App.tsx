@@ -10,6 +10,8 @@ import OffersPage from "./pages/OffersPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import AccountPage from "./pages/AccountPage";
 import BottomNavLumi from "./components/BottomNavLumi";
+import SellerLogin from "./components/SellerLogin";
+import SellerDashboard from "./components/SellerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,11 @@ const App = () => (
           <Route path="/offers" element={<OffersPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/account" element={<AccountPage />} />
+          
+          {/* Rotas de Vendedor */}
+          <Route path="/seller/login" element={<SellerLogin />} />
+          <Route path="/seller/dashboard" element={<SellerDashboard />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
