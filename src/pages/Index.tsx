@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Importar as páginas
-import Home from "./Home";
-import ProductDetail from "./ProductDetail";
-import Checkout from "./Checkout";
-import SellerDashboard from "./SellerDashboard";
-import Login from "./Login";
-import CreateProduct from "./CreateProduct";
-import AdminDashboard from "./AdminDashboard";
-import Profile from "./Profile";
+// Importar as páginas com nomes diferentes para evitar conflitos
+import HomePage from "./Home";
+import ProductDetailPage from "./ProductDetail";
+import CheckoutPage from "./Checkout";
+import SellerDashboardPage from "./SellerDashboard";
+import LoginPage from "./Login";
+import CreateProductPage from "./CreateProduct";
+import AdminDashboardPage from "./AdminDashboard";
+import ProfilePage from "./Profile";
 
 type Page = "home" | "product" | "checkout" | "seller" | "login" | "create" | "admin" | "profile";
 
@@ -26,27 +26,27 @@ export default function Index() {
   const renderPage = () => {
     switch (currentPage) {
       case "home":
-        return <Home />;
+        return <HomePage />;
       case "product":
-        return <ProductDetail />;
+        return <ProductDetailPage />;
       case "checkout":
-        return <Checkout />;
+        return <CheckoutPage />;
       case "seller":
-        return <SellerDashboard />;
+        return <SellerDashboardPage />;
       case "login":
-        return <Login onLogin={(role) => {
+        return <LoginPage onLogin={(role) => {
           setIsLoggedIn(true);
           setUserRole(role);
           setCurrentPage("home");
         }} />;
       case "create":
-        return <CreateProduct />;
+        return <CreateProductPage />;
       case "admin":
-        return <AdminDashboard />;
+        return <AdminDashboardPage />;
       case "profile":
-        return <Profile />;
+        return <ProfilePage />;
       default:
-        return <Home />;
+        return <HomePage />;
     }
   };
 
