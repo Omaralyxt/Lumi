@@ -3,7 +3,6 @@
 import { Home, Search, Heart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 
 type NavItem = {
   id: string;
@@ -66,22 +65,42 @@ export default function BottomNavLumi() {
   }
 
   return (
-    <motion.div 
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50"
-    >
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 animate-slide-up">
+      <style jsx>{`
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out forwards;
+        }
+        .nav-item {
+          transition: all 0.2s ease;
+        }
+        .nav-item:hover {
+          transform: scale(1.1);
+        }
+        .nav-item:active {
+          transform: scale(0.95);
+        }
+        .nav-icon {
+          transition: transform 0.5s ease;
+        }
+        .nav-icon.active {
+          transform: rotate(360deg);
+        }
+      `}</style>
       <div className="flex justify-around items-center py-2 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
           
           return (
-            <motion.div
-              key={item.id}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <div key={item.id} className="nav-item">
               <Button
                 variant="ghost"
                 className={`flex flex-col items-center justify-center h-16 w-16 px-2 py-1 ${
@@ -89,20 +108,17 @@ export default function BottomNavLumi() {
                 }`}
                 onClick={() => handleNavigate(item.path)}
               >
-                <motion.div
-                  animate={{ rotate: active ? 360 : 0 }}
-                  transition={{ duration: 0.5 }}
-                >
+                <div className={`nav-icon ${active ? 'active' : ''}`}>
                   <Icon className={`h-5 w-5 mb-1 ${active ? "text-blue-600" : "text-gray-500"}`} />
-                </motion.div>
+                </div>
                 <span className={`text-xs ${active ? "text-blue-600 font-medium" : "text-gray-500"}`}>
                   {item.label}
                 </span>
               </Button>
-            </motion.div>
+            </div>
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 }
