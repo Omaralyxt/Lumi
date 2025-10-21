@@ -1,4 +1,4 @@
-import { Product } from "../types/product";
+import { Product, Review } from "../types/product";
 
 // Mock data para produtos
 const mockProducts: Product[] = [
@@ -152,4 +152,34 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
   return mockProducts
     .filter(p => p.originalPrice && p.stock > 0)
     .slice(0, 6); // Limitar a 6 produtos em destaque
+};
+
+// Função para submeter uma nova avaliação
+export const submitReview = async (
+  productId: number, 
+  reviewData: Omit<Review, 'id' | 'author' | 'date'>
+): Promise<Product> => {
+  await new Promise(resolve => setTimeout(resolve, 700));
+  
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) {
+    throw new Error("Produto não encontrado");
+  }
+
+  const newReview: Review = {
+    ...reviewData,
+    id: Date.now(),
+    author: "Utilizador Anónimo", // Simulado
+    date: "agora mesmo",
+  };
+
+  const product = mockProducts[productIndex];
+  product.reviews.unshift(newReview); // Adicionar no início
+  product.reviewCount++;
+  
+  // Recalcular a avaliação média
+  const totalRating = product.reviews.reduce((sum, r) => sum + r.rating, 0);
+  product.rating = totalRating / product.reviewCount;
+
+  return product;
 };
