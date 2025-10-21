@@ -85,12 +85,12 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-40">
+      <div className="bg-white shadow-sm sticky top-0 z-40 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">Favoritos</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Favoritos</h1>
           </div>
         </div>
       </div>
@@ -99,11 +99,11 @@ export default function FavoritesPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {favoritesList.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-gray-700">
               <Heart className="h-8 w-8 text-gray-400" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Nenhum favorito ainda</h2>
-            <p className="text-gray-600 mb-4">Salve seus produtos favoritos aqui para acessá-los facilmente</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Nenhum favorito ainda</h2>
+            <p className="text-gray-600 mb-4 dark:text-gray-400">Salve seus produtos favoritos aqui para acessá-los facilmente</p>
             <Button asChild>
               <Link to="/">Explorar Produtos</Link>
             </Button>
@@ -111,8 +111,8 @@ export default function FavoritesPage() {
         ) : (
           <>
             {/* Summary */}
-            <div className="bg-blue-50 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-blue-900">
+            <div className="bg-blue-50 rounded-lg p-4 mb-6 dark:bg-blue-900/50">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300">
                 {favoritesList.length} {favoritesList.length === 1 ? 'Produto' : 'Produtos'} nos seus favoritos
               </h3>
             </div>
@@ -120,7 +120,7 @@ export default function FavoritesPage() {
             {/* Favorites Grid */}
             <div className="space-y-4">
               {favoritesList.map((item) => (
-                <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                <Card key={item.id} className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
                   <CardContent className="p-4">
                     <div className="flex space-x-4">
                       {/* Product Image */}
@@ -136,7 +136,7 @@ export default function FavoritesPage() {
                       <div className="flex-1 space-y-2">
                         <div className="flex items-start justify-between">
                           <Link to={`/product/${item.id}`} className="flex-1">
-                            <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-blue-600">
+                            <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-blue-600 dark:text-white dark:hover:text-blue-400">
                               {item.title}
                             </h3>
                           </Link>
@@ -152,14 +152,14 @@ export default function FavoritesPage() {
                           </div>
                         </div>
                         
-                        <Link to={`/store/${item.shop.id}`} className="text-sm text-gray-600 hover:text-blue-600 hover:underline">
+                        <Link to={`/store/${item.shop.id}`} className="text-sm text-gray-600 hover:text-blue-600 hover:underline dark:text-gray-400 dark:hover:text-blue-400">
                           {item.shop.name}
                         </Link>
                         
                         <div className="flex items-center space-x-2">
                           <div className="flex items-center">
                             <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="text-sm ml-1">{item.rating}</span>
+                            <span className="text-sm ml-1 text-gray-900 dark:text-white">{item.rating}</span>
                           </div>
                         </div>
                         
