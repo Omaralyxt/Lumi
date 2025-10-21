@@ -35,8 +35,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
         {products.map((product) => (
           <div
             key={product.id}
-            // Novo estilo de card padronizado
-            className="relative group product-card bg-white/80 dark:bg-[#111111] backdrop-blur-md rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02]"
+            className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent hover:border-[rgba(0,170,255,0.6)] shadow-[0_0_15px_rgba(0,170,255,0.1)] hover:shadow-[0_0_25px_rgba(0,170,255,0.4)] transition-all duration-300 hover:scale-[1.02]"
           >
             {/* Imagem */}
             <Link to={`/product/${product.id}`}>
@@ -74,7 +73,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
 
               <div className="flex justify-between items-center mt-3">
                 <button
-                  className="btn btn-primary flex items-center gap-2 text-sm"
+                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-xl transition-all"
                   onClick={() => handleBuy(product)}
                 >
                   <ShoppingBag size={16} /> Comprar

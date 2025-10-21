@@ -93,9 +93,6 @@
 @layer base {
   * {
     @apply border-border;
-    /* Transição global */
-    transition: background-color 0.3s ease, color 0.3s ease,
-      border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   body {
@@ -142,12 +139,12 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f1f1;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(120, 120, 120, 0.4);
+  background: #888;
   border-radius: 3px;
 }
 
@@ -163,44 +160,4 @@ html {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
-}
-
-/* --- Estilos Padronizados --- */
-
-/* Card de Produto (Efeito Neon) */
-.product-card {
-  border: 0.6px solid rgba(0, 0, 0, 0.1); /* Borda clara padrão */
-  transition: all 0.3s ease;
-}
-.product-card:hover {
-  transform: translateY(-3px);
-}
-.dark .product-card {
-  border: 0.6px solid rgba(0, 255, 255, 0.1);
-}
-.dark .product-card:hover {
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-}
-
-/* Botões Padronizados */
-.btn {
-  border-radius: 10px;
-  font-weight: 600;
-  padding: 0.6rem 1.2rem;
-  transition: all 0.3s ease;
-}
-.btn-primary {
-  background: linear-gradient(90deg, #00bcd4, #0099ff);
-  color: white;
-}
-.btn-primary:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 8px rgba(0, 153, 255, 0.6);
-}
-.btn-secondary {
-  background: transparent;
-  border: 1px solid currentColor;
-}
-.dark .btn-secondary {
-  border-color: #00e0ff;
 }
