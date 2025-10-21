@@ -250,15 +250,17 @@ export default function SellerDashboard() {
             </Card>
           </Link>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="font-semibold mb-2">Pedidos</h3>
-              <p className="text-sm text-gray-600">Acompanhe e gerencie seus pedidos</p>
-            </CardContent>
-          </Card>
+          <Link to="/seller/orders">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ShoppingCart className="h-8 w-8 text-purple-600" />
+                </div>
+                <h3 className="font-semibold mb-2">Pedidos</h3>
+                <p className="text-sm text-gray-600">Acompanhe e gerencie seus pedidos</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {/* Recent Orders */}
