@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Star, Heart, Truck, Clock, Zap, Package, Eye, ShoppingCart } from "lucide-react";
+import { Star, Heart, Truck, Clock, Zap, Package, Eye, ShoppingCart, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -124,11 +124,13 @@ export default function ProductDetail() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Em um app real, buscaria o produto pelo ID
     // getProductById(id).then(setProduct);
     calculateDelivery(product);
+    setLoading(false);
   }, [id, product]);
 
   const calculateDelivery = (p) => {
@@ -162,6 +164,14 @@ export default function ProductDetail() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -191,7 +201,7 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-lg overflow-hidden">
+            <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-sm">
               <img 
                 src={product.images[selectedImageIndex]} 
                 alt={product.title}
@@ -200,12 +210,12 @@ export default function ProductDetail() {
             </div>
             
             {/* Thumbnail Images */}
-            <div className="flex space-x-2 overflow-x-auto">
+            <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
               {product.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
                     selectedImageIndex === index ? 'border-blue-500' : 'border-gray-200'
                   }`}
                 >
@@ -223,32 +233,42 @@ export default function ProductDetail() {
           <div className="space-y-6">
             <div>
               <div className="flex items-start justify-between">
-                <div>
+                <div className="flex-1">
                   <h1 className="text-2xl font-bold text-gray-900 mb-2">
                     {product.title}
                   </h1>
                   <Badge variant="secondary">{product.category}</Badge>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="ghost" size="sm" onClick={toggleFavorite}>
-                    <Heart className={`h-4 w-4 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
-                  </Button>
-                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleFavorite}
+                  className="ml-4"
+                >
+                  <Heart className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
+                </Button>
               </div>
               
               {/* Price */}
               <div className="mt-4">
-                <div className="flex items-baseline space-x-2">
+                {product.originalPrice && (
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-3xl font-bold text-blue-600">
+                      MT {product.price.toLocaleString('pt-MZ')}
+                    </span>
+                    <span className="text-lg text-gray-500 line-through">
+                      MT {product.originalPrice.toLocaleString('pt-MZ')}
+                    </span>
+                    <Badge className="bg-red-500 text-white">
+                      -{Math.round((1 - product.price / product.originalPrice) * 100)}%
+                    </Badge>
+                  </div>
+                )}
+                {!product.originalPrice && (
                   <span className="text-3xl font-bold text-blue-600">
                     MT {product.price.toLocaleString('pt-MZ')}
                   </span>
-                  <span className="text-lg text-gray-500 line-through">
-                    MT {product.originalPrice.toLocaleString('pt-MZ')}
-                  </span>
-                  <Badge className="bg-red-500 text-white">
-                    -{Math.round((1 - product.price / product.originalPrice) * 100)}%
-                  </Badge>
-                </div>
+                )}
               </div>
 
               {/* Rating */}
@@ -259,7 +279,9 @@ export default function ProductDetail() {
                   <span className="text-gray-500 ml-1">({product.reviewCount})</span>
                 </div>
                 <span className="text-gray-500">•</span>
-                <span className="text-green-600 font-medium">Em Stock ({product.stock} disponíveis)</span>
+                <span className={`font-medium ${product.stock < 5 ? 'text-red-600' : 'text-green-600'}`}>
+                  {product.stock > 0 ? `${product.stock} disponíveis` : 'Esgotado'}
+                </span>
               </div>
             </div>
 
@@ -298,16 +320,16 @@ export default function ProductDetail() {
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1}
                 >
-                  -
+                  <Minus className="h-4 w-4" />
                 </Button>
                 <span className="px-4 py-2 min-w-12 text-center">{quantity}</span>
                 <Button 
                   variant="ghost" 
                   size="sm"
                   onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  disabled={quantity >= product.stock}
+                  disabled={quantity >= product.stock || product.stock === 0}
                 >
-                  +
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -316,12 +338,14 @@ export default function ProductDetail() {
             <div className="space-y-3">
               <Button 
                 onClick={addToCart}
+                disabled={product.stock === 0}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
               >
-                Adicionar ao Carrinho
+                {product.stock === 0 ? 'Esgotado' : 'Adicionar ao Carrinho'}
               </Button>
               <Button 
                 variant="outline"
+                disabled={product.stock === 0}
                 className="w-full"
               >
                 Comprar Agora
