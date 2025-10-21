@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// Registro de comprador
+// Registration endpoint
 router.post('/register', async (req, res) => {
   const { name, email, password, phone, user_type } = req.body;
   
@@ -16,10 +16,10 @@ router.post('/register', async (req, res) => {
     // Criptografar senha
     const password_hash = await bcrypt.hash(password, 10);
     
-    // Aqui você implementaria a inserção no banco de dados
-    // Por enquanto, simulamos sucesso
+    // In a real implementation, you would create the user in Supabase Auth here
+    // For now, we'll simulate a user creation
     const user = {
-      id: Date.now(),
+      id: Date.now().toString(),
       name,
       email,
       phone,
@@ -44,7 +44,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
+// Login endpoint
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   
@@ -53,10 +53,10 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // Aqui você implementaria a busca no banco de dados
-    // Por enquanto, simulamos um usuário válido
+    // In a real implementation, you would verify the user against Supabase Auth here
+    // For now, we'll simulate a user
     const user = {
-      id: 1,
+      id: '1',
       name: "Maria João",
       email: "maria@exemplo.com",
       phone: "+258849999999",
@@ -85,6 +85,37 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Falha no login' });
+  }
+});
+
+// Biometric registration endpoint
+router.post('/biometric-register', async (req, res) => {
+  const { userId, email, deviceName } = req.body;
+  
+  if (!userId || !email) {
+    return res.status(400).json({ error: 'User ID and email are required' });
+  }
+
+  try {
+    // In a real implementation, you would call the WebAuthn registration here
+    // For now, we'll simulate the process
+    const credential = {
+      id: 'mock-credential-id',
+      rawId: new Uint8Array(32),
+      response: {
+        clientDataJSON: 'mock-client-data',
+        attestationObject: 'mock-attestation'
+      },
+      type: 'public-key'
+    };
+
+    // Store the credential in the database (simulated)
+    res.json({ 
+      success: true,
+      credential
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Biometric registration failed' });
   }
 });
 
