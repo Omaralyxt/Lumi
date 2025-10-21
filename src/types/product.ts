@@ -17,6 +17,7 @@ export interface QA {
 }
 
 export interface Shop {
+  id: number;
   name: string;
   rating: number;
   reviewCount: number;

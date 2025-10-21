@@ -11,6 +11,7 @@ const mockProducts: Product[] = [
     rating: 4.2,
     reviewCount: 3,
     shop: {
+      id: 1,
       name: "TechStore MZ",
       rating: 4.7,
       reviewCount: 342,

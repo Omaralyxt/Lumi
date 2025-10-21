@@ -15,7 +15,9 @@ const CartItemRow = ({ item }: { item: CartItem }) => {
       <img src={item.images[0]} alt={item.title} className="w-20 h-20 rounded-lg object-cover" />
       <div className="flex-1">
         <Link to={`/product/${item.id}`} className="font-semibold hover:text-blue-600">{item.title}</Link>
-        <p className="text-sm text-gray-500">{item.shop.name}</p>
+        <Link to={`/store/${item.shop.id}`} className="text-sm text-gray-500 hover:underline hover:text-blue-600">
+          {item.shop.name}
+        </Link>
         <p className="text-sm font-bold text-blue-600">MT {item.price.toLocaleString('pt-MZ')}</p>
       </div>
       <div className="flex items-center border rounded-lg">

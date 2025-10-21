@@ -195,20 +195,22 @@ export default function ProductDetail() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                  <Link to={`/store/${product.shop.id}`} className="flex items-center space-x-3 group">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                       <span className="text-blue-600 font-bold text-sm font-body">{product.shop.name.charAt(0)}</span>
                     </div>
                     <div>
-                      <h3 className="font-body-semibold">{product.shop.name}</h3>
+                      <h3 className="font-body-semibold group-hover:underline">{product.shop.name}</h3>
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <span>Membro desde {product.shop.memberSince}</span>
                         <span>•</span>
                         <span>{product.shop.productCount} produtos</span>
                       </div>
                     </div>
-                  </div>
-                  <Button variant="outline" size="sm" className="font-body">Ver Perfil</Button>
+                  </Link>
+                  <Button asChild variant="outline" size="sm" className="font-body">
+                    <Link to={`/store/${product.shop.id}`}>Ver Perfil</Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
