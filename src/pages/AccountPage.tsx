@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Link } from "react-router-dom";
 import { 
   User, 
   ShoppingBag, 
@@ -20,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BiometricRegistration from "@/components/BiometricRegistration";
 
 const user = {
-  id: "user-12345", // ID de usuário para o registro biométrico
+  id: "user-12345",
   name: "João Silva",
   email: "joao.silva@email.com",
   phone: "+258 82 123 4567",
@@ -36,16 +36,7 @@ const user = {
   reviews: 5,
 };
 
-const stats = [
-  { icon: ShoppingBag, label: "Pedidos", value: user.orders, color: "blue" },
-  { icon: Heart, label: "Favoritos", value: 12, color: "red" },
-  { icon: Star, label: "Avaliações", value: user.reviews, color: "yellow" },
-  { icon: Truck, label: "Entregas", value: 20, color: "green" },
-];
-
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState("profile");
-
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
@@ -53,11 +44,6 @@ export default function AccountPage() {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-gray-900">Minha Conta</h1>
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              </Button>
-            </div>
           </div>
         </div>
       </div>
@@ -80,100 +66,80 @@ export default function AccountPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            const colorClasses = {
-              blue: "bg-blue-100 text-blue-600",
-              red: "bg-red-100 text-red-600",
-              yellow: "bg-yellow-100 text-yellow-600",
-              green: "bg-green-100 text-green-600",
-            };
-            
-            return (
-              <Card key={index}>
-                <CardContent className="p-4 text-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${colorClasses[stat.color as keyof typeof colorClasses]}`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
+        {/* Menu Options */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link to="/orders">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <ShoppingBag className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Meus Pedidos</h3>
+                  <p className="text-sm text-gray-600">Acompanhe seus pedidos</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/favorites">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Heart className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Favoritos</h3>
+                  <p className="text-sm text-gray-600">Veja seus produtos salvos</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/profile">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <User className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Perfil</h3>
+                  <p className="text-sm text-gray-600">Edite suas informações</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 flex items-center space-x-4">
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Settings className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Configurações</h3>
+                <p className="text-sm text-gray-600">Ajustes de conta</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile">Perfil</TabsTrigger>
-            <TabsTrigger value="orders">Pedidos</TabsTrigger>
-            <TabsTrigger value="security">Segurança</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="profile" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações Pessoais</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Nome Completo</Label>
-                    <p className="p-2 bg-gray-50 rounded">{user.name}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <p className="p-2 bg-gray-50 rounded">{user.email}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Telefone</Label>
-                    <p className="p-2 bg-gray-50 rounded">{user.phone}</p>
-                  </div>
-                </div>
-                <Button>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Perfil
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Shield className="h-5 w-5 mr-2" />
+                Segurança da Conta
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BiometricRegistration userId={user.id} email={user.email} />
+            </CardContent>
+          </Card>
+        </div>
 
-          <TabsContent value="orders" className="mt-6">
-            {/* Conteúdo dos Pedidos */}
-          </TabsContent>
-
-          <TabsContent value="security" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Shield className="h-5 w-5 mr-2" />
-                  Segurança da Conta
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BiometricRegistration userId={user.id} email={user.email} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button variant="destructive">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <div className="mt-8">
+          <Button variant="destructive">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+        </div>
       </div>
     </div>
   );

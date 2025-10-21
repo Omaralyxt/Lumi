@@ -24,6 +24,8 @@ import ComparePage from "./pages/ComparePage";
 import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/Checkout";
+import OrderHistoryPage from "./pages/OrderHistoryPage";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
               <Route path="/compare" element={<ComparePage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/orders" element={<OrderHistoryPage />} />
+              <Route path="/profile" element={<Profile />} />
               
               {/* Rotas de Vendedor */}
               <Route path="/seller/login" element={<SellerLogin />} />
