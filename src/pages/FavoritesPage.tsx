@@ -85,25 +85,24 @@ export default function FavoritesPage() {
 
   const handleBuy = (product: Product) => {
     addToCart(product, 1);
-    navigate("/cart");
+    toast.success(`${product.title} adicionado ao carrinho!`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 font-body text-gray-900 dark:text-gray-100 transition-colors duration-500">
-      {/* Header */}
-      <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold dark:text-white">Meus Favoritos</h1>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/account')}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Header (Removido, pois AppLayout já fornece o cabeçalho principal) */}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="font-title text-4xl text-gray-900 dark:text-gray-100 tracking-wide">
+            Meus Favoritos
+          </h1>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/account')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </div>
+
         {favoritesList.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-gray-700">
