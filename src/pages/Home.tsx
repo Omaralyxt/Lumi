@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CompareButton from "@/components/CompareButton";
+import HeaderCart from "@/components/HeaderCart";
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -75,12 +76,7 @@ export default function Home() {
               <h1 className="text-xl font-bold text-gray-900 font-body">Lumi</h1>
             </div>
             <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <Package className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              </Button>
+              <HeaderCart />
             </div>
           </div>
         </div>

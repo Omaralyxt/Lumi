@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import CategoriesPage from "./pages/CategoriesPage";
 import OffersPage from "./pages/OffersPage";
@@ -19,6 +19,9 @@ import ProductDetail from "./pages/ProductDetail";
 import { CompareProvider } from "./context/CompareContext";
 import CompareBar from "./components/CompareBar";
 import ComparePage from "./pages/ComparePage";
+import { CartProvider } from "./context/CartContext";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
@@ -26,35 +29,39 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <CompareProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/offers" element={<OffersPage />} />
-            <Route path="/favorites" element={<FavoritesPage />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="/compare" element={<ComparePage />} />
-            
-            {/* Rotas de Vendedor */}
-            <Route path="/seller/login" element={<SellerLogin />} />
-            <Route path="/seller/dashboard" element={<SellerDashboard />} />
-            <Route path="/seller/create-product" element={<CreateProduct />} />
-            
-            {/* Rotas de Comprador */}
-            <Route path="/buyer/login" element={<BuyerLogin />} />
-            <Route path="/buyer/register" element={<BuyerRegister />} />
-            
-            {/* Rota de Produto Detalhado */}
-            <Route path="/product/:id" element={<ProductDetail />} />
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <BottomNavLumi />
-          <CompareBar />
-        </BrowserRouter>
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/offers" element={<OffersPage />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/account" element={<AccountPage />} />
+              <Route path="/compare" element={<ComparePage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              
+              {/* Rotas de Vendedor */}
+              <Route path="/seller/login" element={<SellerLogin />} />
+              <Route path="/seller/dashboard" element={<SellerDashboard />} />
+              <Route path="/seller/create-product" element={<CreateProduct />} />
+              
+              {/* Rotas de Comprador */}
+              <Route path="/buyer/login" element={<BuyerLogin />} />
+              <Route path="/buyer/register" element={<BuyerRegister />} />
+              
+              {/* Rota de Produto Detalhado */}
+              <Route path="/product/:id" element={<ProductDetail />} />
+              
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <BottomNavLumi />
+            <CompareBar />
+          </BrowserRouter>
+        </CartProvider>
       </CompareProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -13,9 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { useCart } from "@/context/CartContext";
+import HeaderCart from "@/components/HeaderCart";
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const { addToCart: addProductToCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -52,17 +55,10 @@ export default function ProductDetail() {
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
 
-  const addToCart = () => {
-    if (!product) return;
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existing = cart.find((item: any) => item.id === product.id);
-    if (existing) {
-      existing.quantity += quantity;
-    } else {
-      cart.push({ ...product, quantity });
+  const handleAddToCart = () => {
+    if (product) {
+      addProductToCart(product, quantity);
     }
-    localStorage.setItem("cart", JSON.stringify(cart));
-    alert("Produto adicionado ao carrinho 🛒");
   };
 
   const getRatingDistribution = () => {
@@ -101,19 +97,14 @@ export default function ProductDetail() {
       <div className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
               <h1 className="text-xl font-bold text-gray-900 font-body">Lumi</h1>
-            </div>
+            </Link>
             <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              </Button>
+              <HeaderCart />
             </div>
           </div>
         </div>
@@ -247,7 +238,7 @@ export default function ProductDetail() {
 
             <div className="space-y-3">
               <Button 
-                onClick={addToCart}
+                onClick={handleAddToCart}
                 disabled={product.stock === 0}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 font-body-semibold"
               >
