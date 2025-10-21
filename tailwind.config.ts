@@ -18,6 +18,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        title: ['Bebas Neue', 'sans-serif'], // Para títulos (Bebas Neue)
+        body: ['Montserrat', 'sans-serif'],   // Para textos gerais (Montserrat)
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -25,11 +29,11 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#1E3A8A",   // Cor principal para destaques (ex: botões, links)
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
+          DEFAULT: "#F3F4F6", // Fundo cinza claro minimalista
           foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {

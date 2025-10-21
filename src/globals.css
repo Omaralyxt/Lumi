@@ -96,6 +96,67 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-body;
   }
+}
+
+/* Custom styles for the new fonts */
+.font-title {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+.font-body {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+}
+
+.font-body-medium {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
+.font-body-semibold {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+.font-body-bold {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Hide scrollbar for overflow containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

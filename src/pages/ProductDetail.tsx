@@ -182,7 +182,7 @@ export default function ProductDetail() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Lumi</h1>
+              <h1 className="text-xl font-bold text-gray-900 font-body">Lumi</h1>
             </div>
             <div className="flex items-center space-x-3">
               <Button variant="ghost" size="sm">
@@ -234,10 +234,10 @@ export default function ProductDetail() {
             <div>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h1 className="font-title text-3xl text-gray-900 mb-2">
                     {product.title}
                   </h1>
-                  <Badge variant="secondary">{product.category}</Badge>
+                  <Badge variant="secondary" className="font-body">{product.category}</Badge>
                 </div>
                 <Button 
                   variant="ghost" 
@@ -253,19 +253,19 @@ export default function ProductDetail() {
               <div className="mt-4">
                 {product.originalPrice && (
                   <div className="flex items-baseline space-x-2">
-                    <span className="text-3xl font-bold text-blue-600">
+                    <span className="font-title text-3xl font-bold text-blue-600">
                       MT {product.price.toLocaleString('pt-MZ')}
                     </span>
-                    <span className="text-lg text-gray-500 line-through">
+                    <span className="font-body text-lg text-gray-500 line-through">
                       MT {product.originalPrice.toLocaleString('pt-MZ')}
                     </span>
-                    <Badge className="bg-red-500 text-white">
+                    <Badge className="bg-red-500 text-white font-body">
                       -{Math.round((1 - product.price / product.originalPrice) * 100)}%
                     </Badge>
                   </div>
                 )}
                 {!product.originalPrice && (
-                  <span className="text-3xl font-bold text-blue-600">
+                  <span className="font-title text-3xl font-bold text-blue-600">
                     MT {product.price.toLocaleString('pt-MZ')}
                   </span>
                 )}
@@ -275,11 +275,11 @@ export default function ProductDetail() {
               <div className="flex items-center space-x-4 mt-4">
                 <div className="flex items-center">
                   <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="ml-1 font-medium">{product.rating}</span>
-                  <span className="text-gray-500 ml-1">({product.reviewCount})</span>
+                  <span className="ml-1 font-body-semibold">{product.rating}</span>
+                  <span className="font-body text-gray-500 ml-1">({product.reviewCount})</span>
                 </div>
-                <span className="text-gray-500">•</span>
-                <span className={`font-medium ${product.stock < 5 ? 'text-red-600' : 'text-green-600'}`}>
+                <span className="font-body text-gray-500">•</span>
+                <span className={`font-body-semibold ${product.stock < 5 ? 'text-red-600' : 'text-green-600'}`}>
                   {product.stock > 0 ? `${product.stock} disponíveis` : 'Esgotado'}
                 </span>
               </div>
@@ -291,28 +291,28 @@ export default function ProductDetail() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm">{product.shop.name.charAt(0)}</span>
+                      <span className="text-blue-600 font-bold text-sm font-body">{product.shop.name.charAt(0)}</span>
                     </div>
                     <div>
-                      <h3 className="font-medium">{product.shop.name}</h3>
+                      <h3 className="font-body-semibold">{product.shop.name}</h3>
                       <div className="flex items-center space-x-1">
                         <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="text-sm">{product.shop.rating}</span>
-                        <span className="text-gray-500 text-sm">({product.shop.reviewCount})</span>
+                        <span className="font-body text-sm">{product.shop.rating}</span>
+                        <span className="font-body text-gray-500 text-sm">({product.shop.reviewCount})</span>
                         {product.shop.isVerified && (
-                          <Badge variant="outline" className="text-xs">Verificado</Badge>
+                          <Badge variant="outline" className="text-xs font-body">Verificado</Badge>
                         )}
                       </div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">Ver Loja</Button>
+                  <Button variant="outline" size="sm" className="font-body">Ver Loja</Button>
                 </div>
               </CardContent>
             </Card>
 
             {/* Quantity Selector */}
             <div className="flex items-center space-x-4">
-              <span className="font-medium">Quantidade:</span>
+              <span className="font-body-semibold">Quantidade:</span>
               <div className="flex items-center border rounded-lg">
                 <Button 
                   variant="ghost" 
@@ -322,7 +322,7 @@ export default function ProductDetail() {
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="px-4 py-2 min-w-12 text-center">{quantity}</span>
+                <span className="px-4 py-2 min-w-12 text-center font-body">{quantity}</span>
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -339,14 +339,14 @@ export default function ProductDetail() {
               <Button 
                 onClick={addToCart}
                 disabled={product.stock === 0}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 font-body-semibold"
               >
                 {product.stock === 0 ? 'Esgotado' : 'Adicionar ao Carrinho'}
               </Button>
               <Button 
                 variant="outline"
                 disabled={product.stock === 0}
-                className="w-full"
+                className="w-full font-body"
               >
                 Comprar Agora
               </Button>
@@ -358,17 +358,17 @@ export default function ProductDetail() {
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Truck className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">Entrega em {product.deliveryInfo.city}</span>
+                    <span className="font-body text-sm">Entrega em {product.deliveryInfo.city}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">
+                    <span className="font-body text-sm">
                       {product.timeDelivery} • MT {deliveryCost.toLocaleString('pt-MZ')}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Package className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">Proteção do Comprador</span>
+                    <span className="font-body text-sm">Proteção do Comprador</span>
                   </div>
                 </div>
               </CardContent>
@@ -380,25 +380,25 @@ export default function ProductDetail() {
         <div className="mt-12">
           <Tabs defaultValue="description" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="description">Descrição</TabsTrigger>
-              <TabsTrigger value="specifications">Especificações</TabsTrigger>
-              <TabsTrigger value="reviews">Avaliações ({product.reviewCount})</TabsTrigger>
+              <TabsTrigger value="description" className="font-body-semibold">Descrição</TabsTrigger>
+              <TabsTrigger value="specifications" className="font-body-semibold">Especificações</TabsTrigger>
+              <TabsTrigger value="reviews" className="font-body-semibold">Avaliações ({product.reviewCount})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="description" className="mt-6">
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Descrição do Produto</h3>
-                  <p className="text-gray-700 leading-relaxed">
+                  <h3 className="font-title text-xl font-body-semibold mb-4">Descrição do Produto</h3>
+                  <p className="font-body text-gray-700 leading-relaxed">
                     {product.description}
                   </p>
                   
-                  <h4 className="font-medium mt-6 mb-3">Recursos Principais:</h4>
+                  <h4 className="font-title text-lg font-body-semibold mt-6 mb-3">Recursos Principais:</h4>
                   <ul className="space-y-2">
                     {product.features.map((feature, index) => (
                       <li key={index} className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                        <span className="text-gray-700">{feature}</span>
+                        <span className="font-body text-gray-700">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -409,12 +409,12 @@ export default function ProductDetail() {
             <TabsContent value="specifications" className="mt-6">
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Especificações Técnicas</h3>
+                  <h3 className="font-title text-xl font-body-semibold mb-4">Especificações Técnicas</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.entries(product.specifications).map(([key, value]) => (
                       <div key={key} className="flex justify-between py-2 border-b">
-                        <span className="font-medium text-gray-700">{key}:</span>
-                        <span className="text-gray-600">{value}</span>
+                        <span className="font-body-semibold text-gray-700">{key}:</span>
+                        <span className="font-body text-gray-600">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -426,8 +426,8 @@ export default function ProductDetail() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-semibold">Avaliações dos Clientes</h3>
-                    <Button variant="outline" size="sm">Escrever Avaliação</Button>
+                    <h3 className="font-title text-xl font-body-semibold">Avaliações dos Clientes</h3>
+                    <Button variant="outline" size="sm" className="font-body">Escrever Avaliação</Button>
                   </div>
                   
                   <div className="space-y-6">
@@ -435,7 +435,7 @@ export default function ProductDetail() {
                       <div key={review.id} className="border-b pb-6 last:border-b-0">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">{review.author}</span>
+                            <span className="font-body-semibold">{review.author}</span>
                             <div className="flex items-center">
                               {[...Array(5)].map((_, i) => (
                                 <Star 
@@ -449,9 +449,9 @@ export default function ProductDetail() {
                               ))}
                             </div>
                           </div>
-                          <span className="text-sm text-gray-500">{review.date}</span>
+                          <span className="font-body text-sm text-gray-500">{review.date}</span>
                         </div>
-                        <p className="text-gray-700">{review.comment}</p>
+                        <p className="font-body text-gray-700">{review.comment}</p>
                       </div>
                     ))}
                   </div>
@@ -463,7 +463,7 @@ export default function ProductDetail() {
 
         {/* Similar Products */}
         <div className="mt-12">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Você também pode gostar</h2>
+          <h2 className="font-title text-2xl font-body-semibold mb-6">Você também pode gostar</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {similarProducts.map((item) => (
               <Card key={item.id} className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -474,23 +474,23 @@ export default function ProductDetail() {
                       alt={item.title}
                       className="w-full h-32 object-cover rounded-lg"
                     />
-                    <Badge className="absolute top-1 left-1 bg-blue-500 text-white text-xs">
+                    <Badge className="absolute top-1 left-1 bg-blue-500 text-white text-xs font-body">
                       <Eye className="h-2 w-2 mr-1" />
                       Ver
                     </Badge>
                   </div>
                   
                   <div className="space-y-2">
-                    <h3 className="font-medium text-sm line-clamp-2">{item.title}</h3>
-                    <p className="text-xs text-gray-600">{item.shop}</p>
+                    <h3 className="font-title text-base font-body-semibold line-clamp-2">{item.title}</h3>
+                    <p className="font-body text-xs text-gray-600">{item.shop}</p>
                     
                     <div className="flex items-center space-x-1">
                       <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                      <span className="text-xs">{item.rating}</span>
+                      <span className="font-body text-xs">{item.rating}</span>
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-blue-600">
+                      <span className="font-title text-sm font-bold text-blue-600 font-body-semibold">
                         MT {item.price.toLocaleString('pt-MZ')}
                       </span>
                       <Button size="sm" className="h-6 w-6 p-0">
