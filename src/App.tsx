@@ -15,6 +15,7 @@ import SellerDashboard from "./components/SellerDashboard";
 import CreateProduct from "./components/CreateProduct";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
+import ProductDetail from "./pages/ProductDetail";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,9 @@ const App = () => (
           {/* Rotas de Comprador */}
           <Route path="/buyer/login" element={<BuyerLogin />} />
           <Route path="/buyer/register" element={<BuyerRegister />} />
+          
+          {/* Rota de Produto Detalhado */}
+          <Route path="/product/:id" element={<ProductDetail />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

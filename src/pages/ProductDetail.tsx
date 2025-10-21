@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { Star, Heart, Share2, ShoppingCart, MapPin, Truck, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Star, Heart, Truck, Clock, Zap, Package, Eye, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const product = {
+const mockProduct = {
   id: 1,
   title: "Smartphone Samsung Galaxy A54 5G",
   description: "Smartphone com tela AMOLED de 6.4 polegadas, processador octa-core, 128GB de armazenamento, 6GB RAM, câmera tripla de 50MP, bateria de 5000mAh.",
   price: 12500,
   originalPrice: 15000,
-  images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
   rating: 4.5,
   reviewCount: 128,
   shop: {
@@ -66,20 +66,100 @@ const product = {
       date: "1 semana atrás",
     },
   ],
+  images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
+  options: [
+    {
+      name: "Cor",
+      values: ["Preto", "Branco", "Azul"]
+    },
+    {
+      name: "Armazenamento",
+      values: ["128GB", "256GB"]
+    }
+  ],
+  timeDelivery: "2-5 dias úteis",
 };
 
+const mockSimilarProducts = [
+  {
+    id: 2,
+    title: "Tênis Esportivo Nike Air Max",
+    price: 2500,
+    image: "/placeholder.svg",
+    shop: "ModaExpress",
+    rating: 4.2,
+  },
+  {
+    id: 3,
+    title: "Panela de Pressão Inox",
+    price: 1800,
+    image: "/placeholder.svg",
+    shop: "CozinhaFeliz",
+    rating: 4.8,
+  },
+  {
+    id: 4,
+    title: "Fone de Ouvido Bluetooth",
+    price: 1999,
+    image: "/placeholder.svg",
+    shop: "TechStore MZ",
+    rating: 4.3,
+  },
+  {
+    id: 5,
+    title: "Smartwatch Xiaomi Mi Band",
+    price: 1299,
+    image: "/placeholder.svg",
+    shop: "TechStore MZ",
+    rating: 4.6,
+  },
+];
+
 export default function ProductDetail() {
+  const { id } = useParams();
+  const [product, setProduct] = useState(mockProduct);
+  const [similarProducts] = useState(mockSimilarProducts);
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [deliveryCost, setDeliveryCost] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
-  const handleAddToCart = () => {
-    // Implementar lógica de adicionar ao carrinho
-    console.log(`Adicionar ${quantity} item(s) ao carrinho`);
+  useEffect(() => {
+    // Em um app real, buscaria o produto pelo ID
+    // getProductById(id).then(setProduct);
+    calculateDelivery(product);
+  }, [id, product]);
+
+  const calculateDelivery = (p) => {
+    const custo = p.price > 5000 ? 0 : 250; // Frete grátis acima de 5000 MZN
+    setDeliveryCost(custo);
   };
 
-  const handleBuyNow = () => {
-    // Implementar lógica de compra imediata
-    console.log(`Comprar agora ${quantity} item(s)`);
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    // Em um app real, salvaria no backend
+  };
+
+  const addToCart = () => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existing = cart.find((item) => item.id === product.id);
+    
+    if (existing) {
+      existing.quantity += quantity;
+    } else {
+      cart.push({ ...product, quantity });
+    }
+    
+    localStorage.setItem("cart", JSON.stringify(cart));
+    alert("Produto adicionado ao carrinho 🛒");
+  };
+
+  const handleOptionSelect = (optionName, value) => {
+    setSelectedOptions({
+      ...selectedOptions,
+      [optionName]: value,
+    });
   };
 
   return (
@@ -150,11 +230,8 @@ export default function ProductDetail() {
                   <Badge variant="secondary">{product.category}</Badge>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="ghost" size="sm">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" onClick={toggleFavorite}>
+                    <Heart className={`h-4 w-4 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
                   </Button>
                 </div>
               </div>
@@ -238,17 +315,16 @@ export default function ProductDetail() {
             {/* Action Buttons */}
             <div className="space-y-3">
               <Button 
-                onClick={handleBuyNow}
+                onClick={addToCart}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
               >
-                Comprar Agora
+                Adicionar ao Carrinho
               </Button>
               <Button 
-                onClick={handleAddToCart}
                 variant="outline"
                 className="w-full"
               >
-                Adicionar ao Carrinho
+                Comprar Agora
               </Button>
             </div>
 
@@ -257,17 +333,17 @@ export default function ProductDetail() {
               <CardContent className="p-4">
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-blue-600" />
+                    <Truck className="h-4 w-4 text-blue-600" />
                     <span className="text-sm">Entrega em {product.deliveryInfo.city}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Truck className="h-4 w-4 text-blue-600" />
+                    <Clock className="h-4 w-4 text-blue-600" />
                     <span className="text-sm">
-                      {product.deliveryInfo.eta} • MT {product.deliveryInfo.fee}
+                      {product.timeDelivery} • MT {deliveryCost.toLocaleString('pt-MZ')}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Shield className="h-4 w-4 text-blue-600" />
+                    <Package className="h-4 w-4 text-blue-600" />
                     <span className="text-sm">Proteção do Comprador</span>
                   </div>
                 </div>
@@ -359,6 +435,49 @@ export default function ProductDetail() {
               </Card>
             </TabsContent>
           </Tabs>
+        </div>
+
+        {/* Similar Products */}
+        <div className="mt-12">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Você também pode gostar</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {similarProducts.map((item) => (
+              <Card key={item.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="relative mb-3">
+                    <img 
+                      src={item.image} 
+                      alt={item.title}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    <Badge className="absolute top-1 left-1 bg-blue-500 text-white text-xs">
+                      <Eye className="h-2 w-2 mr-1" />
+                      Ver
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-medium text-sm line-clamp-2">{item.title}</h3>
+                    <p className="text-xs text-gray-600">{item.shop}</p>
+                    
+                    <div className="flex items-center space-x-1">
+                      <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                      <span className="text-xs">{item.rating}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-blue-600">
+                        MT {item.price.toLocaleString('pt-MZ')}
+                      </span>
+                      <Button size="sm" className="h-6 w-6 p-0">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>
