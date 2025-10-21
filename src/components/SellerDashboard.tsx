@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { 
   Store, 
   Package, 
@@ -38,13 +39,11 @@ export default function SellerDashboard() {
       return;
     }
 
-    // Simulação de fetch, usando dados do localStorage se disponíveis
     const storedProfile = localStorage.getItem("lumi_profile");
     if (storedProfile) {
       setProfile(JSON.parse(storedProfile));
       setLoading(false);
     } else {
-      // Se não houver perfil no localStorage, buscaria do backend
       fetch("/api/seller/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -227,15 +226,17 @@ export default function SellerDashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Plus className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="font-semibold mb-2">Adicionar Produto</h3>
-              <p className="text-sm text-gray-600">Crie um novo produto para sua loja</p>
-            </CardContent>
-          </Card>
+          <Link to="/seller/create-product">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Plus className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="font-semibold mb-2">Adicionar Produto</h3>
+                <p className="text-sm text-gray-600">Crie um novo produto para sua loja</p>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">

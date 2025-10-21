@@ -13,7 +13,7 @@ import BottomNavLumi from "./components/BottomNavLumi";
 import SellerLogin from "./components/SellerLogin";
 import SellerRegister from "./components/SellerRegister";
 import SellerDashboard from "./components/SellerDashboard";
-import CreateProduct from "./components/CreateProduct";
+import CreateProduct from "./pages/CreateProduct";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
 import ProductDetail from "./pages/ProductDetail";
