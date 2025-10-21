@@ -27,6 +27,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newReviewRating, setNewReviewRating] = useState(0);
+  const [activeTab, setActiveTab] = useState("description");
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -251,7 +252,7 @@ export default function ProductDetail() {
         </div>
 
         <div className="mt-12">
-          <Tabs defaultValue="description" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="description" className="font-body-semibold">Descrição</TabsTrigger>
               <TabsTrigger value="specifications" className="font-body-semibold">Especificações</TabsTrigger>

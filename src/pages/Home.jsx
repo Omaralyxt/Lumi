@@ -5,7 +5,7 @@ import { getFeaturedStores } from "../api/stores";
 import AdvancedSearch from "../components/AdvancedSearch";
 import ProductGrid from "../components/ProductGrid";
 import Loading from "../components/Loading";
-import { Star, Package, Store, TrendingUp, Zap, Heart } from "lucide-react";
+import { Star, Package, Store, TrendingUp, Zap, Heart, Search } from "lucide-react";
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -13,6 +13,7 @@ export default function Home() {
   const [suggestedProducts, setSuggestedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,13 +42,20 @@ export default function Home() {
     fetchHomeData();
   }, []);
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+    }
+  };
+
   if (loading) {
     return <Loading />;
   }
 
   if (error) {
     return (
-      <div className="w-full min-h-screen font-body bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="w-full min-h-screen font-body bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <p className="text-red-600 mb-4">{error}</p>
           <button 
@@ -67,15 +75,17 @@ export default function Home() {
       <header className="sticky top-0 z-40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 md:px-8 py-4 flex flex-col items-center">
         <div className="w-full max-w-7xl flex justify-between items-center mb-4">
           <h1 className="font-title text-4xl text-gray-900 dark:text-gray-100 tracking-wide">Lumi</h1>
-          <button
-            className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-xl hover:scale-105 transition"
-            onClick={() => navigate("/favorites")}
-          >
-            <Heart className="text-blue-400" /> Favoritos
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-xl hover:scale-105 transition"
+              onClick={() => navigate("/favorites")}
+            >
+              <Heart className="text-red-500" /> Favoritos
+            </button>
+          </div>
         </div>
         <div className="w-full max-w-2xl">
-          <AdvancedSearch />
+          <AdvancedSearch onSearch={handleSearch} />
         </div>
       </header>
 

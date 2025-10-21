@@ -101,7 +101,7 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }) {
   );
 }
 
-export default function AdvancedSearch() {
+export default function AdvancedSearch({ onSearch }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [filter, setFilter] = useState("products"); // products ou stores
@@ -346,16 +346,14 @@ export default function AdvancedSearch() {
                       </p>
                       <div className="flex items-center gap-1 mt-1">
                         <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`h-3 w-3 ${
-                                i < Math.round(item.avaliacao_media || 0)
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`} 
-                            />
-                          ))}
+                          <Star 
+                            key={i} 
+                            className={`h-3 w-3 ${
+                              i < Math.round(item.avaliacao_media || 0)
+                                ? 'text-yellow-400 fill-current'
+                                : 'text-gray-300'
+                            }`} 
+                          />
                         </div>
                         <span className="font-body text-xs text-gray-500">
                           ({item.avaliacao_media?.toFixed(1) || '0.0'})

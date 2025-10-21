@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { Product } from "@/types/product";
@@ -17,10 +17,23 @@ interface ProductGridProps {
 export default function ProductGrid({ products, title, showStoreInfo = true }: ProductGridProps) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [favorites, setFavorites] = useState(new Set());
 
   const handleBuy = (product: Product) => {
     addToCart(product, 1);
     toast.success(`${product.title} adicionado ao carrinho!`);
+  };
+
+  const toggleFavorite = (productId: number) => {
+    const newFavorites = new Set(favorites);
+    if (newFavorites.has(productId)) {
+      newFavorites.delete(productId);
+      toast.info("Produto removido dos favoritos");
+    } else {
+      newFavorites.add(productId);
+      toast.success("Produto adicionado aos favoritos");
+    }
+    setFavorites(newFavorites);
   };
 
   return (
@@ -43,6 +56,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
                 src={product.images[0]}
                 alt={product.title}
                 className="w-full aspect-square object-cover rounded-t-2xl"
+                loading="lazy"
               />
             </Link>
 
@@ -63,7 +77,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
               )}
               
               <div className="flex items-center mt-2">
-                <Star className="h-3 w-3 text-yellow-400 fill-current mr-1" />
+                <Star className="h-3 w-3 text-yellow-400 fill-current" />
                 <span className="text-xs text-gray-600 dark:text-gray-400">{product.rating.toFixed(1)}</span>
               </div>
 
@@ -82,6 +96,10 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
                 <FavoriteButton 
                   productId={product.id} 
                   className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-2 rounded-full shadow hover:scale-110 hover:shadow-[0_0_10px_rgba(0,170,255,0.5)] transition"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleFavorite(product.id);
+                  }}
                 />
               </div>
             </div>
