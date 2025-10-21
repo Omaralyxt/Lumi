@@ -14,6 +14,7 @@ import SellerLogin from "./components/SellerLogin";
 import SellerRegister from "./components/SellerRegister";
 import SellerDashboard from "./components/SellerDashboard";
 import CreateProduct from "./pages/CreateProduct";
+import SellerProducts from "./pages/SellerProducts";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
 import ProductDetail from "./pages/ProductDetail";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/seller/register" element={<SellerRegister />} />
               <Route path="/seller/dashboard" element={<SellerDashboard />} />
               <Route path="/seller/create-product" element={<CreateProduct />} />
+              <Route path="/seller/products" element={<SellerProducts />} />
               
               {/* Rotas de Comprador */}
               <Route path="/buyer/login" element={<BuyerLogin />} />

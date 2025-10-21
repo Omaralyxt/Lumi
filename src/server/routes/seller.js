@@ -68,4 +68,40 @@ router.post('/products', authMiddleware, requireSeller, (req, res) => {
   });
 });
 
+// Listar produtos do vendedor
+router.get('/products', authMiddleware, requireSeller, (req, res) => {
+  // Simulação de busca de produtos no banco de dados
+  const mockProducts = [
+    {
+      id: 1,
+      title: "Smartphone Samsung Galaxy A54",
+      price: 12500,
+      stock: 15,
+      status: 'active',
+      category: "Eletrónicos",
+      image: "/placeholder.svg",
+    },
+    {
+      id: 2,
+      title: "Tênis Esportivo Nike Air Max",
+      price: 2500,
+      stock: 0,
+      status: 'out_of_stock',
+      category: "Moda",
+      image: "/placeholder.svg",
+    },
+    {
+      id: 3,
+      title: "Panela de Pressão Inox (Rascunho)",
+      price: 1800,
+      stock: 8,
+      status: 'draft',
+      category: "Casa & Cozinha",
+      image: "/placeholder.svg",
+    }
+  ];
+  
+  res.json({ products: mockProducts });
+});
+
 export default router;

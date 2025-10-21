@@ -238,15 +238,17 @@ export default function SellerDashboard() {
             </Card>
           </Link>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Package className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="font-semibold mb-2">Meus Produtos</h3>
-              <p className="text-sm text-gray-600">Gerencie seu catálogo de produtos</p>
-            </CardContent>
-          </Card>
+          <Link to="/seller/products">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Package className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="font-semibold mb-2">Meus Produtos</h3>
+                <p className="text-sm text-gray-600">Gerencie seu catálogo de produtos</p>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
