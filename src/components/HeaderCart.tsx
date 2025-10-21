@@ -1,13 +1,19 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function HeaderCart() {
   const { cartCount } = useCart();
+  const location = useLocation();
+
+  // Se já estiver na página de carrinho ou checkout, não mostrar o botão
+  if (location.pathname === "/cart" || location.pathname === "/checkout") {
+    return null;
+  }
 
   return (
     <Button asChild variant="ghost" size="sm" className="relative">

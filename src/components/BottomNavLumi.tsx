@@ -57,7 +57,7 @@ export default function BottomNavLumi() {
   };
 
   // Ocultar em telas específicas
-  const hideOnPages = ["/login", "/register", "/checkout"];
+  const hideOnPages = ["/login", "/register", "/checkout", "/user-type"];
   const shouldHide = hideOnPages.some(page => location.pathname.startsWith(page));
 
   if (shouldHide) {
