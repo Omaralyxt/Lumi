@@ -90,8 +90,6 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 font-body text-gray-900 dark:text-gray-100 transition-colors duration-500">
-      {/* Header (Removido, pois AppLayout já fornece o cabeçalho principal) */}
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
@@ -124,23 +122,23 @@ export default function FavoritesPage() {
             </div>
 
             {/* Favorites List (using the new card style) */}
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {favoritesList.map((item) => (
                 <div 
                   key={item.id} 
-                  className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent hover:border-[rgba(255,0,0,0.6)] shadow-[0_0_15px_rgba(255,0,0,0.1)] hover:shadow-[0_0_25px_rgba(255,0,0,0.4)] transition-all duration-300 p-4 flex items-center space-x-4"
+                  className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent hover:border-[rgba(255,0,0,0.6)] shadow-[0_0_15px_rgba(255,0,0,0.1)] hover:shadow-[0_0_25px_rgba(255,0,0,0.4)] transition-all duration-300 p-4 flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
                 >
                   {/* Product Image */}
-                  <Link to={`/product/${item.id}`} className="w-24 h-24 flex-shrink-0">
+                  <Link to={`/product/${item.id}`} className="w-full sm:w-24 h-40 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg">
                     <img 
                       src={item.images[0]} 
                       alt={item.title}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
                   </Link>
                   
                   {/* Product Info */}
-                  <div className="flex-1 space-y-1">
+                  <div className="flex-1 space-y-1 w-full">
                     <Link to={`/product/${item.id}`}>
                       <h3 className="font-body font-semibold text-gray-900 line-clamp-2 hover:text-blue-500 dark:text-white dark:hover:text-blue-400">
                         {item.title}
@@ -160,7 +158,7 @@ export default function FavoritesPage() {
                     
                     <div className="flex items-center justify-between pt-2">
                       <div>
-                        <span className="text-lg font-bold text-blue-600">
+                        <span className="text-xl font-bold text-blue-600">
                           MT {item.price.toLocaleString('pt-MZ')}
                         </span>
                         {item.originalPrice && (
@@ -169,10 +167,13 @@ export default function FavoritesPage() {
                           </span>
                         )}
                       </div>
-                      <Button size="sm" onClick={() => handleBuy(item)}>
-                        <ShoppingCart className="h-4 w-4 mr-2" />
+                      <button 
+                        className="btn btn-primary flex items-center gap-2 text-sm"
+                        onClick={() => handleBuy(item)}
+                      >
+                        <ShoppingCart className="h-4 w-4" />
                         Comprar
-                      </Button>
+                      </button>
                     </div>
                   </div>
 
