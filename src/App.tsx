@@ -26,6 +26,7 @@ import OrderHistoryPage from "./pages/OrderHistoryPage";
 import Profile from "./pages/Profile";
 import SellerOrdersPage from "./pages/SellerOrdersPage";
 import StorePage from "./pages/StorePage";
+import CategoryProductsPage from "./pages/CategoryProductsPage"; // Importando a nova página
 import { ThemeProvider } from "./context/ThemeProvider";
 import AppLayout from "./components/AppLayout";
 
@@ -53,6 +54,7 @@ const App = () => (
                   <Route path="/orders" element={<OrderHistoryPage />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/store/:id" element={<StorePage />} />
+                  <Route path="/category/:slug" element={<CategoryProductsPage />} /> {/* Nova Rota */}
                   
                   {/* Rotas de Vendedor */}
                   <Route path="/seller/login" element={<SellerLogin />} />
