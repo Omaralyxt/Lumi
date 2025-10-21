@@ -112,6 +112,7 @@ export default function AdvancedSearch({ onSearch }) {
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [sortBy, setSortBy] = useState("relevance"); // relevance, price-low, price-high, rating
   const searchRef = useRef(null);
 
   // Load categories once
@@ -146,7 +147,18 @@ export default function AdvancedSearch({ onSearch }) {
       if (filter === "products") {
         searchProducts(query, selectedCategory, priceRange, minRating).then(
           (res) => {
-            setResults(res);
+            // Aplicar ordenação
+            let sortedResults = [...res];
+            
+            if (sortBy === "price-low") {
+              sortedResults.sort((a, b) => a.price - b.price);
+            } else if (sortBy === "price-high") {
+              sortedResults.sort((a, b) => b.price - a.price);
+            } else if (sortBy === "rating") {
+              sortedResults.sort((a, b) => b.rating - a.rating);
+            }
+            
+            setResults(sortedResults);
             setLoading(false);
           }
         );
@@ -159,7 +171,7 @@ export default function AdvancedSearch({ onSearch }) {
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [query, filter, selectedCategory, priceRange, minRating]);
+  }, [query, filter, selectedCategory, priceRange, minRating, sortBy]);
 
   const clearSearch = useCallback(() => {
     setQuery("");
@@ -172,6 +184,7 @@ export default function AdvancedSearch({ onSearch }) {
     setSelectedCategory("");
     setMinRating(0);
     setPriceRange([0, 100000]);
+    setSortBy("relevance");
   }, []);
 
   return (
@@ -299,6 +312,25 @@ export default function AdvancedSearch({ onSearch }) {
         </div>
       )}
 
+      {/* Ordenação */}
+      {filter === "products" && showResults && (
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-sm text-gray-600">
+            {results.length} {results.length === 1 ? 'resultado' : 'resultados'} encontrados
+          </span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-body"
+          >
+            <option value="relevance">Relevância</option>
+            <option value="price-low">Preço: Menor para Maior</option>
+            <option value="price-high">Preço: Maior para Menor</option>
+            <option value="rating">Melhor Avaliados</option>
+          </select>
+        </div>
+      )}
+
       {/* Resultados */}
       {showResults && (
         <div className="mt-2 bg-white rounded-xl shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
@@ -331,46 +363,43 @@ export default function AdvancedSearch({ onSearch }) {
                   >
                     <div className="relative">
                       <img
-                        src={item.imagem_url}
-                        alt={item.nome}
+                        src={item.images[0]}
+                        alt={item.title}
                         className="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform"
                       />
-                      {item.preco_promocional && (
+                      {item.originalPrice && item.originalPrice > item.price && (
                         <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
-                          -{Math.round((1 - item.preco_promocional / item.preco) * 100)}%
+                          -{Math.round((1 - item.price / item.originalPrice) * 100)}%
                         </div>
                       )}
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <p className="font-title text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                        {item.nome}
+                        {item.title}
                       </p>
                       <div className="flex items-center gap-1 mt-1">
                         <div className="flex items-center">
                           <Star 
                             key={i} 
                             className={`h-3 w-3 ${
-                              i < Math.round(item.avaliacao_media || 0)
+                              i < Math.round(item.rating || 0)
                                 ? 'text-yellow-400 fill-current'
                                 : 'text-gray-300'
                             }`} 
                           />
                         </div>
                         <span className="font-body text-xs text-gray-500">
-                          ({item.avaliacao_media?.toFixed(1) || '0.0'})
+                          ({(item.rating || 0).toFixed(1)})
                         </span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
                         <p className="font-title text-sm font-bold text-blue-600">
-                          {item.preco_promocional 
-                            ? `MT ${item.preco_promocional.toLocaleString('pt-MZ')}`
-                            : `MT ${item.preco.toLocaleString('pt-MZ')}`
-                          }
+                          {item.price.toLocaleString('pt-MZ')} MT
                         </p>
-                        {item.preco_promocional && (
+                        {item.originalPrice && item.originalPrice > item.price && (
                           <p className="font-body text-xs text-gray-500 line-through">
-                            MT {item.preco.toLocaleString('pt-MZ')}
+                            {item.originalPrice.toLocaleString('pt-MZ')} MT
                           </p>
                         )}
                       </div>
@@ -383,13 +412,13 @@ export default function AdvancedSearch({ onSearch }) {
                 ) : (
                   <Link
                     key={item.id}
-                    to={`/loja/${item.id}`}
+                    to={`/store/${item.id}`}
                     className="flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors group"
                   >
                     <div className="relative">
                       <img
                         src={item.logo_url}
-                        alt={item.nome}
+                        alt={item.name}
                         className="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform"
                       />
                       {item.is_verified && (
@@ -401,7 +430,7 @@ export default function AdvancedSearch({ onSearch }) {
                     
                     <div className="flex-1 min-w-0">
                       <p className="font-title text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                        {item.nome}
+                        {item.name}
                       </p>
                       <div className="flex items-center gap-4 mt-1">
                         <div className="flex items-center">
@@ -411,7 +440,7 @@ export default function AdvancedSearch({ onSearch }) {
                           </span>
                         </div>
                         <span className="font-body text-xs text-gray-500">
-                          {item.produtos_count} produtos
+                          {item.products_count} produtos
                         </span>
                       </div>
                     </div>

@@ -17,13 +17,16 @@ import { CompareProvider } from "./context/CompareContext";
 import ComparePage from "./pages/ComparePage";
 import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/Checkout";
+import CheckoutPage from "./pages/CheckoutPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import Profile from "./pages/Profile";
 import StorePage from "./pages/StorePage";
 import CategoryProductsPage from "./pages/CategoryProductsPage";
 import { ThemeProvider } from "./context/ThemeProvider";
 import AppLayout from "./components/AppLayout";
+import { OrdersProvider } from "./context/OrdersContext";
+import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import { ReviewsProvider } from "./context/ReviewsContext";
 
 const queryClient = new QueryClient();
 
@@ -33,40 +36,47 @@ const App = () => (
       <TooltipProvider>
         <CompareProvider>
           <CartProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppLayout>
-                <Routes>
-                  <Route path="/" element={
-                    localStorage.getItem("lumi_token") ? <Navigate to="/home" /> : <UserTypeSelection />
-                  } />
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/categories" element={<CategoriesPage />} />
-                  <Route path="/offers" element={<OffersPage />} />
-                  <Route path="/favorites" element={<FavoritesPage />} />
-                  <Route path="/account" element={<AccountPage />} />
-                  <Route path="/user-type" element={<UserTypeSelection />} />
-                  <Route path="/compare" element={<ComparePage />} />
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/checkout" element={<CheckoutPage />} />
-                  <Route path="/orders" element={<OrderHistoryPage />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/store/:id" element={<StorePage />} />
-                  <Route path="/category/:slug" element={<CategoryProductsPage />} />
-                  
-                  {/* Rotas de Comprador */}
-                  <Route path="/buyer/login" element={<BuyerLogin />} />
-                  <Route path="/buyer/register" element={<BuyerRegister />} />
-                  
-                  {/* Rota de Produto Detalhado */}
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AppLayout>
-            </BrowserRouter>
+            <OrdersProvider>
+              <ReviewsProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppLayout>
+                    <Routes>
+                      <Route path="/" element={
+                        localStorage.getItem("lumi_token") ? <Navigate to="/home" /> : <UserTypeSelection />
+                      } />
+                      <Route path="/home" element={<Home />} />
+                      <Route path="/categories" element={<CategoriesPage />} />
+                      <Route path="/offers" element={<OffersPage />} />
+                      <Route path="/favorites" element={<FavoritesPage />} />
+                      <Route path="/account" element={<AccountPage />} />
+                      <Route path="/user-type" element={<UserTypeSelection />} />
+                      <Route path="/compare" element={<ComparePage />} />
+                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/orders" element={<OrderHistoryPage />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/store/:id" element={<StorePage />} />
+                      <Route path="/category/:slug" element={<CategoryProductsPage />} />
+                      
+                      {/* Rotas de Comprador */}
+                      <Route path="/buyer/login" element={<BuyerLogin />} />
+                      <Route path="/buyer/register" element={<BuyerRegister />} />
+                      
+                      {/* Rota de Produto Detalhado */}
+                      <Route path="/product/:id" element={<ProductDetail />} />
+                      
+                      {/* Rota de Confirmação de Pedido */}
+                      <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
+                      
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </AppLayout>
+                </BrowserRouter>
+              </ReviewsProvider>
+            </OrdersProvider>
           </CartProvider>
         </CompareProvider>
       </TooltipProvider>

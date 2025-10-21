@@ -15,7 +15,10 @@ interface CartContextType {
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
+  cartSubtotal: number;
   cartTotal: number;
+  deliveryFee: number;
+  getDeliveryInfo: (city: string) => { fee: number; eta: string };
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -86,10 +89,38 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
-  const cartTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const cartSubtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  
+  // Calcular frete baseado na cidade do primeiro item
+  const getDeliveryInfo = (city: string) => {
+    const deliveryFees: Record<string, { fee: number; eta: string }> = {
+      "Maputo": { fee: 150, eta: "1-2 dias" },
+      "Matola": { fee: 200, eta: "2-3 dias" },
+      "Beira": { fee: 300, eta: "3-4 dias" },
+      "Nampula": { fee: 350, eta: "4-5 dias" },
+      "Nacala": { fee: 400, eta: "5-6 dias" },
+      "default": { fee: 250, eta: "3-5 dias" }
+    };
+    
+    return deliveryFees[city] || deliveryFees.default;
+  };
+  
+  const deliveryFee = cartItems.length > 0 ? getDeliveryInfo(cartItems[0].deliveryInfo.city).fee : 0;
+  const cartTotal = cartSubtotal + deliveryFee;
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal }}>
+    <CartContext.Provider value={{ 
+      cartItems, 
+      addToCart, 
+      removeFromCart, 
+      updateQuantity, 
+      clearCart, 
+      cartCount, 
+      cartSubtotal,
+      cartTotal,
+      deliveryFee,
+      getDeliveryInfo
+    }}>
       {children}
     </CartContext.Provider>
   );
