@@ -16,7 +16,7 @@ const navItems: NavItem[] = [
     id: "home",
     icon: Home,
     label: "Home",
-    path: "/",
+    path: "/home",
   },
   {
     id: "categories",

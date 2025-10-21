@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import NotFound from "./pages/NotFound";
 import CategoriesPage from "./pages/CategoriesPage";
@@ -44,7 +44,10 @@ const App = () => (
             <BrowserRouter>
               <AppLayout>
                 <Routes>
-                  <Route path="/" element={<Home />} />
+                  <Route path="/" element={
+                    localStorage.getItem("lumi_token") ? <Navigate to="/home" /> : <UserTypeSelection />
+                  } />
+                  <Route path="/home" element={<Home />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/offers" element={<OffersPage />} />
                   <Route path="/favorites" element={<FavoritesPage />} />
