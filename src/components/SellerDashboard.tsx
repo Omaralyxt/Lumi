@@ -17,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getSellerOrders } from "@/api/orders";
+import { Order } from "@/types/order";
 
 interface Profile {
   id: string;
@@ -27,42 +29,58 @@ interface Profile {
   created_at: string;
 }
 
+const statusColors: Record<Order['status'], string> = {
+  pending: "bg-yellow-100 text-yellow-800",
+  confirmed: "bg-blue-100 text-blue-800",
+  shipped: "bg-purple-100 text-purple-800",
+  delivered: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-800",
+};
+
 export default function SellerDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("lumi_token");
-    if (!token) {
-      window.location.href = "/seller/login";
-      return;
-    }
+    const fetchData = async () => {
+      const token = localStorage.getItem("lumi_token");
+      if (!token) {
+        window.location.href = "/seller/login";
+        return;
+      }
 
-    const storedProfile = localStorage.getItem("lumi_profile");
-    if (storedProfile) {
-      setProfile(JSON.parse(storedProfile));
-      setLoading(false);
-    } else {
-      fetch("/api/seller/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.profile) {
-            setProfile(data.profile);
-            localStorage.setItem("lumi_profile", JSON.stringify(data.profile));
+      try {
+        // Fetch profile
+        const storedProfile = localStorage.getItem("lumi_profile");
+        if (storedProfile) {
+          setProfile(JSON.parse(storedProfile));
+        } else {
+          const profileRes = await fetch("/api/seller/me", { headers: { Authorization: `Bearer ${token}` } });
+          const profileData = await profileRes.json();
+          if (profileData.profile) {
+            setProfile(profileData.profile);
+            localStorage.setItem("lumi_profile", JSON.stringify(profileData.profile));
           } else {
-            setError("Sessão expirada. Por favor, faça login novamente.");
-            setTimeout(() => window.location.href = "/seller/login", 2000);
+            throw new Error("Sessão expirada.");
           }
-        })
-        .catch(() => {
-          setError("Erro ao carregar dados. Tente novamente.");
-          setTimeout(() => window.location.href = "/seller/login", 2000);
-        })
-        .finally(() => setLoading(false));
-    }
+        }
+
+        // Fetch orders
+        const sellerOrders = await getSellerOrders("seller-123"); // Simulado
+        setOrders(sellerOrders);
+
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Erro ao carregar dados.";
+        setError(`${message} Por favor, faça login novamente.`);
+        setTimeout(() => window.location.href = "/seller/login", 2000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleLogout = () => {
@@ -71,14 +89,10 @@ export default function SellerDashboard() {
     window.location.href = "/seller/login";
   };
 
-  const stats = {
-    todaySales: 45000,
-    totalSales: 234000,
-    pendingOrders: 8,
-    totalProducts: 45,
-    rating: 4.7,
-    totalReviews: 128,
-  };
+  // Calculated Stats
+  const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed').length;
+  const recentOrders = orders.slice(0, 3);
 
   if (loading) {
     return (
@@ -140,49 +154,15 @@ export default function SellerDashboard() {
           </p>
         </div>
 
-        {/* Store Info */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Store className="h-8 w-8 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{profile?.store_name}</h2>
-                <p className="text-gray-600">Membro desde {new Date(profile?.created_at || Date.now()).toLocaleDateString('pt-MZ')}</p>
-                <Badge variant="secondary" className="mt-2">
-                  Vendedor Verificado
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Vendas Hoje</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    MT {stats.todaySales.toLocaleString('pt-MZ')}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
                   <p className="text-sm font-medium text-gray-600">Total de Vendas</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    MT {stats.totalSales.toLocaleString('pt-MZ')}
+                    MT {totalSales.toLocaleString('pt-MZ')}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -197,7 +177,7 @@ export default function SellerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pedidos Pendentes</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.pendingOrders}</p>
+                  <p className="text-2xl font-bold text-gray-900">{pendingOrders}</p>
                 </div>
                 <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                   <Clock className="h-6 w-6 text-yellow-600" />
@@ -210,9 +190,23 @@ export default function SellerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
+                  <p className="text-sm font-medium text-gray-600">Total de Pedidos</p>
+                  <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <ShoppingCart className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-600">Avaliação Média</p>
                   <div className="flex items-center space-x-1">
-                    <p className="text-2xl font-bold text-gray-900">{stats.rating}</p>
+                    <p className="text-2xl font-bold text-gray-900">4.7</p>
                     <span className="text-yellow-500">★</span>
                   </div>
                 </div>
@@ -272,11 +266,35 @@ export default function SellerDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-gray-500">
-              <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>Nenhum pedido recente</p>
-              <p className="text-sm">Seus pedidos aparecerão aqui</p>
-            </div>
+            {recentOrders.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Nenhum pedido recente</p>
+                <p className="text-sm">Seus pedidos aparecerão aqui</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium">{order.shippingAddress.name}</p>
+                      <p className="text-sm text-gray-600">{order.id} • {new Date(order.orderDate).toLocaleDateString('pt-MZ')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">MT {order.total.toLocaleString('pt-MZ')}</p>
+                      <Badge className={statusColors[order.status]}>
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                <Link to="/seller/orders">
+                  <Button variant="outline" className="w-full mt-4">
+                    Ver Todos os Pedidos
+                  </Button>
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
