@@ -28,54 +28,57 @@ import OrderHistoryPage from "./pages/OrderHistoryPage";
 import Profile from "./pages/Profile";
 import SellerOrdersPage from "./pages/SellerOrdersPage";
 import StorePage from "./pages/StorePage";
+import { ThemeProvider } from "./context/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <CompareProvider>
-        <CartProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/offers" element={<OffersPage />} />
-              <Route path="/favorites" element={<FavoritesPage />} />
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/compare" element={<ComparePage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/orders" element={<OrderHistoryPage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/store/:id" element={<StorePage />} />
-              
-              {/* Rotas de Vendedor */}
-              <Route path="/seller/login" element={<SellerLogin />} />
-              <Route path="/seller/register" element={<SellerRegister />} />
-              <Route path="/seller/dashboard" element={<SellerDashboard />} />
-              <Route path="/seller/create-product" element={<CreateProduct />} />
-              <Route path="/seller/products" element={<SellerProducts />} />
-              <Route path="/seller/orders" element={<SellerOrdersPage />} />
-              
-              {/* Rotas de Comprador */}
-              <Route path="/buyer/login" element={<BuyerLogin />} />
-              <Route path="/buyer/register" element={<BuyerRegister />} />
-              
-              {/* Rota de Produto Detalhado */}
-              <Route path="/product/:id" element={<ProductDetail />} />
-              
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <BottomNavLumi />
-            <CompareBar />
-          </BrowserRouter>
-        </CartProvider>
-      </CompareProvider>
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <TooltipProvider>
+        <CompareProvider>
+          <CartProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/offers" element={<OffersPage />} />
+                <Route path="/favorites" element={<FavoritesPage />} />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/compare" element={<ComparePage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/orders" element={<OrderHistoryPage />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/store/:id" element={<StorePage />} />
+                
+                {/* Rotas de Vendedor */}
+                <Route path="/seller/login" element={<SellerLogin />} />
+                <Route path="/seller/register" element={<SellerRegister />} />
+                <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                <Route path="/seller/create-product" element={<CreateProduct />} />
+                <Route path="/seller/products" element={<SellerProducts />} />
+                <Route path="/seller/orders" element={<SellerOrdersPage />} />
+                
+                {/* Rotas de Comprador */}
+                <Route path="/buyer/login" element={<BuyerLogin />} />
+                <Route path="/buyer/register" element={<BuyerRegister />} />
+                
+                {/* Rota de Produto Detalhado */}
+                <Route path="/product/:id" element={<ProductDetail />} />
+                
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <BottomNavLumi />
+              <CompareBar />
+            </BrowserRouter>
+          </CartProvider>
+        </CompareProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
