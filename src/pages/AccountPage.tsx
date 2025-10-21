@@ -5,23 +5,16 @@ import {
   User, 
   ShoppingBag, 
   Heart, 
-  Star, 
-  Truck,
   Settings,
-  Edit,
   LogOut,
   Shield,
-  Moon,
-  Sun,
   Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BiometricRegistration from "@/components/BiometricRegistration";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeToggle } from "@/context/ThemeContext"; // Importação atualizada
 
 const user = {
   id: "user-12345",
@@ -41,18 +34,16 @@ const user = {
 };
 
 export default function AccountPage() {
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-40 dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Minha Conta</h1>
-            {/* Removido ThemeToggle do cabeçalho */}
-          </div>
-        </div>
-      </div>
+  // O cabeçalho principal é gerenciado pelo LumiLayout, então removemos o cabeçalho duplicado aqui.
 
+  const handleLogout = () => {
+    localStorage.removeItem("lumi_token");
+    localStorage.removeItem("lumi_profile");
+    window.location.href = "/buyer/login";
+  };
+
+  return (
+    <div className="min-h-screen bg-transparent pb-20">
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* User Profile Header */}
@@ -157,7 +148,7 @@ export default function AccountPage() {
         </div>
 
         <div className="mt-8">
-          <Button variant="destructive">
+          <Button variant="destructive" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>
