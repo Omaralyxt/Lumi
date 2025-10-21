@@ -8,8 +8,8 @@ const mockProducts: Product[] = [
     description: "Smartphone com tela AMOLED de 6.4 polegadas, processador octa-core, 128GB de armazenamento, 6GB RAM, câmera tripla de 50MP, bateria de 5000mAh.",
     price: 12500,
     originalPrice: 15000,
-    rating: 4.5,
-    reviewCount: 128,
+    rating: 4.2,
+    reviewCount: 3,
     shop: {
       name: "TechStore MZ",
       rating: 4.7,
@@ -50,17 +50,28 @@ const mockProducts: Product[] = [
       {
         id: 1,
         rating: 5,
-        comment: "Excelente produto, entrega rápida e em perfeito estado!",
+        comment: "Excelente produto, entrega rápida e em perfeito estado! As fotos não fazem jus à qualidade da tela.",
         author: "João Silva",
         date: "2 dias atrás",
+        verifiedPurchase: true,
+        images: ["/placeholder.svg"]
       },
       {
         id: 2,
         rating: 4,
-        comment: "Bom smartphone, só a bateria poderia durar um pouco mais.",
+        comment: "Bom smartphone, só a bateria poderia durar um pouco mais. No geral, estou satisfeito.",
         author: "Maria Santos",
         date: "1 semana atrás",
+        verifiedPurchase: true,
       },
+      {
+        id: 3,
+        rating: 3,
+        comment: "É um bom aparelho, mas esperava mais pelo preço. A câmera em baixa luz não é tão boa.",
+        author: "Pedro Costa",
+        date: "2 semanas atrás",
+        verifiedPurchase: false,
+      }
     ],
     qa: [
       {

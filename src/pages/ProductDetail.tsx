@@ -4,25 +4,26 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductById, getSimilarProducts } from "../api/products";
 import { Product } from "../types/product";
-import { Star, Heart, Truck, Clock, Zap, Package, Eye, ShoppingCart, Plus, Minus, HelpCircle, Send } from "lucide-react";
+import { Star, Heart, Truck, CheckCircle, Package, ShoppingCart, Plus, Minus, HelpCircle, Send, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
-  const [deliveryCost, setDeliveryCost] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [newReviewRating, setNewReviewRating] = useState(0);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -32,8 +33,6 @@ export default function ProductDetail() {
         
         const productData = await getProductById(id || "");
         setProduct(productData);
-        
-        calculateDelivery(productData);
         
         const similarData = await getSimilarProducts(productData.category, productData.id);
         setSimilarProducts(similarData);
@@ -46,32 +45,33 @@ export default function ProductDetail() {
       }
     };
 
-    fetchProductData();
+    if (id) {
+      fetchProductData();
+    }
   }, [id]);
 
-  const calculateDelivery = (p: Product) => {
-    const custo = p.price > 5000 ? 0 : 250;
-    setDeliveryCost(custo);
-  };
-
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-  };
+  const toggleFavorite = () => setIsFavorite(!isFavorite);
 
   const addToCart = () => {
     if (!product) return;
-    
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existing = cart.find((item: any) => item.id === product.id);
-    
     if (existing) {
       existing.quantity += quantity;
     } else {
       cart.push({ ...product, quantity });
     }
-    
     localStorage.setItem("cart", JSON.stringify(cart));
     alert("Produto adicionado ao carrinho 🛒");
+  };
+
+  const getRatingDistribution = () => {
+    if (!product) return [];
+    const distribution = [0, 0, 0, 0, 0];
+    product.reviews.forEach(review => {
+      distribution[review.rating - 1]++;
+    });
+    return distribution.map(count => (count / product.reviewCount) * 100).reverse();
   };
 
   if (loading) {
@@ -82,24 +82,11 @@ export default function ProductDetail() {
     );
   }
 
-  if (error) {
+  if (error || !product) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-sm">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.href = "/"}>
-            Voltar para Home
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="text-center p-8 bg-white rounded-lg shadow-sm">
-          <p className="text-gray-600 mb-4">Produto não encontrado</p>
+          <p className="text-red-600 mb-4">{error || "Produto não encontrado"}</p>
           <Button onClick={() => window.location.href = "/"}>
             Voltar para Home
           </Button>
@@ -203,7 +190,7 @@ export default function ProductDetail() {
               <div className="flex items-center space-x-4 mt-4">
                 <div className="flex items-center">
                   <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="ml-1 font-body-semibold">{product.rating}</span>
+                  <span className="ml-1 font-body-semibold">{product.rating.toFixed(1)}</span>
                   <span className="font-body text-gray-500 ml-1">({product.reviewCount})</span>
                 </div>
                 <span className="font-body text-gray-500">•</span>
@@ -309,7 +296,75 @@ export default function ProductDetail() {
             <TabsContent value="reviews" className="mt-6">
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="font-title text-xl font-body-semibold">Avaliações dos Clientes</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1 border-b md:border-b-0 md:border-r pb-8 md:pb-0 md:pr-8">
+                      <h3 className="font-title text-xl font-body-semibold mb-4">Avaliação Geral</h3>
+                      <div className="flex items-center space-x-2 mb-4">
+                        <p className="text-4xl font-bold">{product.rating.toFixed(1)}</p>
+                        <div>
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => <Star key={i} className={`h-5 w-5 ${i < Math.round(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />)}
+                          </div>
+                          <p className="text-sm text-gray-600">Baseado em {product.reviewCount} avaliações</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {getRatingDistribution().map((percentage, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <span className="text-sm font-medium">{5 - index} estrelas</span>
+                            <Progress value={percentage} className="w-full h-2" />
+                            <span className="text-sm text-gray-500 w-10 text-right">{percentage.toFixed(0)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <h3 className="font-title text-xl font-body-semibold mb-4">Avaliações dos Clientes</h3>
+                      <div className="space-y-6 mb-8">
+                        {product.reviews.map(review => (
+                          <div key={review.id} className="border-b pb-6 last:border-b-0">
+                            <div className="flex items-center mb-2">
+                              <div className="flex">
+                                {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />)}
+                              </div>
+                              {review.verifiedPurchase && <Badge variant="secondary" className="ml-3 text-green-700 bg-green-100"><CheckCircle className="h-3 w-3 mr-1" /> Compra Verificada</Badge>}
+                            </div>
+                            <p className="text-gray-700 mb-2">{review.comment}</p>
+                            <div className="flex space-x-2">
+                              {review.images?.map((img, i) => <img key={i} src={img} alt="review image" className="w-16 h-16 rounded-md object-cover" />)}
+                            </div>
+                            <p className="text-sm text-gray-500 mt-2">por {review.author} • {review.date}</p>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-title text-xl font-body-semibold mb-4">Deixe sua avaliação</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Sua nota</Label>
+                            <div className="flex space-x-1 mt-1">
+                              {[...Array(5)].map((_, i) => (
+                                <button key={i} onClick={() => setNewReviewRating(i + 1)}>
+                                  <Star className={`h-6 w-6 transition-colors ${i < newReviewRating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="review-comment">Seu comentário</Label>
+                            <Textarea id="review-comment" placeholder="Conte-nos sobre sua experiência..." />
+                          </div>
+                          <div>
+                            <Label htmlFor="review-images">Adicionar fotos</Label>
+                            <Input id="review-images" type="file" multiple />
+                          </div>
+                          <Button>Enviar Avaliação</Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -331,11 +386,11 @@ export default function ProductDetail() {
                         {item.answer && (
                           <div className="flex items-start space-x-3 mt-4 pl-8">
                             <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-gray-600 font-bold text-sm">{item.author.charAt(0)}</span>
+                              <span className="text-gray-600 font-bold text-sm">{product.shop.name.charAt(0)}</span>
                             </div>
                             <div>
                               <p className="font-body text-gray-800">{item.answer}</p>
-                              <p className="text-sm text-gray-500">respondido por {item.author} • {item.date}</p>
+                              <p className="text-sm text-gray-500">respondido por {product.shop.name} • {item.date}</p>
                             </div>
                           </div>
                         )}

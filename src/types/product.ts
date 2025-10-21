@@ -4,6 +4,8 @@ export interface Review {
   comment: string;
   author: string;
   date: string;
+  verifiedPurchase?: boolean;
+  images?: string[];
 }
 
 export interface QA {
