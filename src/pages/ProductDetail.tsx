@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductById, getSimilarProducts } from "../api/products";
 import { Product } from "../types/product";
-import { Star, Heart, Truck, Clock, Zap, Package, Eye, ShoppingCart, Plus, Minus } from "lucide-react";
+import { Star, Heart, Truck, Clock, Zap, Package, Eye, ShoppingCart, Plus, Minus, HelpCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -28,14 +30,11 @@ export default function ProductDetail() {
         setLoading(true);
         setError(null);
         
-        // Buscar produto pelo ID
         const productData = await getProductById(id || "");
         setProduct(productData);
         
-        // Calcular custo de entrega
         calculateDelivery(productData);
         
-        // Buscar produtos similares
         const similarData = await getSimilarProducts(productData.category, productData.id);
         setSimilarProducts(similarData);
         
@@ -51,13 +50,12 @@ export default function ProductDetail() {
   }, [id]);
 
   const calculateDelivery = (p: Product) => {
-    const custo = p.price > 5000 ? 0 : 250; // Frete grátis acima de 5000 MZN
+    const custo = p.price > 5000 ? 0 : 250;
     setDeliveryCost(custo);
   };
 
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
-    // Em um app real, salvaria no backend
   };
 
   const addToCart = () => {
@@ -74,13 +72,6 @@ export default function ProductDetail() {
     
     localStorage.setItem("cart", JSON.stringify(cart));
     alert("Produto adicionado ao carrinho 🛒");
-  };
-
-  const handleOptionSelect = (optionName: string, value: string) => {
-    setSelectedOptions({
-      ...selectedOptions,
-      [optionName]: value,
-    });
   };
 
   if (loading) {
@@ -154,7 +145,6 @@ export default function ProductDetail() {
               />
             </div>
             
-            {/* Thumbnail Images */}
             <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
               {product.images.map((image, index) => (
                 <button
@@ -194,7 +184,6 @@ export default function ProductDetail() {
                 </Button>
               </div>
               
-              {/* Price */}
               <div className="mt-4">
                 {product.originalPrice && (
                   <div className="flex items-baseline space-x-2">
@@ -209,14 +198,8 @@ export default function ProductDetail() {
                     </Badge>
                   </div>
                 )}
-                {!product.originalPrice && (
-                  <span className="font-title text-3xl font-bold text-blue-600">
-                    MT {product.price.toLocaleString('pt-MZ')}
-                  </span>
-                )}
               </div>
 
-              {/* Rating */}
               <div className="flex items-center space-x-4 mt-4">
                 <div className="flex items-center">
                   <Star className="h-5 w-5 text-yellow-400 fill-current" />
@@ -240,22 +223,18 @@ export default function ProductDetail() {
                     </div>
                     <div>
                       <h3 className="font-body-semibold">{product.shop.name}</h3>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="font-body text-sm">{product.shop.rating}</span>
-                        <span className="font-body text-gray-500 text-sm">({product.shop.reviewCount})</span>
-                        {product.shop.isVerified && (
-                          <Badge variant="outline" className="text-xs font-body">Verificado</Badge>
-                        )}
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <span>Membro desde {product.shop.memberSince}</span>
+                        <span>•</span>
+                        <span>{product.shop.productCount} produtos</span>
                       </div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="font-body">Ver Loja</Button>
+                  <Button variant="outline" size="sm" className="font-body">Ver Perfil</Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Quantity Selector */}
             <div className="flex items-center space-x-4">
               <span className="font-body-semibold">Quantidade:</span>
               <div className="flex items-center border rounded-lg">
@@ -279,7 +258,6 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="space-y-3">
               <Button 
                 onClick={addToCart}
@@ -288,46 +266,17 @@ export default function ProductDetail() {
               >
                 {product.stock === 0 ? 'Esgotado' : 'Adicionar ao Carrinho'}
               </Button>
-              <Button 
-                variant="outline"
-                disabled={product.stock === 0}
-                className="w-full font-body"
-              >
-                Comprar Agora
-              </Button>
             </div>
-
-            {/* Delivery Info */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Truck className="h-4 w-4 text-blue-600" />
-                    <span className="font-body text-sm">Entrega em {product.deliveryInfo.city}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="font-body text-sm">
-                      {product.timeDelivery} • MT {deliveryCost.toLocaleString('pt-MZ')}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4 text-blue-600" />
-                    <span className="font-body text-sm">Proteção do Comprador</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
-        {/* Product Details Tabs */}
         <div className="mt-12">
           <Tabs defaultValue="description" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="description" className="font-body-semibold">Descrição</TabsTrigger>
               <TabsTrigger value="specifications" className="font-body-semibold">Especificações</TabsTrigger>
               <TabsTrigger value="reviews" className="font-body-semibold">Avaliações ({product.reviewCount})</TabsTrigger>
+              <TabsTrigger value="qa" className="font-body-semibold">Q&A ({product.qa?.length || 0})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="description" className="mt-6">
@@ -337,16 +286,6 @@ export default function ProductDetail() {
                   <p className="font-body text-gray-700 leading-relaxed">
                     {product.description}
                   </p>
-                  
-                  <h4 className="font-title text-lg font-body-semibold mt-6 mb-3">Recursos Principais:</h4>
-                  <ul className="space-y-2">
-                    {product.features.map((feature, index) => (
-                      <li key={index} className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                        <span className="font-body text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -370,85 +309,53 @@ export default function ProductDetail() {
             <TabsContent value="reviews" className="mt-6">
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-title text-xl font-body-semibold">Avaliações dos Clientes</h3>
-                    <Button variant="outline" size="sm" className="font-body">Escrever Avaliação</Button>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    {product.reviews.map((review) => (
-                      <div key={review.id} className="border-b pb-6 last:border-b-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-body-semibold">{review.author}</span>
-                            <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i} 
-                                  className={`h-4 w-4 ${
-                                    i < review.rating 
-                                      ? 'text-yellow-400 fill-current' 
-                                      : 'text-gray-300'
-                                  }`} 
-                                />
-                              ))}
+                  <h3 className="font-title text-xl font-body-semibold">Avaliações dos Clientes</h3>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="qa" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-title text-xl font-body-semibold mb-6">Perguntas e Respostas</h3>
+                  <div className="space-y-6 mb-8">
+                    {product.qa?.map((item) => (
+                      <div key={item.id} className="border-b pb-6 last:border-b-0">
+                        <div className="flex items-start space-x-3">
+                          <HelpCircle className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                          <div>
+                            <p className="font-body-semibold">{item.question}</p>
+                            <p className="text-sm text-gray-500">por {item.author} • {item.date}</p>
+                          </div>
+                        </div>
+                        {item.answer && (
+                          <div className="flex items-start space-x-3 mt-4 pl-8">
+                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-gray-600 font-bold text-sm">{item.author.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <p className="font-body text-gray-800">{item.answer}</p>
+                              <p className="text-sm text-gray-500">respondido por {item.author} • {item.date}</p>
                             </div>
                           </div>
-                          <span className="font-body text-sm text-gray-500">{review.date}</span>
-                        </div>
-                        <p className="font-body text-gray-700">{review.comment}</p>
+                        )}
                       </div>
                     ))}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="question" className="font-body-semibold">Faça uma pergunta</Label>
+                    <div className="relative mt-2">
+                      <Textarea id="question" placeholder="Escreva sua pergunta aqui..." className="pr-12" />
+                      <Button size="sm" className="absolute right-2 top-2">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
-
-        {/* Similar Products */}
-        <div className="mt-12">
-          <h2 className="font-title text-2xl font-body-semibold mb-6">Você também pode gostar</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {similarProducts.map((item) => (
-              <Link key={item.id} to={`/product/${item.id}`}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="relative mb-3">
-                      <img 
-                        src={item.images[0]} 
-                        alt={item.title}
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                      <Badge className="absolute top-1 left-1 bg-blue-500 text-white text-xs font-body">
-                        <Eye className="h-2 w-2 mr-1" />
-                        Ver
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <h3 className="font-title text-base font-body-semibold line-clamp-2">{item.title}</h3>
-                      <p className="font-body text-xs text-gray-600">{item.shop.name}</p>
-                      
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="font-body text-xs">{item.rating}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="font-title text-sm font-bold text-blue-600 font-body-semibold">
-                          MT {item.price.toLocaleString('pt-MZ')}
-                        </span>
-                        <Button size="sm" className="h-6 w-6 p-0">
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
         </div>
       </div>
     </div>

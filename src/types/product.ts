@@ -6,11 +6,21 @@ export interface Review {
   date: string;
 }
 
+export interface QA {
+  id: number;
+  question: string;
+  answer: string | null;
+  author: string;
+  date: string;
+}
+
 export interface Shop {
   name: string;
   rating: number;
   reviewCount: number;
   isVerified: boolean;
+  memberSince?: string;
+  productCount?: number;
 }
 
 export interface DeliveryInfo {
@@ -39,6 +49,7 @@ export interface Product {
   specifications: Record<string, string>;
   deliveryInfo: DeliveryInfo;
   reviews: Review[];
+  qa?: QA[];
   images: string[];
   options: Option[];
   timeDelivery: string;

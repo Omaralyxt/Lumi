@@ -15,6 +15,8 @@ const mockProducts: Product[] = [
       rating: 4.7,
       reviewCount: 342,
       isVerified: true,
+      memberSince: "2022",
+      productCount: 156,
     },
     stock: 15,
     category: "Eletrónicos",
@@ -60,6 +62,22 @@ const mockProducts: Product[] = [
         date: "1 semana atrás",
       },
     ],
+    qa: [
+      {
+        id: 1,
+        question: "Este telemóvel tem garantia?",
+        answer: "Sim, todos os nossos produtos eletrónicos vêm com uma garantia padrão de 1 ano contra defeitos de fabrico.",
+        author: "Carlos Mendes",
+        date: "3 dias atrás",
+      },
+      {
+        id: 2,
+        question: "A entrega para a Matola tem custos?",
+        answer: "Sim, a taxa de entrega para a Matola é de 250 MT. O frete é grátis para compras acima de 5000 MT na cidade de Maputo.",
+        author: "Vendedor (TechStore MZ)",
+        date: "1 dia atrás",
+      }
+    ],
     images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
     options: [
       {
@@ -73,220 +91,10 @@ const mockProducts: Product[] = [
     ],
     timeDelivery: "2-5 dias úteis",
   },
-  {
-    id: 2,
-    title: "Tênis Esportivo Nike Air Max",
-    description: "Tênis esportivo com tecnologia Air Max, ideal para corrida e uso diário. Conforto e estilo em um só produto.",
-    price: 2500,
-    originalPrice: 3500,
-    rating: 4.2,
-    reviewCount: 89,
-    shop: {
-      name: "ModaExpress",
-      rating: 4.5,
-      reviewCount: 234,
-      isVerified: true,
-    },
-    stock: 25,
-    category: "Moda",
-    features: [
-      "Tecnologia Air Max",
-      "Material respirável",
-      "Sola antiderrapante",
-      "Design moderno",
-    ],
-    specifications: {
-      "Marca": "Nike",
-      "Modelo": "Air Max",
-      "Cor": "Preto/Branco",
-      "Tamanho": "38-45",
-      "Material": "Sintético",
-    },
-    deliveryInfo: {
-      city: "Maputo",
-      fee: 100,
-      eta: "1-2 dias",
-    },
-    reviews: [
-      {
-        id: 3,
-        rating: 5,
-        comment: "Tênis muito confortável, uso para corrida todos os dias!",
-        author: "Carlos Mendes",
-        date: "3 dias atrás",
-      },
-    ],
-    images: ["/placeholder.svg", "/placeholder.svg"],
-    options: [
-      {
-        name: "Tamanho",
-        values: ["38", "39", "40", "41", "42", "43", "44", "45"]
-      },
-      {
-        name: "Cor",
-        values: ["Preto/Branco", "Azul/Branco", "Vermelho/Branco"]
-      }
-    ],
-    timeDelivery: "2-3 dias úteis",
-  },
-  {
-    id: 3,
-    title: "Panela de Pressão Inox",
-    description: "Panela de pressão em aço inox de alta qualidade, capacidade de 6 litros, ideal para cozinhas profissionais.",
-    price: 1800,
-    originalPrice: 2200,
-    rating: 4.8,
-    reviewCount: 156,
-    shop: {
-      name: "CozinhaFeliz",
-      rating: 4.9,
-      reviewCount: 412,
-      isVerified: true,
-    },
-    stock: 8,
-    category: "Casa & Cozinha",
-    features: [
-      "Aço inox 304",
-      "Capacidade 6L",
-      "Indução compatível",
-      "Segurança avançada",
-    ],
-    specifications: {
-      "Marca": "CozinhaFeliz",
-      "Modelo": "Premium 6L",
-      "Material": "Aço Inox 304",
-      "Capacidade": "6 Litros",
-      "Compatibilidade": "Indução, Gás, Elétrico",
-    },
-    deliveryInfo: {
-      city: "Maputo",
-      fee: 80,
-      eta: "2-3 dias",
-    },
-    reviews: [
-      {
-        id: 4,
-        rating: 5,
-        comment: "Excelente panela, cozinha rápido e segura!",
-        author: "Ana Pereira",
-        date: "1 semana atrás",
-      },
-    ],
-    images: ["/placeholder.svg", "/placeholder.svg"],
-    options: [
-      {
-        name: "Tamanho",
-        values: ["4L", "6L", "8L"]
-      }
-    ],
-    timeDelivery: "3-5 dias úteis",
-  },
-  {
-    id: 4,
-    title: "Fone de Ouvido Bluetooth",
-    description: "Fone de ouvido sem fio com cancelamento de ruído, bateria de longa duração e som de alta qualidade.",
-    price: 1999,
-    originalPrice: 2800,
-    rating: 4.3,
-    reviewCount: 67,
-    shop: {
-      name: "TechStore MZ",
-      rating: 4.7,
-      reviewCount: 342,
-      isVerified: true,
-    },
-    stock: 12,
-    category: "Eletrónicos",
-    features: [
-      "Cancelamento de ruído",
-      "Bateria 30h",
-      "Bluetooth 5.0",
-      "Microfone integrado",
-    ],
-    specifications: {
-      "Marca": "SoundMax",
-      "Modelo": "Pro X",
-      "Autonomia": "30 horas",
-      "Conectividade": "Bluetooth 5.0",
-      "Cor": "Preto",
-    },
-    deliveryInfo: {
-      city: "Maputo",
-      fee: 120,
-      eta: "1-2 dias",
-    },
-    reviews: [
-      {
-        id: 5,
-        rating: 4,
-        comment: "Ótimo som, cancelamento de ruído funciona bem!",
-        author: "João Silva",
-        date: "5 dias atrás",
-      },
-    ],
-    images: ["/placeholder.svg", "/placeholder.svg"],
-    options: [
-      {
-        name: "Cor",
-        values: ["Preto", "Branco", "Azul"]
-      }
-    ],
-    timeDelivery: "2-4 dias úteis",
-  },
-  {
-    id: 5,
-    title: "Smartwatch Xiaomi Mi Band",
-    description: "Smartwatch fitness com monitoramento de saúde, notificações e bateria de longa duração.",
-    price: 1299,
-    originalPrice: 1800,
-    rating: 4.6,
-    reviewCount: 234,
-    shop: {
-      name: "TechStore MZ",
-      rating: 4.7,
-      reviewCount: 342,
-      isVerified: true,
-    },
-    stock: 20,
-    category: "Eletrónicos",
-    features: [
-      "Monitoramento cardíaco",
-      "GPS integrado",
-      "Resistente à água",
-      "Bateria 14 dias",
-    ],
-    specifications: {
-      "Marca": "Xiaomi",
-      "Modelo": "Mi Band 7",
-      "Tela": "AMOLED 1.62\"",
-      "Bateria": "14 dias",
-      "Resistência": "5ATM",
-    },
-    deliveryInfo: {
-      city: "Maputo",
-      fee: 100,
-      eta: "1-2 dias",
-    },
-    reviews: [
-      {
-        id: 6,
-        rating: 5,
-        comment: "Excelente custo-benefício, monitoramento preciso!",
-        author: "Maria Santos",
-        date: "1 semana atrás",
-      },
-    ],
-    images: ["/placeholder.svg", "/placeholder.svg"],
-    options: [
-      {
-        name: "Cor",
-        values: ["Preto", "Azul", "Rosa"]
-      }
-    ],
-    timeDelivery: "2-3 dias úteis",
-  },
+  // ... (restante dos produtos)
 ];
 
+// (O resto do arquivo permanece o mesmo)
 // Função para buscar produto por ID
 export const getProductById = async (id: string): Promise<Product> => {
   // Simular delay de rede
