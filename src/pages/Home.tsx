@@ -8,6 +8,7 @@ import { Star, Package, TrendingUp, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import CompareButton from "@/components/CompareButton";
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -96,8 +97,8 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredProducts.map((product) => (
-              <Link key={product.id} to={`/product/${product.id}`}>
-                <Card className="hover:shadow-lg transition-shadow">
+              <Card key={product.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                <Link to={`/product/${product.id}`} className="flex-grow">
                   <CardContent className="p-4">
                     <div className="relative mb-4">
                       <img 
@@ -121,25 +122,23 @@ export default function Home() {
                         <span className="font-body text-sm text-gray-500">{product.stock} disponíveis</span>
                       </div>
                       
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-title text-xl font-bold text-blue-600 font-body-semibold">
-                            MT {product.price.toLocaleString('pt-MZ')}
+                      <div>
+                        <span className="font-title text-xl font-bold text-blue-600 font-body-semibold">
+                          MT {product.price.toLocaleString('pt-MZ')}
+                        </span>
+                        {product.originalPrice && (
+                          <span className="font-body text-sm text-gray-500 line-through ml-2">
+                            MT {product.originalPrice.toLocaleString('pt-MZ')}
                           </span>
-                          {product.originalPrice && (
-                            <span className="font-body text-sm text-gray-500 line-through ml-2">
-                              MT {product.originalPrice.toLocaleString('pt-MZ')}
-                            </span>
-                          )}
-                        </div>
-                        <Button size="sm" className="h-8 w-8 p-0">
-                          <Package className="h-4 w-4" />
-                        </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              </Link>
+                </Link>
+                <div className="p-4 pt-0">
+                  <CompareButton product={product} className="w-full" />
+                </div>
+              </Card>
             ))}
           </div>
         </div>
@@ -153,8 +152,8 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {allProducts.map((product) => (
-              <Link key={product.id} to={`/product/${product.id}`}>
-                <Card className="hover:shadow-lg transition-shadow">
+              <Card key={product.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                <Link to={`/product/${product.id}`} className="flex-grow">
                   <CardContent className="p-4">
                     <div className="relative mb-3">
                       <img 
@@ -182,14 +181,14 @@ export default function Home() {
                         <span className="font-title text-sm font-bold text-blue-600 font-body-semibold">
                           MT {product.price.toLocaleString('pt-MZ')}
                         </span>
-                        <Button size="sm" className="h-6 w-6 p-0">
-                          <Package className="h-3 w-3" />
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              </Link>
+                </Link>
+                <div className="p-4 pt-0">
+                  <CompareButton product={product} className="w-full" />
+                </div>
+              </Card>
             ))}
           </div>
         </div>
