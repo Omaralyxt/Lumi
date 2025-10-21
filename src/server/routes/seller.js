@@ -25,23 +25,25 @@ function requireSeller(req, res, next) {
 }
 
 router.get('/me', authMiddleware, requireSeller, async (req, res) => {
-  const supabase = req.app.get('supabase');
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', req.user.id)
-    .single();
+  // Simulação de busca de perfil
+  const profile = {
+    id: req.user.id,
+    full_name: "Vendedor Teste",
+    store_name: "Loja do Vendedor",
+    email: req.user.email,
+    phone: "+258840000000",
+    user_type: "seller",
+    created_at: new Date().toISOString()
+  };
   
   res.json({ profile });
 });
 
 // Simulação de upload de imagem
 router.post('/upload-image', authMiddleware, requireSeller, (req, res) => {
-  // Em um app real, você usaria uma lib como multer para processar o upload
-  // e salvar no Supabase Storage ou similar.
   res.json({ 
     message: 'Upload simulado com sucesso',
-    url: '/placeholder.svg' // Retorna uma URL de placeholder
+    url: '/placeholder.svg'
   });
 });
 
@@ -53,7 +55,6 @@ router.post('/products', authMiddleware, requireSeller, (req, res) => {
     return res.status(400).json({ error: 'Campos obrigatórios faltando' });
   }
 
-  // Simula a criação do produto no banco de dados
   const newProduct = {
     id: Date.now(),
     seller_id: req.user.id,

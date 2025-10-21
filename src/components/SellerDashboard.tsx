@@ -38,23 +38,32 @@ export default function SellerDashboard() {
       return;
     }
 
-    fetch("/api/seller/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.profile) {
-          setProfile(data.profile);
-        } else {
-          setError("Sessão expirada. Por favor, faça login novamente.");
+    // Simulação de fetch, usando dados do localStorage se disponíveis
+    const storedProfile = localStorage.getItem("lumi_profile");
+    if (storedProfile) {
+      setProfile(JSON.parse(storedProfile));
+      setLoading(false);
+    } else {
+      // Se não houver perfil no localStorage, buscaria do backend
+      fetch("/api/seller/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.profile) {
+            setProfile(data.profile);
+            localStorage.setItem("lumi_profile", JSON.stringify(data.profile));
+          } else {
+            setError("Sessão expirada. Por favor, faça login novamente.");
+            setTimeout(() => window.location.href = "/seller/login", 2000);
+          }
+        })
+        .catch(() => {
+          setError("Erro ao carregar dados. Tente novamente.");
           setTimeout(() => window.location.href = "/seller/login", 2000);
-        }
-      })
-      .catch(() => {
-        setError("Erro ao carregar dados. Tente novamente.");
-        setTimeout(() => window.location.href = "/seller/login", 2000);
-      })
-      .finally(() => setLoading(false));
+        })
+        .finally(() => setLoading(false));
+    }
   }, []);
 
   const handleLogout = () => {
@@ -141,7 +150,7 @@ export default function SellerDashboard() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{profile?.store_name}</h2>
-                <p className="text-gray-600">Membro desde {new Date(profile?.created_at).toLocaleDateString('pt-MZ')}</p>
+                <p className="text-gray-600">Membro desde {new Date(profile?.created_at || Date.now()).toLocaleDateString('pt-MZ')}</p>
                 <Badge variant="secondary" className="mt-2">
                   Vendedor Verificado
                 </Badge>
