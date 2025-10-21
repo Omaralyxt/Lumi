@@ -1,29 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { MapPin, CreditCard, Wallet, Truck, Lock, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, CreditCard, Truck, Lock, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-
-const orderItems = [
-  {
-    id: 1,
-    title: "Smartphone Samsung Galaxy A54 5G",
-    price: 12500,
-    quantity: 1,
-    image: "/placeholder.svg",
-  },
-  {
-    id: 2,
-    title: "Capa de Silicone",
-    price: 350,
-    quantity: 2,
-    image: "/placeholder.svg",
-  },
-];
+import { useCart } from "@/context/CartContext";
 
 const deliveryAddresses = [
   {
@@ -74,24 +57,32 @@ const paymentMethods = [
 ];
 
 export default function Checkout() {
+  const { cartItems, cartTotal } = useCart();
+  const navigate = useNavigate();
   const [selectedAddress, setSelectedAddress] = useState(deliveryAddresses[0]);
   const [selectedPayment, setSelectedPayment] = useState("mpesa");
-  const [newAddress, setNewAddress] = useState({
-    name: "",
-    phone: "",
-    address: "",
-    city: "Maputo",
-    district: "KaMubukwana",
-  });
 
-  const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      navigate('/cart');
+    }
+  }, [cartItems, navigate]);
+
+  const subtotal = cartTotal;
   const deliveryFee = 150;
   const total = subtotal + deliveryFee;
 
   const handlePlaceOrder = () => {
-    // Implementar lógica de criação do pedido
-    console.log("Criar pedido com:", { selectedAddress, selectedPayment, total });
+    console.log("Criar pedido com:", { selectedAddress, selectedPayment, total, items: cartItems });
   };
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>Seu carrinho está vazio. Redirecionando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -209,10 +200,10 @@ export default function Checkout() {
                 <h2 className="text-lg font-semibold mb-4">Resumo do Pedido</h2>
                 
                 <div className="space-y-4">
-                  {orderItems.map((item) => (
+                  {cartItems.map((item) => (
                     <div key={item.id} className="flex items-center space-x-4">
                       <img 
-                        src={item.image} 
+                        src={item.images[0]} 
                         alt={item.title}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
