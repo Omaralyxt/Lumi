@@ -12,7 +12,8 @@ import {
   LogOut,
   Shield,
   Moon,
-  Sun
+  Sun,
+  Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +48,7 @@ export default function AccountPage() {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Minha Conta</h1>
-            <ThemeToggle />
+            {/* Removido ThemeToggle do cabeçalho */}
           </div>
         </div>
       </div>
@@ -124,6 +125,23 @@ export default function AccountPage() {
           </Card>
         </div>
 
+        {/* Configurações de Aparência */}
+        <div className="mt-8">
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center dark:text-white">
+                <Palette className="h-5 w-5 mr-2" />
+                Aparência
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <p className="text-gray-700 dark:text-gray-300">Alternar entre tema claro e escuro.</p>
+              <ThemeToggle />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Segurança da Conta */}
         <div className="mt-8">
           <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
