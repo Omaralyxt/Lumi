@@ -10,11 +10,6 @@ import OffersPage from "./pages/OffersPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import AccountPage from "./pages/AccountPage";
 import UserTypeSelection from "./components/UserTypeSelection";
-import SellerLogin from "./components/SellerLogin";
-import SellerRegister from "./components/SellerRegister";
-import SellerDashboard from "./components/SellerDashboard";
-import CreateProduct from "./pages/CreateProduct";
-import SellerProducts from "./pages/SellerProducts";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
 import ProductDetail from "./pages/ProductDetail";
@@ -25,7 +20,6 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/Checkout";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import Profile from "./pages/Profile";
-import SellerOrdersPage from "./pages/SellerOrdersPage";
 import StorePage from "./pages/StorePage";
 import CategoryProductsPage from "./pages/CategoryProductsPage";
 import { ThemeProvider } from "./context/ThemeProvider";
@@ -60,14 +54,6 @@ const App = () => (
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/store/:id" element={<StorePage />} />
                   <Route path="/category/:slug" element={<CategoryProductsPage />} />
-                  
-                  {/* Rotas de Vendedor */}
-                  <Route path="/seller/login" element={<SellerLogin />} />
-                  <Route path="/seller/register" element={<SellerRegister />} />
-                  <Route path="/seller/dashboard" element={<SellerDashboard />} />
-                  <Route path="/seller/create-product" element={<CreateProduct />} />
-                  <Route path="/seller/products" element={<SellerProducts />} />
-                  <Route path="/seller/orders" element={<SellerOrdersPage />} />
                   
                   {/* Rotas de Comprador */}
                   <Route path="/buyer/login" element={<BuyerLogin />} />

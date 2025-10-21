@@ -2,26 +2,26 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Store, User, ArrowLeft } from "lucide-react";
+import { User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function UserTypeSelection() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (userType: 'buyer' | 'seller') => {
+  const handleLogin = () => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      window.location.href = `/${userType}/login`;
+      window.location.href = "/buyer/login";
     }, 300);
   };
 
-  const handleRegister = (userType: 'buyer' | 'seller') => {
+  const handleRegister = () => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      window.location.href = `/${userType}/register`;
+      window.location.href = "/buyer/register";
     }, 300);
   };
 
@@ -34,7 +34,7 @@ export default function UserTypeSelection() {
             <span className="text-white font-bold text-2xl">L</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Lumi</h1>
-          <p className="text-gray-600 mt-2">Escolha como você quer usar a plataforma</p>
+          <p className="text-gray-600 mt-2">Encontre produtos incríveis em Moçambique</p>
         </div>
 
         {/* User Type Selection */}
@@ -53,7 +53,7 @@ export default function UserTypeSelection() {
               </p>
               <div className="space-y-2">
                 <Button 
-                  onClick={() => handleLogin('buyer')} 
+                  onClick={handleLogin} 
                   disabled={isLoading}
                   className="w-full"
                 >
@@ -61,43 +61,11 @@ export default function UserTypeSelection() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => handleRegister('buyer')} 
+                  onClick={handleRegister} 
                   disabled={isLoading}
                   className="w-full"
                 >
                   Criar Conta de Comprador
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Seller Card */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Store className="h-8 w-8 text-purple-600" />
-              </div>
-              <CardTitle className="text-xl">Vendedor</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-600 text-center">
-                Venda seus produtos para milhões de clientes em todo o país com baixas taxas.
-              </p>
-              <div className="space-y-2">
-                <Button 
-                  onClick={() => handleLogin('seller')} 
-                  disabled={isLoading}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  {isLoading ? "Carregando..." : "Entrar como Vendedor"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleRegister('seller')} 
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  Criar Conta de Vendedor
                 </Button>
               </div>
             </CardContent>

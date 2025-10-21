@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Search, Heart, User, Package } from "lucide-react";
+import { Home, Search, Heart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
   },
   {
     id: "offers",
-    icon: Package,
+    icon: Heart,
     label: "Ofertas",
     path: "/offers",
   },

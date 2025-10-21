@@ -43,7 +43,7 @@ const user = {
 
 export default function AccountPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userType, setUserType] = useState<'buyer' | 'seller' | null>(null);
+  const [userType, setUserType] = useState<'buyer' | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("lumi_token");
@@ -52,7 +52,7 @@ export default function AccountPage() {
     if (token && profile) {
       setIsLoggedIn(true);
       const parsedProfile = JSON.parse(profile);
-      setUserType(parsedProfile.user_type === 'seller' ? 'seller' : 'buyer');
+      setUserType(parsedProfile.user_type === 'buyer' ? 'buyer' : null);
     }
   }, []);
 
@@ -103,7 +103,7 @@ export default function AccountPage() {
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h1>
               <div className="flex items-center space-x-4 mt-2">
-                <Badge variant="secondary">{userType === 'seller' ? 'Vendedor' : 'Comprador'}</Badge>
+                <Badge variant="secondary">Comprador</Badge>
                 <span className="text-sm text-gray-500">Membro desde {user.joinedAt}</span>
               </div>
             </div>
@@ -112,67 +112,33 @@ export default function AccountPage() {
 
         {/* Menu Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {userType === 'buyer' && (
-            <>
-              <Link to="/orders">
-                <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
-                  <CardContent className="p-6 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <ShoppingBag className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold dark:text-white">Meus Pedidos</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Acompanhe seus pedidos</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-              <Link to="/favorites">
-                <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
-                  <CardContent className="p-6 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                      <Heart className="h-6 w-6 text-red-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold dark:text-white">Favoritos</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Veja seus produtos salvos</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </>
-          )}
+          <Link to="/orders">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <ShoppingBag className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold dark:text-white">Meus Pedidos</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Acompanhe seus pedidos</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
           
-          {userType === 'seller' && (
-            <>
-              <Link to="/seller/dashboard">
-                <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
-                  <CardContent className="p-6 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <ShoppingBag className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold dark:text-white">Dashboard do Vendedor</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Gerencie sua loja</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-              <Link to="/seller/products">
-                <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
-                  <CardContent className="p-6 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                      <User className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold dark:text-white">Meus Produtos</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Gerencie seu catálogo</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </>
-          )}
+          <Link to="/favorites">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Heart className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold dark:text-white">Favoritos</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Veja seus produtos salvos</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Link to="/profile">
             <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
@@ -187,6 +153,7 @@ export default function AccountPage() {
               </CardContent>
             </Card>
           </Link>
+          
           <Card className="hover:shadow-md transition-shadow cursor-pointer dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-6 flex items-center space-x-4">
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
