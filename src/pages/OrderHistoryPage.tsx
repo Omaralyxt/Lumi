@@ -86,7 +86,7 @@ export default function OrderHistoryPage() {
             <div className="text-center py-12 text-red-600">{error}</div>
           ) : orders.length === 0 ? (
             <div className="text-center py-12">
-              <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <ShoppingBag className="h-16 w-16 mx-auto text-gray-300 mb-4" />
               <h2 className="text-lg font-semibold">Nenhum pedido encontrado</h2>
               <p className="text-gray-600 mb-4">Seus pedidos aparecerão aqui assim que você fizer uma compra.</p>
               <Button asChild>

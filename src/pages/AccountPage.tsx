@@ -103,8 +103,8 @@ export default function AccountPage() {
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h1>
               <div className="flex items-center space-x-4 mt-2">
-                <Badge variant="secondary">Comprador</Badge>
-                <span className="text-sm text-gray-500">Membro desde {user.joinedAt}</span>
+                <Badge variant="secondary">Membro desde {user.joinedAt}</Badge>
+                <span className="text-sm text-gray-500">{user.orders} pedidos</span>
               </div>
             </div>
           </div>

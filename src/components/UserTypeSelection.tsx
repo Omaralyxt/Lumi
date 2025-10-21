@@ -39,17 +39,17 @@ export default function UserTypeSelection() {
 
         {/* User Type Selection */}
         <div className="space-y-6">
-          {/* Buyer Card */}
+          {/* User Card */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <User className="h-8 w-8 text-green-600" />
               </div>
-              <CardTitle className="text-xl">Comprador</CardTitle>
+              <CardTitle className="text-xl">Entrar</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center">
-                Compre produtos de milhares de lojas em todo o país com segurança e praticidade.
+                Acesse sua conta para continuar comprando e gerenciar seus pedidos.
               </p>
               <div className="space-y-2">
                 <Button 
@@ -57,7 +57,7 @@ export default function UserTypeSelection() {
                   disabled={isLoading}
                   className="w-full"
                 >
-                  {isLoading ? "Carregando..." : "Entrar como Comprador"}
+                  {isLoading ? "Carregando..." : "Entrar na Conta"}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -65,7 +65,7 @@ export default function UserTypeSelection() {
                   disabled={isLoading}
                   className="w-full"
                 >
-                  Criar Conta de Comprador
+                  Criar Nova Conta
                 </Button>
               </div>
             </CardContent>
