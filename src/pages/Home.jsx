@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getFeaturedProducts, getAllProducts } from "../api/products";
 import { getFeaturedStores } from "../api/stores";
@@ -17,20 +17,20 @@ export default function Home() {
   const navigate = useNavigate();
 
   // Memoize the search handler to prevent unnecessary re-renders
-  const handleSearch = useCallback((query) => {
+  const handleSearch = useMemo(() => (query) => {
     setSearchQuery(query);
     if (query.trim()) {
       navigate(`/search?q=${encodeURIComponent(query)}`);
     }
   }, [navigate]);
 
-  // Fetch data with error handling
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
         setError(null);
         
+        // Fetch all data in parallel
         const [products, stores, allProducts] = await Promise.all([
           getFeaturedProducts(),
           getFeaturedStores(),
@@ -52,7 +52,7 @@ export default function Home() {
     fetchHomeData();
   }, []);
 
-  // Memoize the featured products section
+  // Memoize sections to prevent unnecessary re-renders
   const featuredProductsSection = useMemo(() => (
     <section className="mt-8">
       <div className="flex items-center justify-between mb-4">
@@ -69,7 +69,6 @@ export default function Home() {
     </section>
   ), [featuredProducts]);
 
-  // Memoize the featured stores section
   const featuredStoresSection = useMemo(() => (
     <section className="mt-12">
       <div className="flex items-center justify-between mb-4">
@@ -94,7 +93,6 @@ export default function Home() {
                 src={store.logo_url}
                 alt={store.name}
                 className="w-20 h-20 object-cover rounded-full group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
               />
               {store.is_verified && (
                 <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
@@ -120,7 +118,6 @@ export default function Home() {
     </section>
   ), [featuredStores]);
 
-  // Memoize the suggested products section
   const suggestedProductsSection = useMemo(() => (
     <section className="mt-12 mb-12">
       <div className="flex items-center justify-between mb-4">

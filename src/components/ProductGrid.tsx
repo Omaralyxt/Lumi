@@ -12,10 +12,9 @@ interface ProductGridProps {
   products: Product[];
   title?: string;
   showStoreInfo?: boolean;
-  loading?: boolean;
 }
 
-export default function ProductGrid({ products, title, showStoreInfo = true, loading = false }: ProductGridProps) {
+export default function ProductGrid({ products, title, showStoreInfo = true }: ProductGridProps) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [favorites, setFavorites] = useState(new Set());
@@ -41,23 +40,6 @@ export default function ProductGrid({ products, title, showStoreInfo = true, loa
 
   // Memoize the product cards to prevent unnecessary re-renders
   const productCards = useMemo(() => {
-    if (loading) {
-      return Array.from({ length: 8 }).map((_, index) => (
-        <div key={index} className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-gray-200 animate-pulse">
-          <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-t-2xl"></div>
-          <div className="p-4 space-y-3">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-            <div className="flex justify-between items-center">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-              <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-      ));
-    }
-
     return products.map((product) => (
       <div
         key={product.id}
@@ -118,7 +100,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true, loa
         </div>
       </div>
     ));
-  }, [products, loading, handleBuy, toggleFavorite, showStoreInfo]);
+  }, [products, handleBuy, toggleFavorite, showStoreInfo]);
 
   return (
     <div className="font-body">

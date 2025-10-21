@@ -3,6 +3,7 @@
 import { Home, Search, Heart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 type NavItem = {
   id: string;
@@ -65,29 +66,43 @@ export default function BottomNavLumi() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+    <motion.div 
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50"
+    >
       <div className="flex justify-around items-center py-2 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
           
           return (
-            <Button
+            <motion.div
               key={item.id}
-              variant="ghost"
-              className={`flex flex-col items-center justify-center h-16 w-16 px-2 py-1 ${
-                active ? "text-blue-600" : "text-gray-500"
-              }`}
-              onClick={() => handleNavigate(item.path)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Icon className={`h-5 w-5 mb-1 ${active ? "text-blue-600" : "text-gray-500"}`} />
-              <span className={`text-xs ${active ? "text-blue-600 font-medium" : "text-gray-500"}`}>
-                {item.label}
-              </span>
-            </Button>
+              <Button
+                variant="ghost"
+                className={`flex flex-col items-center justify-center h-16 w-16 px-2 py-1 ${
+                  active ? "text-blue-600" : "text-gray-500"
+                }`}
+                onClick={() => handleNavigate(item.path)}
+              >
+                <motion.div
+                  animate={{ rotate: active ? 360 : 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Icon className={`h-5 w-5 mb-1 ${active ? "text-blue-600" : "text-gray-500"}`} />
+                </motion.div>
+                <span className={`text-xs ${active ? "text-blue-600 font-medium" : "text-gray-500"}`}>
+                  {item.label}
+                </span>
+              </Button>
+            </motion.div>
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }
