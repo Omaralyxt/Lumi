@@ -2,138 +2,55 @@
 
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { getProductById, getSimilarProducts } from "../api/products";
+import { Product } from "../types/product";
 import { Star, Heart, Truck, Clock, Zap, Package, Eye, ShoppingCart, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const mockProduct = {
-  id: 1,
-  title: "Smartphone Samsung Galaxy A54 5G",
-  description: "Smartphone com tela AMOLED de 6.4 polegadas, processador octa-core, 128GB de armazenamento, 6GB RAM, câmera tripla de 50MP, bateria de 5000mAh.",
-  price: 12500,
-  originalPrice: 15000,
-  rating: 4.5,
-  reviewCount: 128,
-  shop: {
-    name: "TechStore MZ",
-    rating: 4.7,
-    reviewCount: 342,
-    isVerified: true,
-  },
-  stock: 15,
-  category: "Eletrónicos",
-  features: [
-    "Tela AMOLED 6.4\"",
-    "Processador Octa-core",
-    "128GB Armazenamento",
-    "6GB RAM",
-    "Câmera Tripla 50MP",
-    "Bateria 5000mAh",
-    "5G",
-  ],
-  specifications: {
-    "Marca": "Samsung",
-    "Modelo": "Galaxy A54 5G",
-    "Cor": "Preto",
-    "Armazenamento": "128GB",
-    "RAM": "6GB",
-    "Tela": "6.4\" AMOLED",
-    "Câmera Traseira": "50MP + 12MP + 5MP",
-    "Câmera Frontal": "32MP",
-    "Bateria": "5000mAh",
-    "Sistema Operativo": "Android 13",
-  },
-  deliveryInfo: {
-    city: "Maputo",
-    fee: 150,
-    eta: "1-2 dias",
-  },
-  reviews: [
-    {
-      id: 1,
-      rating: 5,
-      comment: "Excelente produto, entrega rápida e em perfeito estado!",
-      author: "João Silva",
-      date: "2 dias atrás",
-    },
-    {
-      id: 2,
-      rating: 4,
-      comment: "Bom smartphone, só a bateria poderia durar um pouco mais.",
-      author: "Maria Santos",
-      date: "1 semana atrás",
-    },
-  ],
-  images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
-  options: [
-    {
-      name: "Cor",
-      values: ["Preto", "Branco", "Azul"]
-    },
-    {
-      name: "Armazenamento",
-      values: ["128GB", "256GB"]
-    }
-  ],
-  timeDelivery: "2-5 dias úteis",
-};
-
-const mockSimilarProducts = [
-  {
-    id: 2,
-    title: "Tênis Esportivo Nike Air Max",
-    price: 2500,
-    image: "/placeholder.svg",
-    shop: "ModaExpress",
-    rating: 4.2,
-  },
-  {
-    id: 3,
-    title: "Panela de Pressão Inox",
-    price: 1800,
-    image: "/placeholder.svg",
-    shop: "CozinhaFeliz",
-    rating: 4.8,
-  },
-  {
-    id: 4,
-    title: "Fone de Ouvido Bluetooth",
-    price: 1999,
-    image: "/placeholder.svg",
-    shop: "TechStore MZ",
-    rating: 4.3,
-  },
-  {
-    id: 5,
-    title: "Smartwatch Xiaomi Mi Band",
-    price: 1299,
-    image: "/placeholder.svg",
-    shop: "TechStore MZ",
-    rating: 4.6,
-  },
-];
-
 export default function ProductDetail() {
   const { id } = useParams();
-  const [product, setProduct] = useState(mockProduct);
-  const [similarProducts] = useState(mockSimilarProducts);
-  const [selectedOptions, setSelectedOptions] = useState({});
+  const [product, setProduct] = useState<Product | null>(null);
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [deliveryCost, setDeliveryCost] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Em um app real, buscaria o produto pelo ID
-    // getProductById(id).then(setProduct);
-    calculateDelivery(product);
-    setLoading(false);
-  }, [id, product]);
+    const fetchProductData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Buscar produto pelo ID
+        const productData = await getProductById(id || "");
+        setProduct(productData);
+        
+        // Calcular custo de entrega
+        calculateDelivery(productData);
+        
+        // Buscar produtos similares
+        const similarData = await getSimilarProducts(productData.category, productData.id);
+        setSimilarProducts(similarData);
+        
+      } catch (err) {
+        setError("Erro ao carregar dados do produto. Tente novamente.");
+        console.error("Erro ao buscar produto:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const calculateDelivery = (p) => {
+    fetchProductData();
+  }, [id]);
+
+  const calculateDelivery = (p: Product) => {
     const custo = p.price > 5000 ? 0 : 250; // Frete grátis acima de 5000 MZN
     setDeliveryCost(custo);
   };
@@ -144,8 +61,10 @@ export default function ProductDetail() {
   };
 
   const addToCart = () => {
+    if (!product) return;
+    
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existing = cart.find((item) => item.id === product.id);
+    const existing = cart.find((item: any) => item.id === product.id);
     
     if (existing) {
       existing.quantity += quantity;
@@ -157,7 +76,7 @@ export default function ProductDetail() {
     alert("Produto adicionado ao carrinho 🛒");
   };
 
-  const handleOptionSelect = (optionName, value) => {
+  const handleOptionSelect = (optionName: string, value: string) => {
     setSelectedOptions({
       ...selectedOptions,
       [optionName]: value,
@@ -168,6 +87,32 @@ export default function ProductDetail() {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-lg shadow-sm">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.href = "/"}>
+            Voltar para Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-lg shadow-sm">
+          <p className="text-gray-600 mb-4">Produto não encontrado</p>
+          <Button onClick={() => window.location.href = "/"}>
+            Voltar para Home
+          </Button>
+        </div>
       </div>
     );
   }
@@ -466,40 +411,42 @@ export default function ProductDetail() {
           <h2 className="font-title text-2xl font-body-semibold mb-6">Você também pode gostar</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {similarProducts.map((item) => (
-              <Card key={item.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="p-4">
-                  <div className="relative mb-3">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <Badge className="absolute top-1 left-1 bg-blue-500 text-white text-xs font-body">
-                      <Eye className="h-2 w-2 mr-1" />
-                      Ver
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h3 className="font-title text-base font-body-semibold line-clamp-2">{item.title}</h3>
-                    <p className="font-body text-xs text-gray-600">{item.shop}</p>
-                    
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                      <span className="font-body text-xs">{item.rating}</span>
+              <Link key={item.id} to={`/product/${item.id}`}>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="p-4">
+                    <div className="relative mb-3">
+                      <img 
+                        src={item.images[0]} 
+                        alt={item.title}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <Badge className="absolute top-1 left-1 bg-blue-500 text-white text-xs font-body">
+                        <Eye className="h-2 w-2 mr-1" />
+                        Ver
+                      </Badge>
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <span className="font-title text-sm font-bold text-blue-600 font-body-semibold">
-                        MT {item.price.toLocaleString('pt-MZ')}
-                      </span>
-                      <Button size="sm" className="h-6 w-6 p-0">
-                        <Plus className="h-3 w-3" />
-                      </Button>
+                    <div className="space-y-2">
+                      <h3 className="font-title text-base font-body-semibold line-clamp-2">{item.title}</h3>
+                      <p className="font-body text-xs text-gray-600">{item.shop.name}</p>
+                      
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                        <span className="font-body text-xs">{item.rating}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="font-title text-sm font-bold text-blue-600 font-body-semibold">
+                          MT {item.price.toLocaleString('pt-MZ')}
+                        </span>
+                        <Button size="sm" className="h-6 w-6 p-0">
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
