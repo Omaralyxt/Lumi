@@ -43,10 +43,10 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="w-full min-h-screen font-body bg-gray-50 flex items-center justify-center">
+      <div className="w-full min-h-screen font-body bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="font-body text-gray-600">Carregando...</p>
+          <p className="font-body text-gray-600 dark:text-gray-400">Carregando...</p>
         </div>
       </div>
     );
@@ -54,8 +54,8 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="w-full min-h-screen font-body bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-lg shadow-sm">
+      <div className="w-full min-h-screen font-body bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <p className="text-red-600 mb-4">{error}</p>
           <button 
             onClick={() => window.location.reload()}
@@ -69,9 +69,9 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full min-h-screen font-body bg-gray-50">
+    <div className="w-full min-h-screen font-body bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Topo: Logo e Barra de Pesquisa */}
-      <header className="w-full py-6 flex flex-col items-center bg-white shadow-sm sticky top-0 z-40">
+      <header className="w-full py-6 flex flex-col items-center bg-white shadow-sm sticky top-0 z-40 dark:bg-gray-800">
         {/* Logotipo */}
         <div className="text-4xl font-title text-blue-600 mb-4">
           Lumi
@@ -100,7 +100,7 @@ export default function Home() {
       {/* Produtos em destaque */}
       <section className="mt-8 px-4 md:px-12">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-title text-2xl flex items-center">
+          <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
             <TrendingUp className="h-6 w-6 mr-2 text-blue-600" />
             Produtos em Destaque
           </h2>
@@ -109,133 +109,13 @@ export default function Home() {
           </Link>
         </div>
         
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
-                <div className="w-full h-40 bg-gray-200"></div>
-                <div className="p-2">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {featuredProducts.map((p) => (
-              <Link
-                key={p.id}
-                to={`/product/${p.id}`}
-                className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group"
-              >
-                <div className="relative">
-                  <img
-                    src={p.images[0]}
-                    alt={p.title}
-                    className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {p.originalPrice && (
-                    <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
-                      -{Math.round((1 - p.price / p.originalPrice) * 100)}%
-                    </div>
-                  )}
-                </div>
-                <div className="p-3">
-                  <h3 className="font-title text-base font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-                    {p.title}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-title text-sm font-bold text-blue-600">
-                        MT {p.price.toLocaleString('pt-MZ')}
-                      </p>
-                      {p.originalPrice && (
-                        <p className="font-body text-xs text-gray-500 line-through">
-                          MT {p.originalPrice.toLocaleString('pt-MZ')}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                      <span className="font-body text-xs text-gray-600 ml-1">
-                        {p.rating}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Lojas em destaque */}
-      <section className="mt-12 px-4 md:px-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-title text-2xl flex items-center">
-            <Store className="h-6 w-6 mr-2 text-blue-600" />
-            Lojas em Destaque
-          </h2>
-          <Link to="/lojas" className="text-blue-600 hover:text-blue-700 font-body text-sm">
-            Ver Todas →
-          </Link>
-        </div>
-        
+        {/* Grid de Produtos (mantido o mesmo) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {featuredStores.map((store) => (
-            <Link
-              key={store.id}
-              to={`/loja/${store.id}`}
-              className="bg-white rounded-xl shadow-sm flex flex-col items-center p-4 hover:shadow-lg transition-all duration-300 group"
-            >
-              <div className="relative mb-3">
-                <img
-                  src={store.logo_url}
-                  alt={store.name}
-                  className="w-20 h-20 object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
-                />
-                {store.is_verified && (
-                  <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
-                    ✓
-                  </div>
-                )}
-              </div>
-              <h3 className="font-title text-base font-semibold text-gray-900 text-center group-hover:text-blue-600 transition-colors">
-                {store.name}
-              </h3>
-              <div className="flex items-center mt-1">
-                <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                <span className="font-body text-xs text-gray-600 ml-1">
-                  {store.rating}
-                </span>
-              </div>
-              <p className="font-body text-xs text-gray-500 mt-1">
-                {store.products_count} produtos
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Produtos sugeridos */}
-      <section className="mt-12 px-4 md:px-12 mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-title text-2xl flex items-center">
-            <Package className="h-6 w-6 mr-2 text-blue-600" />
-            Você pode gostar
-          </h2>
-          <Link to="/todos" className="text-blue-600 hover:text-blue-700 font-body text-sm">
-            Ver Todos →
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {suggestedProducts.map((p) => (
+          {featuredProducts.map((p) => (
             <Link
               key={p.id}
               to={`/product/${p.id}`}
-              className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group"
             >
               <div className="relative">
                 <img
@@ -250,7 +130,7 @@ export default function Home() {
                 )}
               </div>
               <div className="p-3">
-                <h3 className="font-title text-base font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                <h3 className="font-title text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
                   {p.title}
                 </h3>
                 <div className="flex items-center justify-between">
@@ -266,7 +146,114 @@ export default function Home() {
                   </div>
                   <div className="flex items-center">
                     <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                    <span className="font-body text-xs text-gray-600 ml-1">
+                    <span className="font-body text-xs text-gray-600 dark:text-gray-400 ml-1">
+                      {p.rating}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Lojas em destaque */}
+      <section className="mt-12 px-4 md:px-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
+            <Store className="h-6 w-6 mr-2 text-blue-600" />
+            Lojas em Destaque
+          </h2>
+          <Link to="/lojas" className="text-blue-600 hover:text-blue-700 font-body text-sm">
+            Ver Todas →
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {featuredStores.map((store) => (
+            <Link
+              key={store.id}
+              to={`/store/${store.id}`}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm flex flex-col items-center p-4 hover:shadow-lg transition-all duration-300 group"
+            >
+              <div className="relative mb-3">
+                <img
+                  src={store.logo_url}
+                  alt={store.name}
+                  className="w-20 h-20 object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
+                />
+                {store.is_verified && (
+                  <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
+                    ✓
+                  </div>
+                )}
+              </div>
+              <h3 className="font-title text-base font-semibold text-gray-900 dark:text-white text-center group-hover:text-blue-600 transition-colors">
+                {store.name}
+              </h3>
+              <div className="flex items-center mt-1">
+                <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                <span className="font-body text-xs text-gray-600 dark:text-gray-400 ml-1">
+                  {store.rating}
+                </span>
+              </div>
+              <p className="font-body text-xs text-gray-500 dark:text-gray-500 mt-1">
+                {store.products_count} produtos
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Produtos sugeridos */}
+      <section className="mt-12 px-4 md:px-12 mb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
+            <Package className="h-6 w-6 mr-2 text-blue-600" />
+            Você pode gostar
+          </h2>
+          <Link to="/todos" className="text-blue-600 hover:text-blue-700 font-body text-sm">
+            Ver Todos →
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {suggestedProducts.map((p) => (
+            <Link
+              key={p.id}
+              to={`/product/${p.id}`}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group"
+            >
+              <div className="relative">
+                <img
+                  src={p.images[0]}
+                  alt={p.title}
+                  className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                {p.originalPrice && (
+                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
+                    -{Math.round((1 - p.price / p.originalPrice) * 100)}%
+                  </div>
+                )}
+              </div>
+              <div className="p-3">
+                <h3 className="font-title text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                  {p.title}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-title text-sm font-bold text-blue-600">
+                      MT {p.price.toLocaleString('pt-MZ')}
+                    </p>
+                    {p.originalPrice && (
+                      <p className="font-body text-xs text-gray-500 line-through">
+                        MT {p.originalPrice.toLocaleString('pt-MZ')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                    <span className="font-body text-xs text-gray-600 dark:text-gray-400 ml-1">
                       {p.rating}
                     </span>
                   </div>
