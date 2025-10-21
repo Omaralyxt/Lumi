@@ -3,31 +3,24 @@
 import { useState } from "react";
 import { 
   User, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  CreditCard, 
-  Package, 
+  ShoppingBag, 
+  Heart, 
+  Star, 
+  Truck,
   Settings,
-  Bell,
-  Shield,
   Edit,
-  Save,
-  X,
   LogOut,
-  ShoppingBag,
-  Heart,
-  Star,
-  Truck
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BiometricRegistration from "@/components/BiometricRegistration";
 
 const user = {
+  id: "user-12345", // ID de usuário para o registro biométrico
   name: "João Silva",
   email: "joao.silva@email.com",
   phone: "+258 82 123 4567",
@@ -51,134 +44,7 @@ const stats = [
 ];
 
 export default function AccountPage() {
-  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "profile":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações Pessoais</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nome Completo</Label>
-                  <p className="p-2 bg-gray-50 rounded">{user.name}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <p className="p-2 bg-gray-50 rounded">{user.email}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Telefone</Label>
-                  <p className="p-2 bg-gray-50 rounded">{user.phone}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Data de Cadastro</Label>
-                  <p className="p-2 bg-gray-50 rounded">{user.joinedAt}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Localização</Label>
-                <p className="p-2 bg-gray-50 rounded">
-                  {user.location.address}, {user.location.district}, {user.location.city}
-                </p>
-              </div>
-
-              <Button onClick={() => setIsEditing(true)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Editar Perfil
-              </Button>
-            </CardContent>
-          </Card>
-        );
-
-      case "orders":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Meus Pedidos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[1, 2, 3].map((order) => (
-                  <div key={order} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Pedido #{String(1234 + order).padStart(6, '0')}</span>
-                      <Badge variant="outline">Entregue</Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">3 items • MT {(12500 + order * 1000).toLocaleString('pt-MZ')}</p>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">Detalhes</Button>
-                      <Button variant="outline" size="sm">Recomprar</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      case "settings":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Bell className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Notificações</h3>
-                    <p className="text-sm text-gray-600">Gerenciar preferências de notificação</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Configurar</Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Segurança</h3>
-                    <p className="text-sm text-gray-600">Alterar senha e configurações de segurança</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Configurar</Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                    <LogOut className="h-5 w-5 text-red-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Sair</h3>
-                    <p className="text-sm text-gray-600">Encerrar sessão atual</p>
-                  </div>
-                </div>
-                <Button variant="destructive" size="sm">Sair</Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      default:
-        return null;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -241,15 +107,72 @@ export default function AccountPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile">Perfil</TabsTrigger>
             <TabsTrigger value="orders">Pedidos</TabsTrigger>
+            <TabsTrigger value="security">Segurança</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
           
-          <div className="mt-6">
-            {renderTabContent()}
-          </div>
+          <TabsContent value="profile" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Pessoais</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nome Completo</Label>
+                    <p className="p-2 bg-gray-50 rounded">{user.name}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <p className="p-2 bg-gray-50 rounded">{user.email}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone</Label>
+                    <p className="p-2 bg-gray-50 rounded">{user.phone}</p>
+                  </div>
+                </div>
+                <Button>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Perfil
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="orders" className="mt-6">
+            {/* Conteúdo dos Pedidos */}
+          </TabsContent>
+
+          <TabsContent value="security" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="h-5 w-5 mr-2" />
+                  Segurança da Conta
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BiometricRegistration userId={user.id} email={user.email} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button variant="destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>

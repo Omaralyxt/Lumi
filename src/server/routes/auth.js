@@ -92,35 +92,4 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Biometric registration endpoint
-router.post('/biometric-register', async (req, res) => {
-  const { userId, email, deviceName } = req.body;
-  
-  if (!userId || !email) {
-    return res.status(400).json({ error: 'User ID and email are required' });
-  }
-
-  try {
-    // In a real implementation, you would call the WebAuthn registration here
-    // For now, we'll simulate the process
-    const credential = {
-      id: 'mock-credential-id',
-      rawId: new Uint8Array(32),
-      response: {
-        clientDataJSON: 'mock-client-data',
-        attestationObject: 'mock-attestation'
-      },
-      type: 'public-key'
-    };
-
-    // Store the credential in the database (simulated)
-    res.json({ 
-      success: true,
-      credential
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Biometric registration failed' });
-  }
-});
-
 export default router;
