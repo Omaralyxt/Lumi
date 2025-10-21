@@ -27,6 +27,7 @@ import CheckoutPage from "./pages/Checkout";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import Profile from "./pages/Profile";
 import SellerOrdersPage from "./pages/SellerOrdersPage";
+import StorePage from "./pages/StorePage";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/orders" element={<OrderHistoryPage />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/store/:id" element={<StorePage />} />
               
               {/* Rotas de Vendedor */}
               <Route path="/seller/login" element={<SellerLogin />} />

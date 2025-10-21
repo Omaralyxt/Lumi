@@ -14,8 +14,8 @@ const mockCategories = [
   { id: 10, nome: "Outros" },
 ];
 
-// Mock data para produtos
-const mockProducts: Product[] = [
+// Mock data para produtos (exportado para ser usado em outras partes da API)
+export const mockProducts: Product[] = [
   {
     id: 1,
     title: "Smartphone Samsung Galaxy A54 5G",
