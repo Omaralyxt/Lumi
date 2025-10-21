@@ -1,21 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { Star, Trash2, Heart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Star, Trash2, Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/context/CartContext";
+import { Product } from "@/types/product";
 
-const favorites = [
+// Dados mockados com estrutura completa para compatibilidade com o carrinho
+const initialFavorites: Product[] = [
   {
     id: 1,
     title: "Smartphone Samsung Galaxy A54 5G",
     price: 12500,
     originalPrice: 15000,
     rating: 4.5,
-    shop: "TechStore MZ",
-    image: "/placeholder.svg",
-    isFavorite: true,
+    shop: { id: 1, name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
+    images: ["/placeholder.svg"],
+    stock: 10,
+    category: "Eletrónicos",
+    description: "",
+    features: [],
+    specifications: {},
+    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
+    reviews: [],
+    options: [],
+    reviewCount: 128,
+    timeDelivery: "2-5 dias úteis",
   },
   {
     id: 2,
@@ -23,9 +36,18 @@ const favorites = [
     price: 2500,
     originalPrice: 3500,
     rating: 4.2,
-    shop: "ModaExpress",
-    image: "/placeholder.svg",
-    isFavorite: true,
+    shop: { id: 2, name: "ModaExpress", rating: 4.5, reviewCount: 234, isVerified: true },
+    images: ["/placeholder.svg"],
+    stock: 15,
+    category: "Moda",
+    description: "",
+    features: [],
+    specifications: {},
+    deliveryInfo: { city: "Maputo", fee: 100, eta: "1-2 dias" },
+    reviews: [],
+    options: [],
+    reviewCount: 89,
+    timeDelivery: "2-3 dias úteis",
   },
   {
     id: 3,
@@ -33,25 +55,33 @@ const favorites = [
     price: 1800,
     originalPrice: 2200,
     rating: 4.8,
-    shop: "CozinhaFeliz",
-    image: "/placeholder.svg",
-    isFavorite: true,
+    shop: { id: 3, name: "CozinhaFeliz", rating: 4.9, reviewCount: 412, isVerified: true },
+    images: ["/placeholder.svg"],
+    stock: 5,
+    category: "Casa & Cozinha",
+    description: "",
+    features: [],
+    specifications: {},
+    deliveryInfo: { city: "Maputo", fee: 80, eta: "2-3 dias" },
+    reviews: [],
+    options: [],
+    reviewCount: 156,
+    timeDelivery: "3-5 dias úteis",
   },
 ];
 
 export default function FavoritesPage() {
-  const [favoritesList, setFavoritesList] = useState(favorites);
-
-  const toggleFavorite = (id: number) => {
-    setFavoritesList(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
-      ).filter(item => item.isFavorite)
-    );
-  };
+  const [favoritesList, setFavoritesList] = useState(initialFavorites);
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   const removeFavorite = (id: number) => {
     setFavoritesList(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleBuy = (product: Product) => {
+    addToCart(product, 1);
+    navigate("/cart");
   };
 
   return (
@@ -61,11 +91,6 @@ export default function FavoritesPage() {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-gray-900">Favoritos</h1>
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              </Button>
-            </div>
           </div>
         </div>
       </div>
@@ -79,25 +104,17 @@ export default function FavoritesPage() {
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Nenhum favorito ainda</h2>
             <p className="text-gray-600 mb-4">Salve seus produtos favoritos aqui para acessá-los facilmente</p>
-            <Button>Explorar Produtos</Button>
+            <Button asChild>
+              <Link to="/">Explorar Produtos</Link>
+            </Button>
           </div>
         ) : (
           <>
             {/* Summary */}
             <div className="bg-blue-50 rounded-lg p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-blue-900">
-                    {favoritesList.length} {favoritesList.length === 1 ? 'Produto' : 'Produtos'} favoritado{favoritesList.length === 1 ? '' : 's'}
-                  </h3>
-                  <p className="text-sm text-blue-700">
-                    Acompanhe seus produtos favoritos aqui
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Comprar Todos
-                </Button>
-              </div>
+              <h3 className="font-semibold text-blue-900">
+                {favoritesList.length} {favoritesList.length === 1 ? 'Produto' : 'Produtos'} nos seus favoritos
+              </h3>
             </div>
 
             {/* Favorites Grid */}
@@ -107,29 +124,23 @@ export default function FavoritesPage() {
                   <CardContent className="p-4">
                     <div className="flex space-x-4">
                       {/* Product Image */}
-                      <div className="w-24 h-24 flex-shrink-0">
+                      <Link to={`/product/${item.id}`} className="w-24 h-24 flex-shrink-0">
                         <img 
-                          src={item.image} 
+                          src={item.images[0]} 
                           alt={item.title}
                           className="w-full h-full object-cover rounded-lg"
                         />
-                      </div>
+                      </Link>
                       
                       {/* Product Info */}
                       <div className="flex-1 space-y-2">
                         <div className="flex items-start justify-between">
-                          <h3 className="font-medium text-gray-900 line-clamp-2 flex-1">
-                            {item.title}
-                          </h3>
+                          <Link to={`/product/${item.id}`} className="flex-1">
+                            <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-blue-600">
+                              {item.title}
+                            </h3>
+                          </Link>
                           <div className="flex space-x-1 ml-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleFavorite(item.id)}
-                              className="text-red-500 hover:text-red-600"
-                            >
-                              <Heart className="h-4 w-4 fill-current" />
-                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -141,7 +152,9 @@ export default function FavoritesPage() {
                           </div>
                         </div>
                         
-                        <p className="text-sm text-gray-600">{item.shop}</p>
+                        <Link to={`/store/${item.shop.id}`} className="text-sm text-gray-600 hover:text-blue-600 hover:underline">
+                          {item.shop.name}
+                        </Link>
                         
                         <div className="flex items-center space-x-2">
                           <div className="flex items-center">
@@ -155,11 +168,16 @@ export default function FavoritesPage() {
                             <span className="text-lg font-bold text-blue-600">
                               MT {item.price.toLocaleString('pt-MZ')}
                             </span>
-                            <span className="text-sm text-gray-500 line-through ml-2">
-                              MT {item.originalPrice.toLocaleString('pt-MZ')}
-                            </span>
+                            {item.originalPrice && (
+                              <span className="text-sm text-gray-500 line-through ml-2">
+                                MT {item.originalPrice.toLocaleString('pt-MZ')}
+                              </span>
+                            )}
                           </div>
-                          <Button size="sm">Comprar</Button>
+                          <Button size="sm" onClick={() => handleBuy(item)}>
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            Comprar
+                          </Button>
                         </div>
                       </div>
                     </div>
