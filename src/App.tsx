@@ -11,6 +11,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 import AccountPage from "./pages/AccountPage";
 import BottomNavLumi from "./components/BottomNavLumi";
 import SellerLogin from "./components/SellerLogin";
+import SellerRegister from "./components/SellerRegister";
 import SellerDashboard from "./components/SellerDashboard";
 import CreateProduct from "./components/CreateProduct";
 import BuyerLogin from "./components/BuyerLogin";
@@ -45,6 +46,7 @@ const App = () => (
               
               {/* Rotas de Vendedor */}
               <Route path="/seller/login" element={<SellerLogin />} />
+              <Route path="/seller/register" element={<SellerRegister />} />
               <Route path="/seller/dashboard" element={<SellerDashboard />} />
               <Route path="/seller/create-product" element={<CreateProduct />} />
               

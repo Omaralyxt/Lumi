@@ -6,21 +6,24 @@ const router = express.Router();
 
 // Registration endpoint
 router.post('/register', async (req, res) => {
-  const { name, email, password, phone, user_type } = req.body;
+  const { full_name, store_name, email, password, phone, user_type } = req.body;
   
-  if (!name || !email || !password || !phone || !user_type) {
-    return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+  if (!full_name || !email || !password || !phone || !user_type) {
+    return res.status(400).json({ error: 'Todos os campos obrigatórios são necessários' });
+  }
+  if (user_type === 'seller' && !store_name) {
+    return res.status(400).json({ error: 'O nome da loja é obrigatório para vendedores' });
   }
 
   try {
     // Criptografar senha
     const password_hash = await bcrypt.hash(password, 10);
     
-    // In a real implementation, you would create the user in Supabase Auth here
-    // For now, we'll simulate a user creation
+    // Simular criação de usuário
     const user = {
       id: Date.now().toString(),
-      name,
+      full_name,
+      store_name: user_type === 'seller' ? store_name : null,
       email,
       phone,
       user_type,
@@ -53,14 +56,15 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // In a real implementation, you would verify the user against Supabase Auth here
-    // For now, we'll simulate a user
+    // Simular busca de usuário
+    const isSellerLogin = email.includes("seller"); // Simulação para diferenciar
     const user = {
-      id: '1',
-      name: "Maria João",
-      email: "maria@exemplo.com",
-      phone: "+258849999999",
-      user_type: "buyer",
+      id: isSellerLogin ? 'seller-1' : 'buyer-1',
+      full_name: isSellerLogin ? "Vendedor Teste" : "Comprador Teste",
+      store_name: isSellerLogin ? "Loja do Vendedor" : null,
+      email: email,
+      phone: "+258840000000",
+      user_type: isSellerLogin ? "seller" : "buyer",
       created_at: new Date().toISOString()
     };
 
@@ -81,7 +85,7 @@ router.post('/login', async (req, res) => {
     res.json({ 
       message: 'Login efetuado', 
       token,
-      user 
+      profile: user 
     });
   } catch (error) {
     res.status(500).json({ error: 'Falha no login' });
