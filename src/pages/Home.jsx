@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getFeaturedProducts, getAllProducts } from "../api/products";
 import { getFeaturedStores } from "../api/stores";
@@ -16,19 +16,29 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
+  // Memoize the search handler to prevent unnecessary re-renders
+  const handleSearch = useCallback((query) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+    }
+  }, [navigate]);
+
+  // Fetch data with error handling
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const products = await getFeaturedProducts();
+        const [products, stores, allProducts] = await Promise.all([
+          getFeaturedProducts(),
+          getFeaturedStores(),
+          getAllProducts()
+        ]);
+        
         setFeaturedProducts(products);
-        
-        const stores = await getFeaturedStores();
         setFeaturedStores(stores);
-        
-        const allProducts = await getAllProducts();
         setSuggestedProducts(allProducts.slice(0, 8));
         
       } catch (err) {
@@ -42,12 +52,90 @@ export default function Home() {
     fetchHomeData();
   }, []);
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.trim()) {
-      navigate(`/search?q=${encodeURIComponent(query)}`);
-    }
-  };
+  // Memoize the featured products section
+  const featuredProductsSection = useMemo(() => (
+    <section className="mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
+          <TrendingUp className="h-6 w-6 mr-2 text-blue-600" />
+          Produtos em Destaque
+        </h2>
+        <Link to="/offers" className="text-blue-600 hover:text-blue-700 font-body text-sm">
+          Ver Todos →
+        </Link>
+      </div>
+      
+      <ProductGrid products={featuredProducts} showStoreInfo={false} />
+    </section>
+  ), [featuredProducts]);
+
+  // Memoize the featured stores section
+  const featuredStoresSection = useMemo(() => (
+    <section className="mt-12">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
+          <Store className="h-6 w-6 mr-2 text-blue-600" />
+          Lojas em Destaque
+        </h2>
+        <Link to="/lojas" className="text-blue-600 hover:text-blue-700 font-body text-sm">
+          Ver Todas →
+        </Link>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {featuredStores.map((store) => (
+          <Link
+            key={store.id}
+            to={`/store/${store.id}`}
+            className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl shadow-sm flex flex-col items-center p-4 hover:shadow-lg transition-all duration-300 group border border-transparent hover:border-[rgba(0,170,255,0.6)] hover:scale-[1.02]"
+          >
+            <div className="relative mb-3">
+              <img
+                src={store.logo_url}
+                alt={store.name}
+                className="w-20 h-20 object-cover rounded-full group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+              {store.is_verified && (
+                <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
+                  ✓
+                </div>
+              )}
+            </div>
+            <h3 className="font-title text-base font-semibold text-gray-900 dark:text-white text-center group-hover:text-blue-600 transition-colors">
+              {store.name}
+            </h3>
+            <div className="flex items-center mt-1">
+              <Star className="h-3 w-3 text-yellow-400 fill-current" />
+              <span className="font-body text-xs text-gray-600 dark:text-gray-400 ml-1">
+                {store.rating}
+              </span>
+            </div>
+            <p className="font-body text-xs text-gray-500 dark:text-gray-500 mt-1">
+              {store.products_count} produtos
+            </p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  ), [featuredStores]);
+
+  // Memoize the suggested products section
+  const suggestedProductsSection = useMemo(() => (
+    <section className="mt-12 mb-12">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
+          <Package className="h-6 w-6 mr-2 text-blue-600" />
+          Você pode gostar
+        </h2>
+        <Link to="/todos" className="text-blue-600 hover:text-blue-700 font-body text-sm">
+          Ver Todos →
+        </Link>
+      </div>
+      
+      <ProductGrid products={suggestedProducts} />
+    </section>
+  ), [suggestedProducts]);
 
   if (loading) {
     return <Loading />;
@@ -106,83 +194,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Produtos em destaque */}
-        <section className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
-              <TrendingUp className="h-6 w-6 mr-2 text-blue-600" />
-              Produtos em Destaque
-            </h2>
-            <Link to="/offers" className="text-blue-600 hover:text-blue-700 font-body text-sm">
-              Ver Todos →
-            </Link>
-          </div>
-          
-          <ProductGrid products={featuredProducts} showStoreInfo={false} />
-        </section>
-
-        {/* Lojas em destaque */}
-        <section className="mt-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
-              <Store className="h-6 w-6 mr-2 text-blue-600" />
-              Lojas em Destaque
-            </h2>
-            <Link to="/lojas" className="text-blue-600 hover:text-blue-700 font-body text-sm">
-              Ver Todas →
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {featuredStores.map((store) => (
-              <Link
-                key={store.id}
-                to={`/store/${store.id}`}
-                className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl shadow-sm flex flex-col items-center p-4 hover:shadow-lg transition-all duration-300 group border border-transparent hover:border-[rgba(0,170,255,0.6)] hover:scale-[1.02]"
-              >
-                <div className="relative mb-3">
-                  <img
-                    src={store.logo_url}
-                    alt={store.name}
-                    className="w-20 h-20 object-cover rounded-full group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {store.is_verified && (
-                    <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
-                      ✓
-                    </div>
-                  )}
-                </div>
-                <h3 className="font-title text-base font-semibold text-gray-900 dark:text-white text-center group-hover:text-blue-600 transition-colors">
-                  {store.name}
-                </h3>
-                <div className="flex items-center mt-1">
-                  <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                  <span className="font-body text-xs text-gray-600 dark:text-gray-400 ml-1">
-                    {store.rating}
-                  </span>
-                </div>
-                <p className="font-body text-xs text-gray-500 dark:text-gray-500 mt-1">
-                  {store.products_count} produtos
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Produtos sugeridos */}
-        <section className="mt-12 mb-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-title text-2xl flex items-center text-gray-900 dark:text-white">
-              <Package className="h-6 w-6 mr-2 text-blue-600" />
-              Você pode gostar
-            </h2>
-            <Link to="/todos" className="text-blue-600 hover:text-blue-700 font-body text-sm">
-              Ver Todos →
-            </Link>
-          </div>
-          
-          <ProductGrid products={suggestedProducts} />
-        </section>
+        {/* Render sections conditionally */}
+        {featuredProducts.length > 0 && featuredProductsSection}
+        {featuredStores.length > 0 && featuredStoresSection}
+        {suggestedProducts.length > 0 && suggestedProductsSection}
       </main>
     </div>
   );

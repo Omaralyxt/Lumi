@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { searchProducts, searchStores, getCategories } from "../api/search";
 import { Star, Package, Store, X, Search, Filter } from "lucide-react";
@@ -113,23 +113,14 @@ export default function AdvancedSearch({ onSearch }) {
   const [showFilters, setShowFilters] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef(null);
+  const debounceTimeout = useRef(null);
 
+  // Load categories once
   useEffect(() => {
     getCategories().then(setCategories);
   }, []);
 
-  useEffect(() => {
-    // Fechar resultados quando clicar fora
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowResults(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
+  // Debounce search
   useEffect(() => {
     if (query.length < 2) {
       setResults([]);
@@ -140,7 +131,13 @@ export default function AdvancedSearch({ onSearch }) {
     setShowResults(true);
     setLoading(true);
     
-    const timeout = setTimeout(() => {
+    // Clear previous timeout
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    // Set new timeout
+    debounceTimeout.current = setTimeout(() => {
       if (filter === "products") {
         searchProducts(query, selectedCategory, priceRange, minRating).then(
           (res) => {
@@ -156,21 +153,39 @@ export default function AdvancedSearch({ onSearch }) {
       }
     }, 300);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
   }, [query, filter, selectedCategory, priceRange, minRating]);
 
-  const clearSearch = () => {
+  // Clear search
+  const clearSearch = useCallback(() => {
     setQuery("");
     setResults([]);
     setShowResults(false);
-  };
+  }, []);
 
-  const handleFilterChange = (newFilter) => {
+  // Handle filter change
+  const handleFilterChange = useCallback((newFilter) => {
     setFilter(newFilter);
     setSelectedCategory("");
     setMinRating(0);
     setPriceRange([0, 100000]);
-  };
+  }, []);
+
+  // Handle outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-6 font-body" ref={searchRef}>
@@ -332,6 +347,7 @@ export default function AdvancedSearch({ onSearch }) {
                         src={item.imagem_url}
                         alt={item.nome}
                         className="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform"
+                        loading="lazy"
                       />
                       {item.preco_promocional && (
                         <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
@@ -389,6 +405,7 @@ export default function AdvancedSearch({ onSearch }) {
                         src={item.logo_url}
                         alt={item.nome}
                         className="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform"
+                        loading="lazy"
                       />
                       {item.is_verified && (
                         <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">

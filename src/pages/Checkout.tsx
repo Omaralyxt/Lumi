@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, CreditCard, Truck, Lock, Clock } from "lucide-react";
+import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +61,8 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [selectedAddress, setSelectedAddress] = useState(deliveryAddresses[0]);
   const [selectedPayment, setSelectedPayment] = useState("mpesa");
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (cartItems.length === 0) {
@@ -72,8 +74,44 @@ export default function Checkout() {
   const deliveryFee = 150;
   const total = subtotal + deliveryFee;
 
-  const handlePlaceOrder = () => {
-    console.log("Criar pedido com:", { selectedAddress, selectedPayment, total, items: cartItems });
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!selectedAddress) {
+      newErrors.address = "Por favor, selecione um endereço de entrega";
+    }
+    
+    if (!selectedPayment) {
+      newErrors.payment = "Por favor, selecione um método de pagamento";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Clear cart after successful order
+      // In a real app, this would be handled by the cart context
+      console.log("Pedido criado com sucesso!");
+      
+      // Redirect to order confirmation page
+      navigate('/order-confirmation');
+    } catch (error) {
+      console.error("Erro ao criar pedido:", error);
+      // Show error message
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (cartItems.length === 0) {
@@ -121,6 +159,13 @@ export default function Checkout() {
                   <Button variant="outline" size="sm">Adicionar Novo</Button>
                 </div>
                 
+                {errors.address && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                    <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
+                    <span className="text-red-700 text-sm">{errors.address}</span>
+                  </div>
+                )}
+                
                 <div className="space-y-3">
                   {deliveryAddresses.map((address) => (
                     <div
@@ -165,6 +210,13 @@ export default function Checkout() {
                   Método de Pagamento
                 </h2>
                 
+                {errors.payment && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                    <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
+                    <span className="text-red-700 text-sm">{errors.payment}</span>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {paymentMethods.map((method) => (
                     <div
@@ -206,6 +258,7 @@ export default function Checkout() {
                         src={item.images[0]} 
                         alt={item.title}
                         className="w-16 h-16 object-cover rounded-lg"
+                        loading="lazy"
                       />
                       <div className="flex-1">
                         <h3 className="font-medium text-sm line-clamp-2">{item.title}</h3>
@@ -282,9 +335,17 @@ export default function Checkout() {
                 
                 <Button 
                   onClick={handlePlaceOrder}
+                  disabled={isSubmitting}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
                 >
-                  Confirmar Pedido
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Processando...
+                    </>
+                  ) : (
+                    'Confirmar Pedido'
+                  )}
                 </Button>
                 
                 <p className="text-xs text-gray-500 text-center mt-4">
