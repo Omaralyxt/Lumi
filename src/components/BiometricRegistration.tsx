@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Fingerprint, FaceId, Shield, CheckCircle, XCircle } from "lucide-react";
+import { Fingerprint, ScanFace, Shield, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,6 @@ export default function BiometricRegistration({
       const result = await registerBiometric({
         userId,
         email,
-        deviceName: navigator.userAgent.includes('Android') ? 'Android Device' : 'iOS Device'
       });
 
       if (result.success) {
@@ -56,7 +55,7 @@ export default function BiometricRegistration({
     if (navigator.userAgent.includes('Android')) {
       return <Fingerprint className="h-6 w-6 text-blue-600" />;
     } else {
-      return <FaceId className="h-6 w-6 text-blue-600" />;
+      return <ScanFace className="h-6 w-6 text-blue-600" />;
     }
   };
 
