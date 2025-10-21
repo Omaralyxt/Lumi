@@ -1,92 +1,91 @@
 import express from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// Registo via Supabase Auth
+// Registro de comprador
 router.post('/register', async (req, res) => {
-  const supabase = req.app.get('supabase');
-  const { email, password, full_name, phone, store_name } = req.body;
+  const { name, email, password, phone, user_type } = req.body;
   
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+  if (!name || !email || !password || !phone || !user_type) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
   }
 
-  // Cria user no Supabase Auth
-  const { data, error } = await supabase.auth.signUp({ 
-    email, 
-    password 
-  });
-  
-  if (error) {
-    return res.status(400).json({ error: error.message });
-  }
+  try {
+    // Criptografar senha
+    const password_hash = await bcrypt.hash(password, 10);
+    
+    // Aqui você implementaria a inserção no banco de dados
+    // Por enquanto, simulamos sucesso
+    const user = {
+      id: Date.now(),
+      name,
+      email,
+      phone,
+      user_type,
+      created_at: new Date().toISOString()
+    };
 
-  // Cria profile
-  const userId = data.user.id;
-  const { error: err2 } = await supabase
-    .from('profiles')
-    .insert([{ 
-      id: userId, 
-      full_name, 
-      phone, 
-      user_type: 'seller', 
-      store_name 
-    }]);
-  
-  if (err2) {
-    return res.status(500).json({ error: err2.message });
-  }
+    // Gerar token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, user_type: user.user_type }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '7d' }
+    );
 
-  res.json({ 
-    message: 'Vendedor registrado, verifique email para confirmar (se aplicável)' 
-  });
+    res.json({ 
+      message: 'Conta criada com sucesso', 
+      user,
+      token 
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Falha ao criar conta' });
+  }
 });
 
-// Login via Supabase
+// Login
 router.post('/login', async (req, res) => {
-  const supabase = req.app.get('supabase');
   const { email, password } = req.body;
   
   if (!email || !password) {
     return res.status(400).json({ error: 'Email e senha são obrigatórios' });
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ 
-    email, 
-    password 
-  });
-  
-  if (error || !data.session) {
-    return res.status(401).json({ error: 'Credenciais inválidas' });
+  try {
+    // Aqui você implementaria a busca no banco de dados
+    // Por enquanto, simulamos um usuário válido
+    const user = {
+      id: 1,
+      name: "Maria João",
+      email: "maria@exemplo.com",
+      phone: "+258849999999",
+      user_type: "buyer",
+      created_at: new Date().toISOString()
+    };
+
+    // Verificar senha (simulado)
+    const valid = await bcrypt.compare(password, await bcrypt.hash("123456", 10));
+    
+    if (!valid) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+
+    // Gerar token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, user_type: user.user_type }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '7d' }
+    );
+
+    res.json({ 
+      message: 'Login efetuado', 
+      token,
+      user 
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Falha no login' });
   }
-
-  // Pega perfil
-  const userId = data.user.id;
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  
-  if (!profile || profile.user_type !== 'seller') {
-    return res.status(403).json({ error: 'Acesso restrito a vendedores' });
-  }
-
-  // Opcional: emitir JWT próprio (ou retornar o access_token do supabase)
-  const token = jwt.sign(
-    { id: userId, email, user_type: profile.user_type }, 
-    process.env.JWT_SECRET, 
-    { expiresIn: '7d' }
-  );
-
-  res.json({ 
-    message: 'ok', 
-    token, 
-    profile, 
-    supabase_session: data.session 
-  });
 });
 
 export default router;
