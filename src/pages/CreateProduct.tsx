@@ -18,8 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const categories = [
   { id: 1, name: "Eletrónicos" },
@@ -30,6 +31,8 @@ const categories = [
   { id: 6, name: "Livros" },
   { id: 7, name: "Bebés & Crianças" },
   { id: 8, name: "Automóvel" },
+  { id: 9, name: "Serviços" },
+  { id: 10, name: "Outros" },
 ];
 
 export default function CreateProduct() {
@@ -37,58 +40,113 @@ export default function CreateProduct() {
     title: "",
     description: "",
     price: "",
-    stock: "",
     category: "",
-    sku: "",
+    stock: "",
+    type: "product", // 'product' ou 'service'
   });
 
   const [images, setImages] = useState<string[]>([]);
   const [features, setFeatures] = useState<string[]>([""]);
   const [specifications, setSpecifications] = useState<{key: string, value: string}[]>([{key: "", value: ""}]);
+  const [loading, setLoading] = useState(false);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImages(prev => [...prev, e.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    if (files.length === 0) return;
+
+    const uploadToast = toast.loading("Enviando imagens...");
+    
+    try {
+      const token = localStorage.getItem("lumi_token");
+      if (!token) {
+        toast.error("Sessão inválida. Faça login novamente.");
+        return;
+      }
+
+      const uploadedUrls = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/seller/upload-image', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          uploadedUrls.push(data.url);
+        } else {
+          throw new Error("Falha no upload de uma imagem.");
+        }
+      }
+      setImages(prev => [...prev, ...uploadedUrls]);
+      toast.success("Imagens enviadas com sucesso!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro de rede ao fazer upload.");
+    } finally {
+      toast.dismiss(uploadToast);
+    }
   };
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const addFeature = () => {
-    setFeatures(prev => [...prev, ""]);
-  };
-
-  const updateFeature = (index: number, value: string) => {
-    setFeatures(prev => prev.map((f, i) => i === index ? value : f));
-  };
-
-  const removeFeature = (index: number) => {
-    setFeatures(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const addSpecification = () => {
-    setSpecifications(prev => [...prev, {key: "", value: ""}]);
-  };
-
-  const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
-    setSpecifications(prev => prev.map((spec, i) => i === index ? {...spec, [field]: value} : spec));
-  };
-
-  const removeSpecification = (index: number) => {
-    setSpecifications(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Product Data:", { ...formData, images, features, specifications });
+    setLoading(true);
+    const submissionToast = toast.loading("Publicando produto...");
+
+    try {
+      const token = localStorage.getItem("lumi_token");
+      if (!token) {
+        toast.error("Sessão inválida. Faça login novamente.");
+        return;
+      }
+
+      const response = await fetch('/api/seller/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          images,
+          features: features.filter(f => f),
+          specifications: specifications.filter(s => s.key && s.value)
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Produto publicado com sucesso!");
+        // Limpar formulário
+        setFormData({ title: "", description: "", price: "", category: "", stock: "", type: "product" });
+        setImages([]);
+        setFeatures([""]);
+        setSpecifications([{key: "", value: ""}]);
+      } else {
+        throw new Error(data.error || "Falha ao publicar produto.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro de rede.");
+    } finally {
+      setLoading(false);
+      toast.dismiss(submissionToast);
+    }
   };
+
+  const addFeature = () => setFeatures(prev => [...prev, ""]);
+  const updateFeature = (index: number, value: string) => setFeatures(prev => prev.map((f, i) => i === index ? value : f));
+  const removeFeature = (index: number) => setFeatures(prev => prev.filter((_, i) => i !== index));
+
+  const addSpecification = () => setSpecifications(prev => [...prev, {key: "", value: ""}]);
+  const updateSpecification = (index: number, field: 'key' | 'value', value: string) => setSpecifications(prev => prev.map((spec, i) => i === index ? {...spec, [field]: value} : spec));
+  const removeSpecification = (index: number) => setSpecifications(prev => prev.filter((_, i) => i !== index));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,11 +158,13 @@ export default function CreateProduct() {
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <h1 className="text-xl font-bold text-gray-900">Criar Produto</h1>
+              <h1 className="text-xl font-bold text-gray-900">Criar Produto/Serviço</h1>
             </div>
             <div className="flex items-center space-x-3">
               <Button variant="outline" size="sm">Rascunho</Button>
-              <Button size="sm">Publicar</Button>
+              <Button size="sm" onClick={handleSubmit} disabled={loading}>
+                {loading ? "Publicando..." : "Publicar"}
+              </Button>
             </div>
           </div>
         </div>
@@ -124,7 +184,7 @@ export default function CreateProduct() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Título do Produto *</Label>
+                  <Label htmlFor="title">Título *</Label>
                   <Input
                     id="title"
                     placeholder="Ex: Smartphone Samsung Galaxy A54 5G"
@@ -135,13 +195,16 @@ export default function CreateProduct() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="sku">SKU (Código de Produto)</Label>
-                  <Input
-                    id="sku"
-                    placeholder="Ex: SAMS-A54-128GB-BLK"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({...formData, sku: e.target.value})}
-                  />
+                  <Label htmlFor="type">Tipo *</Label>
+                  <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="product">Produto</SelectItem>
+                      <SelectItem value="service">Serviço</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -160,41 +223,42 @@ export default function CreateProduct() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="stock">Estoque *</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    placeholder="15"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                    required
-                  />
-                </div>
+                {formData.type === "product" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="stock">Estoque *</Label>
+                    <Input
+                      id="stock"
+                      type="number"
+                      placeholder="15"
+                      value={formData.stock}
+                      onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                      required
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="category">Categoria *</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {categories.map((category) => (
-                      <Button
-                        key={category.id}
-                        type="button"
-                        variant={formData.category === category.name ? "default" : "outline"}
-                        onClick={() => setFormData({...formData, category: category.name})}
-                        className="h-10 text-sm"
-                      >
-                        {category.name}
-                      </Button>
-                    ))}
-                  </div>
+                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição do Produto *</Label>
+                <Label htmlFor="description">Descrição *</Label>
                 <Textarea
                   id="description"
-                  placeholder="Descreva seu produto em detalhes, incluindo características, benefícios e condições..."
+                  placeholder="Descreva seu produto/serviço em detalhes..."
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={4}
@@ -209,7 +273,7 @@ export default function CreateProduct() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Package2 className="h-5 w-5 mr-2" />
-                Imagens do Produto
+                Imagens
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -231,7 +295,7 @@ export default function CreateProduct() {
                   </div>
                 ))}
                 
-                <label className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                <label className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors h-32">
                   <Upload className="h-8 w-8 text-gray-400 mb-2" />
                   <span className="text-sm text-gray-600">Adicionar imagem</span>
                   <input
@@ -245,7 +309,7 @@ export default function CreateProduct() {
               </div>
               
               <p className="text-sm text-gray-500">
-                Adicione pelo menos 3 imagens. Formatos: JPG, PNG, WebMáx. 5MB por imagem.
+                Adicione pelo menos 1 imagem. Formatos: JPG, PNG. Máx: 5MB por imagem.
               </p>
             </CardContent>
           </Card>
@@ -255,7 +319,7 @@ export default function CreateProduct() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Tag className="h-5 w-5 mr-2" />
-                Características do Produto
+                Características
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
