@@ -41,6 +41,12 @@ const user = {
 };
 
 export default function AccountPage() {
+  const handleLogout = () => {
+    localStorage.removeItem("lumi_token");
+    localStorage.removeItem("lumi_profile");
+    window.location.href = "/buyer/login";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Header */}
@@ -157,7 +163,7 @@ export default function AccountPage() {
         </div>
 
         <div className="mt-8">
-          <Button variant="destructive">
+          <Button variant="destructive" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>
