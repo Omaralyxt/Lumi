@@ -7,6 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import BiometricLogin from "./BiometricLogin";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { createClient } from '@/integrations/supabase/client';
+
+const supabase = createClient();
 
 export default function BuyerLogin() {
   const [email, setEmail] = useState("");
@@ -15,6 +20,7 @@ export default function BuyerLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,23 +28,25 @@ export default function BuyerLogin() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      
-      const data = await res.json();
-      
-      if (res.ok && data.token) {
-        localStorage.setItem("lumi_token", data.token);
-        localStorage.setItem("lumi_profile", JSON.stringify(data.profile));
-        window.location.href = "/";
-      } else {
-        setError(data.error || "Falha no login");
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Salvar informações do usuário no localStorage
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          localStorage.setItem("lumi_profile", JSON.stringify(user));
+          toast.success("Login realizado com sucesso!");
+          navigate("/");
+        }
       }
-    } catch (err) {
-      setError("Erro de rede");
+    } catch (err: any) {
+      setError(err.message || "Falha no login");
+      console.error("Erro no login:", err);
     } finally {
       setLoading(false);
     }
@@ -46,7 +54,7 @@ export default function BuyerLogin() {
 
   const handleBiometricSuccess = () => {
     setTimeout(() => {
-      window.location.href = "/";
+      navigate("/");
     }, 1000);
   };
 

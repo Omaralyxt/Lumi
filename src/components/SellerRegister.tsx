@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { createClient } from '@/integrations/supabase/client';
+
+const supabase = createClient();
 
 export default function SellerRegister() {
   const [formData, setFormData] = useState({
@@ -20,6 +25,7 @@ export default function SellerRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,25 +39,30 @@ export default function SellerRegister() {
     }
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          user_type: "seller"
-        }),
+      // Registrar usuário no Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.full_name,
+            store_name: formData.store_name,
+            phone: formData.phone,
+            user_type: "seller"
+          }
+        }
       });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        alert("Conta de vendedor criada com sucesso! Faça login para continuar.");
-        window.location.href = "/seller/login";
-      } else {
-        setError(data.error || "Falha no registro");
+
+      if (error) throw error;
+
+      // Se o registro for bem-sucedido, redirecionar para login
+      if (data.user) {
+        toast.success("Conta de vendedor criada com sucesso! Verifique seu email para confirmar.");
+        navigate("/seller/login");
       }
-    } catch (err) {
-      setError("Erro de rede");
+    } catch (err: any) {
+      setError(err.message || "Falha no registro");
+      console.error("Erro no registro:", err);
     } finally {
       setLoading(false);
     }

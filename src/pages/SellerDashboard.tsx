@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Store, 
   Package, 
@@ -19,6 +19,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSellerOrders } from "@/api/orders";
 import { Order } from "@/types/order";
+import { createClient } from '@/integrations/supabase/client';
+import { toast } from "sonner";
+
+const supabase = createClient();
 
 interface Profile {
   id: string;
@@ -42,30 +46,34 @@ export default function SellerDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem("lumi_token");
-      if (!token) {
-        window.location.href = "/seller/login";
-        return;
-      }
-
       try {
-        // Fetch profile
-        const storedProfile = localStorage.getItem("lumi_profile");
-        if (storedProfile) {
-          setProfile(JSON.parse(storedProfile));
-        } else {
-          const profileRes = await fetch("/api/seller/me", { headers: { Authorization: `Bearer ${token}` } });
-          const profileData = await profileRes.json();
-          if (profileData.profile) {
-            setProfile(profileData.profile);
-            localStorage.setItem("lumi_profile", JSON.stringify(profileData.profile));
-          } else {
-            throw new Error("Sessão expirada.");
-          }
+        // Verificar se o usuário está logado
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          navigate("/seller/login");
+          return;
         }
+
+        // Verificar se é um vendedor
+        const profileData = user.user_metadata;
+        if (profileData.user_type !== 'seller') {
+          navigate("/");
+          return;
+        }
+
+        setProfile({
+          id: user.id,
+          full_name: profileData.full_name,
+          store_name: profileData.store_name,
+          phone: profileData.phone,
+          user_type: profileData.user_type,
+          created_at: user.created_at
+        });
 
         // Fetch orders
         const sellerOrders = await getSellerOrders("seller-123"); // Simulado
@@ -74,19 +82,23 @@ export default function SellerDashboard() {
       } catch (err) {
         const message = err instanceof Error ? err.message : "Erro ao carregar dados.";
         setError(`${message} Por favor, faça login novamente.`);
-        setTimeout(() => window.location.href = "/seller/login", 2000);
+        setTimeout(() => navigate("/seller/login"), 2000);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("lumi_token");
-    localStorage.removeItem("lumi_profile");
-    window.location.href = "/seller/login";
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Erro ao sair. Tente novamente.");
+      console.error("Erro ao sair:", error);
+    } else {
+      navigate("/seller/login");
+    }
   };
 
   // Calculated Stats
@@ -110,7 +122,7 @@ export default function SellerDashboard() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-6 bg-white rounded-lg shadow-sm">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.href = "/seller/login"}>
+          <Button onClick={() => navigate("/seller/login")}>
             Voltar ao Login
           </Button>
         </div>

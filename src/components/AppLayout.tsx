@@ -1,12 +1,15 @@
 "use client";
 
-import React, { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { ReactNode, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
-import HeaderCart from "./HeaderCart"; // Importando HeaderCart
-import logo from "@/assets/images/logo.svg"; // Importando a imagem do logo
+import HeaderCart from "./HeaderCart";
+import logo from "@/assets/images/logo.svg";
+import { createClient } from '@/integrations/supabase/client';
+
+const supabase = createClient();
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -16,9 +19,51 @@ const excludedPaths = ["/seller/login", "/seller/register", "/buyer/login", "/bu
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme } = useTheme();
+  const [user, setUser] = useState<any>(null);
 
   const isAuthPage = excludedPaths.some(path => location.pathname.startsWith(path));
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      // Redirecionar usuários logados de páginas de autenticação
+      if (user && isAuthPage) {
+        const profile = user.user_metadata;
+        if (profile?.user_type === 'seller') {
+          navigate('/seller/dashboard');
+        } else {
+          navigate('/');
+        }
+      }
+    };
+
+    checkUser();
+
+    // Escutar mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      
+      // Redirecionar após login/logout
+      if (_event === 'SIGNED_IN') {
+        const profile = session?.user?.user_metadata;
+        if (profile?.user_type === 'seller') {
+          navigate('/seller/dashboard');
+        } else {
+          navigate('/');
+        }
+      } else if (_event === 'SIGNED_OUT') {
+        navigate('/');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, isAuthPage]);
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -35,7 +80,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Navbar com tema switch e carrinho */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center">
         <Link to="/">
-          {/* Usando a imagem do logo */}
           <img src={logo} alt="Lumi Logo" className="h-10 w-auto" />
         </Link>
 

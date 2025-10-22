@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   User, 
   ShoppingBag, 
@@ -23,45 +23,60 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BiometricRegistration from "@/components/BiometricRegistration";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { createClient } from '@/integrations/supabase/client';
+import { toast } from "sonner";
 
-const user = {
-  id: "user-12345",
-  name: "João Silva",
-  email: "joao.silva@email.com",
-  phone: "+258 82 123 4567",
-  role: "buyer",
-  location: {
-    city: "Maputo",
-    district: "KaMubukwana",
-    address: "Av. Kenneth Kaunda, 123"
-  },
-  joinedAt: "Janeiro 2024",
-  orders: 23,
-  totalSpent: 125000,
-  reviews: 5,
-};
+const supabase = createClient();
 
 export default function AccountPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userType, setUserType] = useState<'buyer' | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [userType, setUserType] = useState<'buyer' | 'seller' | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("lumi_token");
-    const profile = localStorage.getItem("lumi_profile");
-    
-    if (token && profile) {
-      setIsLoggedIn(true);
-      const parsedProfile = JSON.parse(profile);
-      setUserType(parsedProfile.user_type === 'buyer' ? 'buyer' : null);
-    }
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        setIsLoggedIn(true);
+        setUser(user);
+        setUserType(user.user_metadata?.user_type || null);
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+        setUserType(null);
+      }
+    };
+
+    checkUser();
+
+    // Escutar mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setIsLoggedIn(true);
+        setUser(session.user);
+        setUserType(session.user.user_metadata?.user_type || null);
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+        setUserType(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("lumi_token");
-    localStorage.removeItem("lumi_profile");
-    setIsLoggedIn(false);
-    setUserType(null);
-    window.location.href = "/";
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Erro ao sair. Tente novamente.");
+      console.error("Erro ao sair:", error);
+    } else {
+      toast.success("Você saiu com sucesso.");
+    }
   };
 
   if (!isLoggedIn) {
@@ -71,9 +86,14 @@ export default function AccountPage() {
           <div className="text-center py-12">
             <h1 className="text-3xl font-bold mb-4">Minha Conta</h1>
             <p className="text-gray-600 mb-8">Faça login para acessar sua conta</p>
-            <Button asChild size="lg">
-              <Link to="/account">Entrar ou Criar Conta</Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg">
+                <Link to="/buyer/login">Entrar como Comprador</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/seller/login">Entrar como Vendedor</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -101,10 +121,16 @@ export default function AccountPage() {
               <User className="h-10 w-10 text-blue-600" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {user?.user_metadata?.full_name || user?.email}
+              </h1>
               <div className="flex items-center space-x-4 mt-2">
-                <Badge variant="secondary">Membro desde {user.joinedAt}</Badge>
-                <span className="text-sm text-gray-500">{user.orders} pedidos</span>
+                <Badge variant="secondary">
+                  {userType === 'seller' ? 'Vendedor' : 'Comprador'}
+                </Badge>
+                <span className="text-sm text-gray-500">
+                  Membro desde {new Date(user?.created_at).toLocaleDateString('pt-BR')}
+                </span>
               </div>
             </div>
           </div>
@@ -193,7 +219,7 @@ export default function AccountPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <BiometricRegistration userId={user.id} email={user.email} />
+              <BiometricRegistration userId={user?.id} email={user?.email} />
             </CardContent>
           </Card>
         </div>
