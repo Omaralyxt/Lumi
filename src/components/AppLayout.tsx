@@ -6,6 +6,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
 import HeaderCart from "./HeaderCart"; // Importando HeaderCart
+import logo from "@/assets/images/logo.svg"; // Importando a imagem do logo
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -34,9 +35,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Navbar com tema switch e carrinho */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center">
         <Link to="/">
-          <h1 className="text-3xl font-title font-bold tracking-wider text-blue-600 dark:text-cyan-400">
-            Lumi
-          </h1>
+          {/* Usando a imagem do logo */}
+          <img src={logo} alt="Lumi Logo" className="h-10 w-auto" />
         </Link>
 
         <div className="flex items-center space-x-3">

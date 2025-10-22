@@ -44,6 +44,7 @@ import {
   X
 } from "lucide-react";
 import { toast } from "sonner";
+import logo from "@/assets/images/logo.svg"; // Importando a imagem do logo
 
 // Mock data for categories
 const categories = [
@@ -391,10 +392,19 @@ export default function Home() {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <motion.h1 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
+              className="flex justify-center mb-6"
+            >
+              {/* Usando a imagem do logo no hero */}
+              <img src={logo} alt="Lumi Logo" className="h-24 w-auto" />
+            </motion.div>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
               className="text-4xl md:text-5xl font-bold mb-4"
             >
               Encontre o Melhor Preço em Moçambique
@@ -402,7 +412,7 @@ export default function Home() {
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               className="text-xl text-blue-100 max-w-2xl mx-auto"
             >
               Compre com segurança, receba rápido e economize mais com milhares de produtos
@@ -413,7 +423,7 @@ export default function Home() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             className="max-w-3xl mx-auto"
           >
             <form onSubmit={handleSearch} className="relative">
@@ -456,7 +466,7 @@ export default function Home() {
                 key={feature.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
                 whileHover={{ y: -5 }}
                 className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow"
               >
@@ -490,7 +500,7 @@ export default function Home() {
                 key={category.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
                 whileHover={{ y: -5 }}
                 className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 cursor-pointer hover:shadow-neon-blue transition-shadow"
                 onClick={() => navigate(`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
@@ -525,7 +535,7 @@ export default function Home() {
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
                 whileHover={{ y: -5 }}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
               >
@@ -616,7 +626,7 @@ export default function Home() {
                 key={offer.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
                 whileHover={{ y: -5 }}
                 className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden border border-red-200 dark:border-red-800"
               >
@@ -704,7 +714,7 @@ export default function Home() {
                 key={store.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
                 whileHover={{ y: -5 }}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
               >
@@ -770,7 +780,7 @@ export default function Home() {
                 key={testimonial.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
+                transition={{ duration: 0.5, delay: 0.9 }}
                 className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-4">
@@ -812,7 +822,7 @@ export default function Home() {
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.9 }}
+            transition={{ duration: 0.5, delay: 1 }}
             className="text-3xl md:text-4xl font-bold mb-6"
           >
             Comece a Economizar Hoje Mesmo!
@@ -820,7 +830,7 @@ export default function Home() {
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1 }}
+            transition={{ duration: 0.5, delay: 1.1 }}
             className="text-xl mb-8 text-blue-100"
           >
             Junte-se a milhares de clientes satisfeitos e descubra os melhores preços
@@ -828,7 +838,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.1 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <button
