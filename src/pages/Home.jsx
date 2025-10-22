@@ -301,34 +301,6 @@ const stores = [
   },
 ];
 
-// Mock data for testimonials
-const testimonials = [
-  {
-    id: 1,
-    name: "João Silva",
-    avatar: "/placeholder.svg",
-    rating: 5,
-    comment: "Excelente plataforma! Encontrei o que procurava com preços muito bons e entrega rápida.",
-    date: "2 dias atrás",
-  },
-  {
-    id: 2,
-    name: "Maria Santos",
-    avatar: "/placeholder.svg",
-    rating: 4,
-    comment: "Ótima variedade de produtos e lojas confiáveis. A interface é muito intuitiva.",
-    date: "1 semana atrás",
-  },
-  {
-    id: 3,
-    name: "Pedro Costa",
-    avatar: "/placeholder.svg",
-    rating: 5,
-    comment: "Melhor experiência de compra online que já tive. Recomendo a todos!",
-    date: "2 semanas atrás",
-  },
-];
-
 // Mock data for features
 const features = [
   {
@@ -363,12 +335,10 @@ export default function Home() {
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [showAllOffers, setShowAllOffers] = useState(false);
   const [showAllStores, setShowAllStores] = useState(false);
-  const [showAllTestimonials, setShowAllTestimonials] = useState(false);
 
   const filteredCategories = showAllCategories ? categories : categories.slice(0, 6);
   const filteredOffers = showAllOffers ? offers : offers.slice(0, 3);
   const filteredStores = showAllStores ? stores : stores.slice(0, 3);
-  const filteredTestimonials = showAllTestimonials ? testimonials : testimonials.slice(0, 2);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -764,65 +734,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <div className="py-12 px-4 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">O Que Nossos Clientes Dizem</h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Milhares de clientes satisfeitos que confiam em nossa plataforma para suas compras online
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredTestimonials.map((testimonial) => (
-              <motion.div
-                key={testimonial.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.9 }}
-                className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`h-5 w-5 ${
-                        star <= testimonial.rating
-                          ? "text-yellow-400 fill-current"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-4 italic">
-                  "{testimonial.comment}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <img
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                    loading="lazy"
-                  />
-                  <div>
-                    <h4 className="font-semibold">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-500">{testimonial.date}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* CTA Section */}
       <div className="py-16 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
             className="text-3xl md:text-4xl font-bold mb-6"
           >
             Comece a Economizar Hoje Mesmo!
@@ -830,7 +748,7 @@ export default function Home() {
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.1 }}
+            transition={{ duration: 0.5, delay: 1 }}
             className="text-xl mb-8 text-blue-100"
           >
             Junte-se a milhares de clientes satisfeitos e descubra os melhores preços
@@ -838,7 +756,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.2 }}
+            transition={{ duration: 0.5, delay: 1.1 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <button
