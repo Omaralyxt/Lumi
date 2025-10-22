@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
@@ -29,7 +29,7 @@ import {
   Headphones,
   Smartphone,
   Laptop,
-  Home as HomeIcon, // Renamed Home to HomeIcon
+  Home as HomeIcon,
   Utensils,
   Shirt,
   Book,
@@ -41,10 +41,40 @@ import {
   Eye,
   Plus,
   Minus,
-  X
+  X,
+  ChevronDown
 } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/images/logo.svg"; // Importando a imagem do logo
+import logo from "@/assets/images/logo.svg";
+import BannerCarousel from "@/components/BannerCarousel";
+
+// Mock data for banners
+const banners = [
+  {
+    id: 1,
+    title: "Ofertas Especiais",
+    description: "Descontos de até 50% em eletrônicos selecionados",
+    image_url: "/placeholder.svg",
+    link: "/offers",
+    active: true
+  },
+  {
+    id: 2,
+    title: "Novidades da Semana",
+    description: "Confira os produtos recém-chegados",
+    image_url: "/placeholder.svg",
+    link: "/new-arrivals",
+    active: true
+  },
+  {
+    id: 3,
+    title: "Frete Grátis",
+    description: "Em compras acima de MT 5000 para todo o país",
+    image_url: "/placeholder.svg",
+    link: "/free-shipping",
+    active: true
+  }
+];
 
 // Mock data for categories
 const categories = [
@@ -65,7 +95,7 @@ const categories = [
   {
     id: 3,
     name: "Casa & Cozinha",
-    icon: HomeIcon, // Using HomeIcon
+    icon: HomeIcon,
     color: "bg-green-100 text-green-600",
     count: 623,
   },
@@ -107,7 +137,7 @@ const categories = [
 ];
 
 // Mock data for featured products
-const featuredProducts = [
+const initialProducts = [
   {
     id: 1,
     title: "Smartphone Samsung Galaxy A54 5G",
@@ -188,10 +218,50 @@ const featuredProducts = [
     reviewCount: 145,
     timeDelivery: "2-5 dias úteis",
   },
+  {
+    id: 5,
+    title: "Câmera Canon EOS R6 Mark II",
+    price: 45000,
+    originalPrice: 52000,
+    images: ["/placeholder.svg"],
+    shop: { name: "FotoPro MZ", rating: 4.9, reviewCount: 124, isVerified: true },
+    quantity: 1,
+    stock: 3,
+    category: "Fotografia",
+    description: "",
+    features: [],
+    specifications: {},
+    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
+    reviews: [],
+    options: [],
+    rating: 4.9,
+    reviewCount: 56,
+    timeDelivery: "2-5 dias úteis",
+  },
+  {
+    id: 6,
+    title: "Console PlayStation 5",
+    price: 32000,
+    originalPrice: 35000,
+    images: ["/placeholder.svg"],
+    shop: { name: "GameStore MZ", rating: 4.8, reviewCount: 210, isVerified: true },
+    quantity: 1,
+    stock: 7,
+    category: "Jogos",
+    description: "",
+    features: [],
+    specifications: {},
+    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
+    reviews: [],
+    options: [],
+    rating: 4.8,
+    reviewCount: 89,
+    timeDelivery: "2-5 dias úteis",
+  },
 ];
 
 // Mock data for offers
-const offers = [
+const initialOffers = [
   {
     id: 1,
     title: "Smartphone Xiaomi Redmi Note 13 Pro",
@@ -255,10 +325,31 @@ const offers = [
     reviewCount: 112,
     timeDelivery: "2-5 dias úteis",
   },
+  {
+    id: 4,
+    title: "Tablet Samsung Galaxy Tab S8",
+    discount: 15,
+    price: 17000,
+    originalPrice: 20000,
+    images: ["/placeholder.svg"],
+    shop: { name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
+    quantity: 1,
+    stock: 12,
+    category: "Eletrónicos",
+    description: "",
+    features: [],
+    specifications: {},
+    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
+    reviews: [],
+    options: [],
+    rating: 4.5,
+    reviewCount: 78,
+    timeDelivery: "2-5 dias úteis",
+  },
 ];
 
 // Mock data for stores
-const stores = [
+const initialStores = [
   {
     id: 1,
     name: "TechStore MZ",
@@ -299,6 +390,26 @@ const stores = [
     productsCount: 423,
     categories: ["Desporto", "Fitness", "Outdoor"],
   },
+  {
+    id: 5,
+    name: "Book Lovers",
+    logo: "/placeholder.svg",
+    rating: 4.9,
+    reviewCount: 210,
+    isVerified: true,
+    productsCount: 567,
+    categories: ["Livros", "Educação", "Papelaria"],
+  },
+  {
+    id: 6,
+    name: "Auto Parts MZ",
+    logo: "/placeholder.svg",
+    rating: 4.4,
+    reviewCount: 98,
+    isVerified: true,
+    productsCount: 321,
+    categories: ["Automóvel", "Peças", "Acessórios"],
+  },
 ];
 
 // Mock data for features
@@ -332,13 +443,20 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [showAllCategories, setShowAllCategories] = useState(false);
-  const [showAllOffers, setShowAllOffers] = useState(false);
-  const [showAllStores, setShowAllStores] = useState(false);
-
-  const filteredCategories = showAllCategories ? categories : categories.slice(0, 6);
-  const filteredOffers = showAllOffers ? offers : offers.slice(0, 3);
-  const filteredStores = showAllStores ? stores : stores.slice(0, 3);
+  
+  // States for infinite scroll
+  const [products, setProducts] = useState(initialProducts);
+  const [offers, setOffers] = useState(initialOffers);
+  const [stores, setStores] = useState(initialStores);
+  const [productsPage, setProductsPage] = useState(1);
+  const [offersPage, setOffersPage] = useState(1);
+  const [storesPage, setStoresPage] = useState(1);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingOffers, setLoadingOffers] = useState(false);
+  const [loadingStores, setLoadingStores] = useState(false);
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [hasMoreOffers, setHasMoreOffers] = useState(true);
+  const [hasMoreStores, setHasMoreStores] = useState(true);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -352,9 +470,122 @@ export default function Home() {
   };
 
   const handleAddToFavorites = (product) => {
-    // This would be handled by the favorites context
     toast.success(`${product.title} adicionado aos favoritos!`);
   };
+
+  // Simulate loading more products
+  const loadMoreProducts = useCallback(() => {
+    if (loadingProducts || !hasMoreProducts) return;
+    
+    setLoadingProducts(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // In a real app, this would be an API call with pagination
+      const newProducts = initialProducts.map(product => ({
+        ...product,
+        id: product.id + productsPage * 100 // Just to make IDs unique
+      }));
+      
+      setProducts(prev => [...prev, ...newProducts]);
+      setProductsPage(prev => prev + 1);
+      
+      // Simulate reaching the end after 3 pages
+      if (productsPage >= 3) {
+        setHasMoreProducts(false);
+      }
+      
+      setLoadingProducts(false);
+    }, 1000);
+  }, [loadingProducts, hasMoreProducts, productsPage]);
+
+  // Simulate loading more offers
+  const loadMoreOffers = useCallback(() => {
+    if (loadingOffers || !hasMoreOffers) return;
+    
+    setLoadingOffers(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // In a real app, this would be an API call with pagination
+      const newOffers = initialOffers.map(offer => ({
+        ...offer,
+        id: offer.id + offersPage * 100 // Just to make IDs unique
+      }));
+      
+      setOffers(prev => [...prev, ...newOffers]);
+      setOffersPage(prev => prev + 1);
+      
+      // Simulate reaching the end after 3 pages
+      if (offersPage >= 3) {
+        setHasMoreOffers(false);
+      }
+      
+      setLoadingOffers(false);
+    }, 1000);
+  }, [loadingOffers, hasMoreOffers, offersPage]);
+
+  // Simulate loading more stores
+  const loadMoreStores = useCallback(() => {
+    if (loadingStores || !hasMoreStores) return;
+    
+    setLoadingStores(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // In a real app, this would be an API call with pagination
+      const newStores = initialStores.map(store => ({
+        ...store,
+        id: store.id + storesPage * 100 // Just to make IDs unique
+      }));
+      
+      setStores(prev => [...prev, ...newStores]);
+      setStoresPage(prev => prev + 1);
+      
+      // Simulate reaching the end after 3 pages
+      if (storesPage >= 3) {
+        setHasMoreStores(false);
+      }
+      
+      setLoadingStores(false);
+    }, 1000);
+  }, [loadingStores, hasMoreStores, storesPage]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const section = entry.target.id;
+            
+            if (section === "products-section" && hasMoreProducts) {
+              loadMoreProducts();
+            } else if (section === "offers-section" && hasMoreOffers) {
+              loadMoreOffers();
+            } else if (section === "stores-section" && hasMoreStores) {
+              loadMoreStores();
+            }
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const productsSection = document.getElementById("products-section");
+    const offersSection = document.getElementById("offers-section");
+    const storesSection = document.getElementById("stores-section");
+    
+    if (productsSection) observer.observe(productsSection);
+    if (offersSection) observer.observe(offersSection);
+    if (storesSection) observer.observe(storesSection);
+
+    return () => {
+      if (productsSection) observer.unobserve(productsSection);
+      if (offersSection) observer.unobserve(offersSection);
+      if (storesSection) observer.unobserve(storesSection);
+    };
+  }, [loadMoreProducts, loadMoreOffers, loadMoreStores, hasMoreProducts, hasMoreOffers, hasMoreStores]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -368,7 +599,6 @@ export default function Home() {
               transition={{ duration: 0.5 }}
               className="flex justify-center mb-6"
             >
-              {/* Usando a imagem do logo no hero */}
               <img src={logo} alt="Lumi Logo" className="h-24 w-auto" />
             </motion.div>
             <motion.h1 
@@ -427,6 +657,13 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Banner Carousel */}
+      <div className="py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <BannerCarousel banners={banners} />
+        </div>
+      </div>
+
       {/* Features Section */}
       <div className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -460,12 +697,12 @@ export default function Home() {
               onClick={() => navigate("/categories")}
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              {showAllCategories ? "Ver menos" : "Ver todas"}
+              Ver todas
             </button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredCategories.map((category) => (
+            {categories.map((category) => (
               <motion.div
                 key={category.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -486,13 +723,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Featured Products Section */}
-      <div className="py-12 px-4">
+      {/* Products Section with Infinite Scroll */}
+      <div className="py-12 px-4" id="products-section">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Produtos em Destaque</h2>
             <button
-              onClick={() => navigate("/offers")}
+              onClick={() => navigate("/products")}
               className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
             >
               Ver todos <ArrowRight className="h-4 w-4" />
@@ -500,7 +737,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
+            {products.map((product) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -574,11 +811,25 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+
+          {/* Loading indicator for products */}
+          {loadingProducts && (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+            </div>
+          )}
+
+          {/* End of products message */}
+          {!hasMoreProducts && (
+            <div className="text-center py-8 text-gray-500">
+              <p>Não há mais produtos para carregar</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Offers Section */}
-      <div className="py-12 px-4 bg-white dark:bg-gray-800">
+      {/* Offers Section with Infinite Scroll */}
+      <div className="py-12 px-4 bg-white dark:bg-gray-800" id="offers-section">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Ofertas Especiais</h2>
@@ -591,7 +842,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOffers.map((offer) => (
+            {offers.map((offer) => (
               <motion.div
                 key={offer.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -662,11 +913,25 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+
+          {/* Loading indicator for offers */}
+          {loadingOffers && (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+            </div>
+          )}
+
+          {/* End of offers message */}
+          {!hasMoreOffers && (
+            <div className="text-center py-8 text-gray-500">
+              <p>Não há mais ofertas para carregar</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Stores Section */}
-      <div className="py-12 px-4">
+      {/* Stores Section with Infinite Scroll */}
+      <div className="py-12 px-4" id="stores-section">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Lojas Destacadas</h2>
@@ -679,7 +944,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredStores.map((store) => (
+            {stores.map((store) => (
               <motion.div
                 key={store.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -731,6 +996,20 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+
+          {/* Loading indicator for stores */}
+          {loadingStores && (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+            </div>
+          )}
+
+          {/* End of stores message */}
+          {!hasMoreStores && (
+            <div className="text-center py-8 text-gray-500">
+              <p>Não há mais lojas para carregar</p>
+            </div>
+          )}
         </div>
       </div>
 
