@@ -180,26 +180,29 @@ html {
     border-color: #00e0ff;
   }
 
-  /* Estilo de cartão de produto (para ser aplicado manualmente onde necessário) */
+  /* Estilo de cartão de produto com NEON AZUL */
   .product-card-style {
-    border: 0.6px solid rgba(255, 255, 255, 0.2);
+    border: 0.6px solid rgba(0, 170, 255, 0.2); /* Azul claro */
     border-radius: 1rem;
     transition: all 0.3s ease;
     background: white; /* Fallback light mode */
+    box-shadow: 0 0 5px rgba(0, 170, 255, 0.1);
   }
   
   .product-card-style:hover {
-    border-color: rgba(255, 255, 255, 0.6);
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+    border-color: rgba(0, 170, 255, 0.6);
+    box-shadow: 0 0 15px rgba(0, 170, 255, 0.4);
     transform: translateY(-3px);
   }
   
   .dark .product-card-style {
     background: #111111;
-    border: 0.6px solid rgba(0, 255, 255, 0.1);
+    border: 0.6px solid rgba(0, 170, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
   }
   
   .dark .product-card-style:hover {
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+    border-color: #00aaff; /* Cor neon */
+    box-shadow: 0 0 20px rgba(0, 170, 255, 0.7); /* Sombra neon mais forte */
   }
 }

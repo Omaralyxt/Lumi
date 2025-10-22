@@ -43,7 +43,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
     return products.map((product) => (
       <div
         key={product.id}
-        className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent hover:border-[rgba(0,170,255,0.6)] shadow-[0_0_15px_rgba(0,170,255,0.1)] hover:shadow-[0_0_25px_rgba(0,170,255,0.4)] transition-all duration-300 hover:scale-[1.02]"
+        className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent shadow-[0_0_15px_rgba(0,170,255,0.1)] hover:shadow-neon-blue-lg transition-all duration-300 hover:scale-[1.02] dark:border-neon-blue/30 dark:hover:border-neon-blue"
       >
         {/* Imagem */}
         <Link to={`/product/${product.id}`}>
@@ -90,7 +90,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
 
             <FavoriteButton 
               productId={product.id} 
-              className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-2 rounded-full shadow hover:scale-110 hover:shadow-[0_0_10px_rgba(0,170,255,0.5)] transition"
+              className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-2 rounded-full shadow hover:scale-110 hover:shadow-neon-blue transition"
               onClick={(e) => {
                 e.preventDefault();
                 toggleFavorite(product.id);

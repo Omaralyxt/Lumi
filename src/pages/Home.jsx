@@ -466,7 +466,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
                 whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow"
               >
                 <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${feature.icon === Truck ? 'bg-blue-100 text-blue-600' : feature.icon === Shield ? 'bg-green-100 text-green-600' : 'bg-purple-100 text-purple-600'}`}>
                   <feature.icon className="h-6 w-6" />
@@ -500,7 +500,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
                 whileHover={{ y: -5 }}
-                className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 cursor-pointer hover:shadow-md transition-shadow"
+                className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 cursor-pointer hover:shadow-neon-blue transition-shadow"
                 onClick={() => navigate(`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
               >
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${category.color}`}>
@@ -535,7 +535,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
                 whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
               >
                 <div className="relative">
                   <img
@@ -551,7 +551,7 @@ export default function Home() {
                   )}
                   <button
                     onClick={() => handleAddToFavorites(product)}
-                    className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-lg transition-shadow"
+                    className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-neon-blue transition-shadow"
                   >
                     <HeartIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                   </button>
@@ -633,7 +633,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
                 whileHover={{ y: -5 }}
-                className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-red-200 dark:border-red-800"
+                className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden border border-red-200 dark:border-red-800"
               >
                 <div className="relative">
                   <img
@@ -648,7 +648,7 @@ export default function Home() {
                   </div>
                   <button
                     onClick={() => handleAddToFavorites(offer)}
-                    className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-lg transition-shadow"
+                    className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-neon-blue transition-shadow"
                   >
                     <HeartIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                   </button>
@@ -728,7 +728,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.7 }}
                 whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
               >
                 <div className="p-6">
                   <div className="flex items-center gap-4 mb-4">
@@ -793,7 +793,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
-                className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl"
+                className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
