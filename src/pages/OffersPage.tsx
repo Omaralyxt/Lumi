@@ -1,19 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star, Clock, Zap, Percent, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import ProductGrid from "@/components/ProductGrid";
-import { Link } from "react-router-dom";
-import SwipeablePage from "@/components/SwipeablePage";
-
-// Mock data adapt<dyad-write path="src/pages/OffersPage.tsx" description="Updating Offers page to use SwipeablePage component.">
-"use client";
-
-import { useState } from "react";
-import { Star, Clock, Zap, Percent, ArrowLeft } from "lucide-react";
+import { Clock, Zap, Percent, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -180,7 +168,7 @@ export default function OffersPage() {
               onClick={() => setSortBy("rating")}
               className="text-xs flex-shrink-0"
             >
-              <Star className="h-3 w-3 mr-1" />
+              <Clock className="h-3 w-3 mr-1" />
               Melhor Avaliação
             </Button>
           </div>
