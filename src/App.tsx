@@ -34,7 +34,7 @@ import SellerDashboard from "./pages/SellerDashboard";
 import SellerProducts from "./pages/SellerProducts";
 import CreateProduct from "./pages/CreateProduct";
 import SellerOrdersPage from "./pages/SellerOrdersPage";
-import AuthRedirect from "./components/AuthRedirect";
+import RootRedirect from "./components/RootRedirect"; // Renamed import
 
 const queryClient = new QueryClient();
 
@@ -52,38 +52,38 @@ const App = () => (
                   <BrowserRouter>
                     <AppLayout>
                       <Routes>
-                        <Route path="/" element={<AuthRedirect />} />
+                        <Route path="/" element={<RootRedirect />} />
                         <Route path="/home" element={<Home />} />
                         <Route path="/categories" element={<CategoriesPage />} />
                         <Route path="/offers" element={<OffersPage />} />
                         <Route path="/favorites" element={<FavoritesPage />} />
+                        
+                        {/* Rotas que exigem login ou redirecionam para login/seleção */}
                         <Route path="/account" element={<AccountPage />} />
                         <Route path="/user-type" element={<UserTypeSelection />} />
-                        <Route path="/compare" element={<ComparePage />} />
-                        <Route path="/cart" element={<CartPage />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/orders" element={<OrderHistoryPage />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
+                        
+                        {/* Rotas Públicas */}
+                        <Route path="/compare" element={<ComparePage />} />
+                        <Route path="/cart" element={<CartPage />} />
                         <Route path="/store/:id" element={<StorePage />} />
                         <Route path="/category/:slug" element={<CategoryProductsPage />} />
+                        <Route path="/product/:id" element={<ProductDetail />} />
                         
-                        {/* Rotas de Comprador */}
+                        {/* Rotas de Autenticação */}
                         <Route path="/buyer/login" element={<BuyerLogin />} />
                         <Route path="/buyer/register" element={<BuyerRegister />} />
-                        
-                        {/* Rotas de Vendedor */}
                         <Route path="/seller/login" element={<SellerLogin />} />
                         <Route path="/seller/register" element={<SellerRegister />} />
+                        
+                        {/* Rotas de Vendedor (Protegidas) */}
                         <Route path="/seller/dashboard" element={<SellerDashboard />} />
                         <Route path="/seller/products" element={<SellerProducts />} />
                         <Route path="/seller/create-product" element={<CreateProduct />} />
                         <Route path="/seller/orders" element={<SellerOrdersPage />} />
-                        
-                        {/* Rota de Produto Detalhado */}
-                        <Route path="/product/:id" element={<ProductDetail />} />
-                        
-                        {/* Rota de Confirmação de Pedido */}
-                        <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
                         
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />

@@ -1,13 +1,13 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-const AuthRedirect = () => {
+const RootRedirect = () => {
   const token = localStorage.getItem("lumi_token");
   const profileString = localStorage.getItem("lumi_profile");
 
   if (!token) {
-    // If not logged in, go to user type selection (or login page)
-    return <Navigate to="/user-type" replace />;
+    // If not logged in, redirect to the main browsing page
+    return <Navigate to="/home" replace />;
   }
 
   if (profileString) {
@@ -21,7 +21,7 @@ const AuthRedirect = () => {
       return <Navigate to="/home" replace />;
     } catch (e) {
       console.error("Failed to parse profile:", e);
-      // If profile is corrupted, redirect to home (or force logout/login)
+      // If profile is corrupted, default to home
       return <Navigate to="/home" replace />;
     }
   }
@@ -30,4 +30,4 @@ const AuthRedirect = () => {
   return <Navigate to="/home" replace />;
 };
 
-export default AuthRedirect;
+export default RootRedirect;

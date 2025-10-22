@@ -1,27 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { User, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, ArrowLeft, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function UserTypeSelection() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleNavigate = (path: string) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      window.location.href = "/buyer/login";
-    }, 300);
-  };
-
-  const handleRegister = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      window.location.href = "/buyer/register";
+      navigate(path);
     }, 300);
   };
 
@@ -34,38 +27,70 @@ export default function UserTypeSelection() {
             <span className="text-white font-bold text-2xl">L</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Lumi</h1>
-          <p className="text-gray-600 mt-2">Encontre produtos incríveis em Moçambique</p>
+          <p className="text-gray-600 mt-2">Selecione como deseja continuar</p>
         </div>
 
         {/* User Type Selection */}
         <div className="space-y-6">
-          {/* User Card */}
+          {/* Buyer Card */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <User className="h-8 w-8 text-green-600" />
               </div>
-              <CardTitle className="text-xl">Entrar</CardTitle>
+              <CardTitle className="text-xl">Comprador</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center">
-                Acesse sua conta para continuar comprando e gerenciar seus pedidos.
+                Acesse sua conta para comprar, gerenciar pedidos e favoritos.
               </p>
               <div className="space-y-2">
                 <Button 
-                  onClick={handleLogin} 
+                  onClick={() => handleNavigate("/buyer/login")} 
                   disabled={isLoading}
                   className="w-full"
                 >
-                  {isLoading ? "Carregando..." : "Entrar na Conta"}
+                  {isLoading ? "Carregando..." : "Entrar como Comprador"}
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={handleRegister} 
+                  onClick={() => handleNavigate("/buyer/register")} 
                   disabled={isLoading}
                   className="w-full"
                 >
-                  Criar Nova Conta
+                  Criar Conta de Comprador
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Seller Card */}
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Store className="h-8 w-8 text-purple-600" />
+              </div>
+              <CardTitle className="text-xl">Vendedor</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600 text-center">
+                Gerencie sua loja, produtos e pedidos.
+              </p>
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => handleNavigate("/seller/login")} 
+                  disabled={isLoading}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  {isLoading ? "Carregando..." : "Entrar como Vendedor"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleNavigate("/seller/register")} 
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  Criar Conta de Vendedor
                 </Button>
               </div>
             </CardContent>
@@ -75,7 +100,7 @@ export default function UserTypeSelection() {
         {/* Back to Home */}
         <div className="mt-8 text-center">
           <Button variant="ghost" asChild>
-            <Link to="/">
+            <Link to="/home">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para Home
             </Link>
