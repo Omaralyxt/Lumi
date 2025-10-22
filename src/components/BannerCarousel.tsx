@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,36 @@ interface BannerCarouselProps {
 export default function BannerCarousel({ banners }: BannerCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Função para detectar toque
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNext();
+    } else if (isRightSwipe) {
+      goToPrevious();
+    }
+    
+    // Reset touch positions
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -49,15 +79,23 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
 
   return (
     <div 
+      ref={carouselRef}
       className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden shadow-lg"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {banners.map((banner, index) => (
         <div 
           key={banner.id}
-          className={`absolute inset-0 transition-opacity duration-500 ${
-            index === currentIndex ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+            index === currentIndex 
+              ? "opacity-100 translate-x-0" 
+              : index < currentIndex 
+                ? "-translate-x-full opacity-0" 
+                : "translate-x-full opacity-0"
           }`}
         >
           <div className="relative w-full h-full">
@@ -89,7 +127,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 text-white hover:bg-black/50"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 text-white hover:bg-black/50 md:flex hidden"
         onClick={goToPrevious}
       >
         <ChevronLeft className="h-6 w-6" />
@@ -98,7 +136,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 text-white hover:bg-black/50"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 text-white hover:bg-black/50 md:flex hidden"
         onClick={goToNext}
       >
         <ChevronRight className="h-6 w-6" />
@@ -116,6 +154,13 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
+      </div>
+      
+      {/* Mobile swipe indicators */}
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex space-x-1 md:hidden">
+        <div className="w-8 h-1 bg-white/30 rounded-full"></div>
+        <div className="w-8 h-1 bg-white/30 rounded-full"></div>
+        <div className="w-8 h-1 bg-white/30 rounded-full"></div>
       </div>
     </div>
   );

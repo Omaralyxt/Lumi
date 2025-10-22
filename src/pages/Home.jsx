@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
@@ -42,7 +42,9 @@ import {
   Plus,
   Minus,
   X,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/images/logo.svg";
@@ -457,6 +459,15 @@ export default function Home() {
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [hasMoreOffers, setHasMoreOffers] = useState(true);
   const [hasMoreStores, setHasMoreStores] = useState(true);
+  
+  // Mobile swipe navigation
+  const [activeSection, setActiveSection] = useState(0);
+  const sections = ["products", "offers", "stores"];
+  const sectionRefs = {
+    products: useRef(null),
+    offers: useRef(null),
+    stores: useRef(null)
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -586,6 +597,33 @@ export default function Home() {
       if (storesSection) observer.unobserve(storesSection);
     };
   }, [loadMoreProducts, loadMoreOffers, loadMoreStores, hasMoreProducts, hasMoreOffers, hasMoreStores]);
+
+  // Mobile swipe navigation handlers
+  const handleTouchStart = (e, section) => {
+    // Store touch start position
+    sectionRefs[section].current.startX = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e, section) => {
+    if (!sectionRefs[section].current.startX) return;
+    
+    const currentX = e.touches[0].clientX;
+    const diffX = sectionRefs[section].current.startX - currentX;
+    
+    // Only swipe horizontally
+    if (Math.abs(diffX) > 50) {
+      if (diffX > 0) {
+        // Swipe left - go to next section
+        setActiveSection(prev => Math.min(prev + 1, sections.length - 1));
+      } else {
+        // Swipe right - go to previous section
+        setActiveSection(prev => Math.max(prev - 1, 0));
+      }
+      
+      // Reset touch start position
+      sectionRefs[section].current.startX = null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -723,8 +761,50 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Mobile Navigation for Sections */}
+      <div className="md:hidden sticky top-16 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex">
+          <button
+            onClick={() => setActiveSection(0)}
+            className={`flex-1 py-3 text-center font-medium ${
+              activeSection === 0 
+                ? "text-blue-600 border-b-2 border-blue-600" 
+                : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            Produtos
+          </button>
+          <button
+            onClick={() => setActiveSection(1)}
+            className={`flex-1 py-3 text-center font-medium ${
+              activeSection === 1 
+                ? "text-blue-600 border-b-2 border-blue-600" 
+                : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            Ofertas
+          </button>
+          <button
+            onClick={() => setActiveSection(2)}
+            className={`flex-1 py-3 text-center font-medium ${
+              activeSection === 2 
+                ? "text-blue-600 border-b-2 border-blue-600" 
+                : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            Lojas
+          </button>
+        </div>
+      </div>
+
       {/* Products Section with Infinite Scroll */}
-      <div className="py-12 px-4" id="products-section">
+      <div 
+        id="products-section"
+        ref={sectionRefs.products}
+        className={`py-12 px-4 ${activeSection !== 0 ? 'hidden md:block' : ''}`}
+        onTouchStart={(e) => handleTouchStart(e, "products")}
+        onTouchMove={(e) => handleTouchMove(e, "products")}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Produtos em Destaque</h2>
@@ -829,7 +909,13 @@ export default function Home() {
       </div>
 
       {/* Offers Section with Infinite Scroll */}
-      <div className="py-12 px-4 bg-white dark:bg-gray-800" id="offers-section">
+      <div 
+        id="offers-section"
+        ref={sectionRefs.offers}
+        className={`py-12 px-4 bg-white dark:bg-gray-800 ${activeSection !== 1 ? 'hidden md:block' : ''}`}
+        onTouchStart={(e) => handleTouchStart(e, "offers")}
+        onTouchMove={(e) => handleTouchMove(e, "offers")}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Ofertas Especiais</h2>
@@ -931,7 +1017,13 @@ export default function Home() {
       </div>
 
       {/* Stores Section with Infinite Scroll */}
-      <div className="py-12 px-4" id="stores-section">
+      <div 
+        id="stores-section"
+        ref={sectionRefs.stores}
+        className={`py-12 px-4 ${activeSection !== 2 ? 'hidden md:block' : ''}`}
+        onTouchStart={(e) => handleTouchStart(e, "stores")}
+        onTouchMove={(e) => handleTouchMove(e, "stores")}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Lojas Destacadas</h2>
@@ -1011,6 +1103,32 @@ export default function Home() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile Section Navigation Arrows */}
+      <div className="md:hidden fixed bottom-20 right-4 flex gap-2 z-30">
+        <button
+          onClick={() => setActiveSection(prev => Math.max(prev - 1, 0))}
+          disabled={activeSection === 0}
+          className={`p-2 rounded-full shadow-lg ${
+            activeSection === 0 
+              ? "bg-gray-300 text-gray-500" 
+              : "bg-blue-600 text-white"
+          }`}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={() => setActiveSection(prev => Math.min(prev + 1, sections.length - 1))}
+          disabled={activeSection === sections.length - 1}
+          className={`p-2 rounded-full shadow-lg ${
+            activeSection === sections.length - 1 
+              ? "bg-gray-300 text-gray-500" 
+              : "bg-blue-600 text-white"
+          }`}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
 
       {/* CTA Section */}
