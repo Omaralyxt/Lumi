@@ -352,7 +352,7 @@ const features = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { cartCount } = useCart();
+  const { addToCart } = useCart();
   const { favorites } = useFavorites();
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
@@ -377,8 +377,7 @@ export default function Home() {
   };
 
   const handleAddToCart = (product) => {
-    // This would be handled by the cart context
-    toast.success(`${product.title} adicionado ao carrinho!`);
+    addToCart(product, 1);
   };
 
   const handleAddToFavorites = (product) => {
@@ -478,7 +477,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Categorias Populares</h2>
             <button
-              onClick={() => setShowAllCategories(!showAllCategories)}
+              onClick={() => navigate("/categories")}
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
               {showAllCategories ? "Ver menos" : "Ver todas"}
@@ -582,7 +581,6 @@ export default function Home() {
                       <span className="text-xs text-gray-500">{product.shop.name}</span>
                     </div>
                     <div className="flex gap-2">
-                      {/* Botão de comparação removido */}
                       <button
                         onClick={() => handleAddToCart(product)}
                         className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -671,7 +669,6 @@ export default function Home() {
                       <span className="text-xs text-gray-500">{offer.shop.name}</span>
                     </div>
                     <div className="flex gap-2">
-                      {/* Botão de comparação removido */}
                       <button
                         onClick={() => handleAddToCart(offer)}
                         className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"

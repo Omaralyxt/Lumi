@@ -22,7 +22,6 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
   // Memoize the handleBuy function to prevent unnecessary re-renders
   const handleBuy = useCallback((product: Product) => {
     addToCart(product, 1);
-    toast.success(`${product.title} adicionado ao carrinho!`);
   }, [addToCart]);
 
   // Memoize the toggleFavorite function
@@ -81,11 +80,12 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
           </p>
 
           <div className="flex justify-between items-center mt-3">
+            {/* Botão de Compra Principal */}
             <button
               className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-xl transition-all"
               onClick={() => handleBuy(product)}
             >
-              <ShoppingBag size={16} /> Comprar
+              <ShoppingBag size={16} /> Adicionar
             </button>
 
             <FavoriteButton 
