@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Store, CheckCircle, Search, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import CompareButton from "@/components/CompareButton";
 
 interface StoreProfile {
   id: number;
@@ -149,7 +148,7 @@ export default function StorePage() {
                       <span className="text-sm ml-1">{product.rating}</span>
                     </div>
                   </div>
-                  <CompareButton product={product} />
+                  {/* CompareButton removido */}
                 </CardContent>
               </Card>
             ))}

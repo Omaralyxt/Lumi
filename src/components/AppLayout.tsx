@@ -4,7 +4,6 @@ import React, { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import BottomNavLumi from "./BottomNavLumi";
-import CompareBar from "./CompareBar";
 import { useTheme } from "@/context/ThemeProvider";
 
 interface AppLayoutProps {
@@ -46,7 +45,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <main className="pb-20">{children}</main>
 
       <BottomNavLumi />
-      <CompareBar />
     </div>
   );
 }

@@ -13,8 +13,6 @@ import UserTypeSelection from "./components/UserTypeSelection";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
 import ProductDetail from "./pages/ProductDetail";
-import { CompareProvider } from "./context/CompareContext";
-import ComparePage from "./pages/ComparePage";
 import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -43,7 +41,7 @@ const App = () => (
     <ThemeProvider defaultTheme="light" storageKey="lumi-theme">
       <TooltipProvider>
         <FavoritesProvider>
-          <CompareProvider>
+          {/* CompareProvider removido */}
             <CartProvider>
               <OrdersProvider>
                 <ReviewsProvider>
@@ -67,7 +65,7 @@ const App = () => (
                         <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
                         
                         {/* Rotas Públicas */}
-                        <Route path="/compare" element={<ComparePage />} />
+                        {/* Rota /compare removida */}
                         <Route path="/cart" element={<CartPage />} />
                         <Route path="/store/:id" element={<StorePage />} />
                         <Route path="/category/:slug" element={<CategoryProductsPage />} />
@@ -93,7 +91,7 @@ const App = () => (
                 </ReviewsProvider>
               </OrdersProvider>
             </CartProvider>
-          </CompareProvider>
+          {/* CompareProvider removido */}
         </FavoritesProvider>
       </TooltipProvider>
     </ThemeProvider>

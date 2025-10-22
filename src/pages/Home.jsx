@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
-import { useCompare } from "@/context/CompareContext";
 import { useTheme } from "@/context/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -355,7 +354,6 @@ export default function Home() {
   const navigate = useNavigate();
   const { cartCount } = useCart();
   const { favorites } = useFavorites();
-  const { compareItems } = useCompare();
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -386,11 +384,6 @@ export default function Home() {
   const handleAddToFavorites = (product) => {
     // This would be handled by the favorites context
     toast.success(`${product.title} adicionado aos favoritos!`);
-  };
-
-  const handleAddToCompare = (product) => {
-    // This would be handled by the compare context
-    toast.success(`${product.title} adicionado à comparação!`);
   };
 
   return (
@@ -589,13 +582,7 @@ export default function Home() {
                       <span className="text-xs text-gray-500">{product.shop.name}</span>
                     </div>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleAddToCompare(product)}
-                        className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
-                        title="Comparar"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
+                      {/* Botão de comparação removido */}
                       <button
                         onClick={() => handleAddToCart(product)}
                         className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -684,13 +671,7 @@ export default function Home() {
                       <span className="text-xs text-gray-500">{offer.shop.name}</span>
                     </div>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleAddToCompare(offer)}
-                        className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
-                        title="Comparar"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
+                      {/* Botão de comparação removido */}
                       <button
                         onClick={() => handleAddToCart(offer)}
                         className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
