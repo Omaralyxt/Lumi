@@ -15,9 +15,11 @@ interface Banner {
 
 interface BannerCarouselProps {
   banners: Banner[];
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
 }
 
-export default function BannerCarousel({ banners }: BannerCarouselProps) {
+export default function BannerCarousel({ banners, onSwipeLeft, onSwipeRight }: BannerCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStart, setTouchStart] = useState(0);
@@ -41,9 +43,19 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
     const isRightSwipe = distance < -50;
 
     if (isLeftSwipe) {
-      goToNext();
+      // Swipe para a esquerda - próxima imagem ou próxima página
+      if (currentIndex < banners.length - 1) {
+        goToNext();
+      } else if (onSwipeLeft) {
+        onSwipeLeft();
+      }
     } else if (isRightSwipe) {
-      goToPrevious();
+      // Swipe para a direita - imagem anterior ou página anterior
+      if (currentIndex > 0) {
+        goToPrevious();
+      } else if (onSwipeRight) {
+        onSwipeRight();
+      }
     }
     
     // Reset touch positions

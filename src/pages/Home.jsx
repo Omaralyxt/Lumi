@@ -626,6 +626,25 @@ export default function Home() {
     }
   };
 
+  // Funções para navegar entre páginas
+  const goToPreviousPage = () => {
+    // Navegar para a página anterior (conta -> favoritos -> ofertas -> categorias -> home)
+    const currentPageIndex = 4; // Home é a primeira página
+    if (currentPageIndex > 0) {
+      const previousPage = ['account', 'favorites', 'offers', 'categories', 'home'][currentPageIndex - 1];
+      navigate(`/${previousPage}`);
+    }
+  };
+
+  const goToNextPage = () => {
+    // Navegar para a próxima página (home -> categorias -> ofertas -> favoritos -> conta)
+    const currentPageIndex = 0; // Home é a primeira página
+    if (currentPageIndex < 4) {
+      const nextPage = ['home', 'categories', 'offers', 'favorites', 'account'][currentPageIndex + 1];
+      navigate(`/${nextPage}`);
+    }
+  };
+
   return (
     <SwipeablePage currentPage="home">
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -697,10 +716,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Banner Carousel */}
+        {/* Banner Carousel with swipe priority */}
         <div className="py-8 px-4">
           <div className="max-w-7xl mx-auto">
-            <BannerCarousel banners={banners} />
+            <BannerCarousel 
+              banners={banners} 
+              onSwipeLeft={goToNextPage}
+              onSwipeRight={goToPreviousPage}
+            />
           </div>
         </div>
 
