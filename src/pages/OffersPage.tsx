@@ -7,6 +7,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ProductGrid from "@/components/ProductGrid";
 import { Link } from "react-router-dom";
+import SwipeablePage from "@/components/SwipeablePage";
+
+// Mock data adapt<dyad-write path="src/pages/OffersPage.tsx" description="Updating Offers page to use SwipeablePage component.">
+"use client";
+
+import { useState } from "react";
+import { Star, Clock, Zap, Percent, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import ProductGrid from "@/components/ProductGrid";
+import { Link } from "react-router-dom";
+import SwipeablePage from "@/components/SwipeablePage";
 
 // Mock data adaptado para o tipo Product
 const offers = [
@@ -114,66 +127,68 @@ export default function OffersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 font-body text-gray-900 dark:text-gray-100 transition-colors duration-500">
-      {/* Header (Removido, pois AppLayout já fornece o cabeçalho principal) */}
+    <SwipeablePage currentPage="offers">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 font-body text-gray-900 dark:text-gray-100 transition-colors duration-500">
+        {/* Header (Removido, pois AppLayout já fornece o cabeçalho principal) */}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <h1 className="font-title text-4xl text-gray-900 dark:text-gray-100 tracking-wide mb-6">
-          Ofertas do Dia
-        </h1>
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <h1 className="font-title text-4xl text-gray-900 dark:text-gray-100 tracking-wide mb-6">
+            Ofertas do Dia
+          </h1>
 
-        {/* Flash Sale Banner */}
-        <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-xl p-6 mb-8 text-white shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-title text-2xl flex items-center">
-                <Zap className="h-6 w-6 mr-2" />
-                Venda Relâmpago
-              </h2>
-              <p className="text-sm opacity-90 font-body">Ofertas por tempo limitado!</p>
-            </div>
-            <div className="text-right font-body">
-              <p className="text-xs opacity-90">Termina em</p>
-              <p className="font-bold text-lg">23:59:59</p>
+          {/* Flash Sale Banner */}
+          <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-xl p-6 mb-8 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-title text-2xl flex items-center">
+                  <Zap className="h-6 w-6 mr-2" />
+                  Venda Relâmpago
+                </h2>
+                <p className="text-sm opacity-90 font-body">Ofertas por tempo limitado!</p>
+              </div>
+              <div className="text-right font-body">
+                <p className="text-xs opacity-90">Termina em</p>
+                <p className="font-bold text-lg">23:59:59</p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Sort Options */}
-        <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
-          <Button
-            variant={sortBy === "discount" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSortBy("discount")}
-            className="text-xs flex-shrink-0"
-          >
-            <Percent className="h-3 w-3 mr-1" />
-            Maior Desconto
-          </Button>
-          <Button
-            variant={sortBy === "time" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSortBy("time")}
-            className="text-xs flex-shrink-0"
-          >
-            <Clock className="h-3 w-3 mr-1" />
-            Terminando em
-          </Button>
-          <Button
-            variant={sortBy === "rating" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSortBy("rating")}
-            className="text-xs flex-shrink-0"
-          >
-            <Star className="h-3 w-3 mr-1" />
-            Melhor Avaliação
-          </Button>
-        </div>
+          
+          {/* Sort Options */}
+          <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+            <Button
+              variant={sortBy === "discount" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("discount")}
+              className="text-xs flex-shrink-0"
+            >
+              <Percent className="h-3 w-3 mr-1" />
+              Maior Desconto
+            </Button>
+            <Button
+              variant={sortBy === "time" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("time")}
+              className="text-xs flex-shrink-0"
+            >
+              <Clock className="h-3 w-3 mr-1" />
+              Terminando em
+            </Button>
+            <Button
+              variant={sortBy === "rating" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("rating")}
+              className="text-xs flex-shrink-0"
+            >
+              <Star className="h-3 w-3 mr-1" />
+              Melhor Avaliação
+            </Button>
+          </div>
 
-        {/* Offers Grid using ProductGrid */}
-        <ProductGrid products={sortedOffers} showStoreInfo={true} />
+          {/* Offers Grid using ProductGrid */}
+          <ProductGrid products={sortedOffers} showStoreInfo={true} />
+        </div>
       </div>
-    </div>
+    </SwipeablePage>
   );
 }
