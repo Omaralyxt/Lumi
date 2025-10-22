@@ -30,7 +30,7 @@ import {
   Headphones,
   Smartphone,
   Laptop,
-  Home,
+  Home as HomeIcon, // Renamed Home to HomeIcon
   Utensils,
   Shirt,
   Book,
@@ -65,7 +65,7 @@ const categories = [
   {
     id: 3,
     name: "Casa & Cozinha",
-    icon: Home,
+    icon: HomeIcon, // Using HomeIcon
     color: "bg-green-100 text-green-600",
     count: 623,
   },
@@ -465,6 +465,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
+                whileHover={{ y: -5 }}
                 className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${feature.icon === Truck ? 'bg-blue-100 text-blue-600' : feature.icon === Shield ? 'bg-green-100 text-green-600' : 'bg-purple-100 text-purple-600'}`}>

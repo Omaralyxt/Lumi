@@ -28,6 +28,13 @@ import { OrdersProvider } from "./context/OrdersContext";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import { ReviewsProvider } from "./context/ReviewsContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
+import SellerLogin from "./components/SellerLogin";
+import SellerRegister from "./components/SellerRegister";
+import SellerDashboard from "./pages/SellerDashboard";
+import SellerProducts from "./pages/SellerProducts";
+import CreateProduct from "./pages/CreateProduct";
+import SellerOrdersPage from "./pages/SellerOrdersPage";
+import AuthRedirect from "./components/AuthRedirect";
 
 const queryClient = new QueryClient();
 
@@ -45,9 +52,7 @@ const App = () => (
                   <BrowserRouter>
                     <AppLayout>
                       <Routes>
-                        <Route path="/" element={
-                          localStorage.getItem("lumi_token") ? <Navigate to="/home" /> : <UserTypeSelection />
-                        } />
+                        <Route path="/" element={<AuthRedirect />} />
                         <Route path="/home" element={<Home />} />
                         <Route path="/categories" element={<CategoriesPage />} />
                         <Route path="/offers" element={<OffersPage />} />
@@ -65,6 +70,14 @@ const App = () => (
                         {/* Rotas de Comprador */}
                         <Route path="/buyer/login" element={<BuyerLogin />} />
                         <Route path="/buyer/register" element={<BuyerRegister />} />
+                        
+                        {/* Rotas de Vendedor */}
+                        <Route path="/seller/login" element={<SellerLogin />} />
+                        <Route path="/seller/register" element={<SellerRegister />} />
+                        <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                        <Route path="/seller/products" element={<SellerProducts />} />
+                        <Route path="/seller/create-product" element={<CreateProduct />} />
+                        <Route path="/seller/orders" element={<SellerOrdersPage />} />
                         
                         {/* Rota de Produto Detalhado */}
                         <Route path="/product/:id" element={<ProductDetail />} />
