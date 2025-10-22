@@ -19,10 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSellerOrders } from "@/api/orders";
 import { Order } from "@/types/order";
-import { createClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-
-const supabase = createClient();
 
 interface Profile {
   id: string;

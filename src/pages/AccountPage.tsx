@@ -23,10 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BiometricRegistration from "@/components/BiometricRegistration";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { createClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-
-const supabase = createClient();
 
 export default function AccountPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

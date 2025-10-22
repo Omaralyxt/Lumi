@@ -9,9 +9,7 @@ import { Label } from "@/components/ui/label";
 import BiometricLogin from "./BiometricLogin";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { createClient } from '@/integrations/supabase/client';
-
-const supabase = createClient();
+import { supabase } from '@/integrations/supabase/client';
 
 export default function BuyerLogin() {
   const [email, setEmail] = useState("");

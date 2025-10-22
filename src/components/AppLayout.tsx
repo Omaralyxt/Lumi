@@ -7,9 +7,7 @@ import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
 import HeaderCart from "./HeaderCart";
 import logo from "@/assets/images/logo.svg";
-import { createClient } from '@/integrations/supabase/client';
-
-const supabase = createClient();
+import { supabase } from '@/integrations/supabase/client';
 
 interface AppLayoutProps {
   children: ReactNode;

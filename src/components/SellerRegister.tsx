@@ -8,9 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { createClient } from '@/integrations/supabase/client';
-
-const supabase = createClient();
+import { supabase } from '@/integrations/supabase/client';
 
 export default function SellerRegister() {
   const [formData, setFormData] = useState({
