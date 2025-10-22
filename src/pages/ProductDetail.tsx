@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
-import HeaderCart from "@/components/HeaderCart";
+// HeaderCart removido
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -94,22 +94,8 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">L</span>
-              </div>
-              <h1 className="text-xl font-bold text-gray-900 font-body">Lumi</h1>
-            </Link>
-            <div className="flex items-center space-x-3">
-              <HeaderCart />
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header (Removido, pois AppLayout agora gerencia o cabeçalho global) */}
+      {/* O cabeçalho do AppLayout já contém o carrinho e o logo */}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">

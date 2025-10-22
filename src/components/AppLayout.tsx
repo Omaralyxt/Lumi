@@ -5,6 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
+import HeaderCart from "./HeaderCart"; // Importando HeaderCart
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -30,7 +31,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           : "bg-[#fafafa] text-gray-900"
       }`}
     >
-      {/* Navbar com tema switch */}
+      {/* Navbar com tema switch e carrinho */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center">
         <Link to="/">
           <h1 className="text-3xl font-title font-bold tracking-wider text-blue-600 dark:text-cyan-400">
@@ -38,7 +39,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </h1>
         </Link>
 
-        <ThemeToggle />
+        <div className="flex items-center space-x-3">
+          <HeaderCart />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Conteúdo principal */}
