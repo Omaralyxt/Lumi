@@ -119,7 +119,7 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }: PriceSliderP
 export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearchProps) {
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<any[]>([]);
-  const [filter, setFilter] = useState<"products" | "stores">("products"); // products ou stores
+  const [filter, setFilter] = useState<"products">("products"); // Apenas produtos
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(false);
@@ -162,32 +162,28 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [query, filter, selectedCategory, priceRange, minRating, sortBy]);
+  }, [query, selectedCategory, priceRange, minRating, sortBy]); // Removido 'filter'
 
   const performSearch = useCallback(async () => {
     setLoading(true);
     
-    if (filter === "products") {
-      const res = await searchProducts(query, selectedCategory, priceRange, minRating);
-      
-      // Aplicar ordenação
-      let sortedResults = [...res];
-      
-      if (sortBy === "price-low") {
-        sortedResults.sort((a, b) => a.price - b.price);
-      } else if (sortBy === "price-high") {
-        sortedResults.sort((a, b) => b.price - a.price);
-      } else if (sortBy === "rating") {
-        sortedResults.sort((a, b) => b.rating - a.rating);
-      }
-      
-      setResults(sortedResults);
-    } else {
-      const res = await searchStores(query);
-      setResults(res);
+    // Sempre busca produtos
+    const res = await searchProducts(query, selectedCategory, priceRange, minRating);
+    
+    // Aplicar ordenação
+    let sortedResults = [...res];
+    
+    if (sortBy === "price-low") {
+      sortedResults.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "price-high") {
+      sortedResults.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "rating") {
+      sortedResults.sort((a, b) => b.rating - a.rating);
     }
+    
+    setResults(sortedResults);
     setLoading(false);
-  }, [query, filter, selectedCategory, priceRange, minRating, sortBy]);
+  }, [query, selectedCategory, priceRange, minRating, sortBy]);
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
@@ -201,49 +197,19 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
     onSearch("");
   }, [onSearch]);
 
-  const handleFilterChange = useCallback((newFilter: "products" | "stores") => {
-    setFilter(newFilter);
-    setSelectedCategory("");
-    setMinRating(0);
-    setPriceRange([0, 100000]);
-    setSortBy("relevance");
-  }, []);
+  // Removido handleFilterChange, pois o filtro é fixo em "products"
 
   return (
     <div className="w-full mx-auto font-body">
-      {/* Filtro tipo */}
-      <div className="flex gap-2 mb-3">
-        <button
-          onClick={() => handleFilterChange("products")}
-          className={`px-4 py-2 rounded-full font-body font-medium transition-all ${
-            filter === "products"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-          }`}
-        >
-          <Package className="h-4 w-4 inline mr-1" />
-          Produtos
-        </button>
-        <button
-          onClick={() => handleFilterChange("stores")}
-          className={`px-4 py-2 rounded-full font-body font-medium transition-all ${
-            filter === "stores"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-          }`}
-        >
-          <Store className="h-4 w-4 inline mr-1" />
-          Lojas
-        </button>
-      </div>
-
+      {/* Filtro tipo (Removido) */}
+      
       {/* Input de busca */}
       <div className="relative">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           <Input
             type="text"
-            placeholder={`Buscar ${filter === "products" ? "produtos" : "lojas"}...`}
+            placeholder="Buscar produtos..."
             className="w-full pl-10 pr-10 rounded-xl p-3 transition-all"
             value={query}
             onChange={handleQueryChange}
@@ -370,7 +336,7 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
               </div>
             ) : (
               <div>
-                {results.map((item, index) =>
+                {results.map((item) =>
                   filter === "products" ? (
                     <Link
                       key={item.id}
@@ -428,45 +394,8 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
                       </div>
                     </Link>
                   ) : (
-                    <Link
-                      key={item.id}
-                      to={`/store/${item.id}`}
-                      className="flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors group dark:hover:bg-gray-800 dark:border-gray-700"
-                    >
-                      <div className="relative">
-                        <img
-                          src={item.logo_url}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform"
-                        />
-                        {item.is_verified && (
-                          <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-body-semibold">
-                            ✓
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className="font-title text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors dark:text-white dark:group-hover:text-blue-400">
-                          {item.name}
-                        </p>
-                        <div className="flex items-center gap-4 mt-1">
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="font-body text-xs text-gray-600 ml-1 dark:text-gray-400">
-                              {item.rating?.toFixed(1) || '0.0'}
-                            </span>
-                          </div>
-                          <span className="font-body text-xs text-gray-500">
-                            {item.products_count} produtos
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Store className="h-5 w-5" />
-                      </div>
-                    </Link>
+                    // Removido o bloco de link para lojas
+                    null
                   )
                 )}
               </div>

@@ -14,7 +14,7 @@ interface ProductGridProps {
   showStoreInfo?: boolean;
 }
 
-export default function ProductGrid({ products, title, showStoreInfo = true }: ProductGridProps) {
+export default function ProductGrid({ products, title, showStoreInfo = false }: ProductGridProps) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
@@ -48,12 +48,11 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
             </h3>
           </Link>
 
+          {/* Nome da loja como texto simples, se necessário */}
           {showStoreInfo && (
-            <Link to={`/store/${product.shop.id}`}>
-              <p className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 cursor-pointer mt-1">
-                {product.shop.name}
-              </p>
-            </Link>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Vendido por: {product.shop.name}
+            </p>
           )}
           
           <div className="flex items-center mt-2">

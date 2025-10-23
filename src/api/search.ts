@@ -120,6 +120,3 @@ export const searchProducts = async (
 
   return filteredProducts;
 };
-
-// Função para buscar lojas (usando Supabase - re-exportando de stores.ts)
-export { searchStores } from './stores';

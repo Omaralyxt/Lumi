@@ -18,10 +18,8 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import Profile from "./pages/Profile";
-import StorePage from "./pages/StorePage";
 import CategoryProductsPage from "./pages/CategoryProductsPage";
-import StoresPage from "./pages/StoresPage"; // Importar StoresPage
-import SearchPage from "./pages/SearchPage"; // Importar SearchPage
+import SearchPage from "./pages/SearchPage";
 import { ThemeProvider } from "./context/ThemeProvider";
 import AppLayout from "./components/AppLayout";
 import { OrdersProvider } from "./context/OrdersContext";
@@ -60,9 +58,7 @@ const App = () => (
                       
                       {/* Rotas Públicas */}
                       <Route path="/cart" element={<CartPage />} />
-                      <Route path="/stores" element={<StoresPage />} />
-                      <Route path="/search" element={<SearchPage />} /> {/* Nova rota de busca */}
-                      <Route path="/store/:id" element={<StorePage />} />
+                      <Route path="/search" element={<SearchPage />} />
                       <Route path="/category/:slug" element={<CategoryProductsPage />} />
                       <Route path="/product/:id" element={<ProductDetail />} />
                       <Route path="/sales/:id" element={<SalesPage />} />
@@ -74,6 +70,10 @@ const App = () => (
                       {/* Redirecionar rotas antigas de comprador para as novas rotas simplificadas */}
                       <Route path="/buyer/login" element={<Navigate to="/login" replace />} />
                       <Route path="/buyer/register" element={<Navigate to="/register" replace />} />
+                      
+                      {/* Rotas de Loja (Redirecionadas ou Removidas) */}
+                      <Route path="/stores" element={<Navigate to="/home" replace />} />
+                      <Route path="/store/:id" element={<Navigate to="/home" replace />} />
                       
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />

@@ -51,7 +51,6 @@ import logo from "@/assets/images/logo.svg";
 import BannerCarousel from "@/components/BannerCarousel";
 import SwipeablePage from "@/components/SwipeablePage";
 import { getFeaturedProducts } from "@/api/products";
-import { getFeaturedStores } from "@/api/stores";
 import { searchProducts } from "@/api/search"; // Usado para simular ofertas
 
 // Mock data for banners (mantido, pois não temos tabela de banners no Supabase)
@@ -174,18 +173,15 @@ export default function Home() {
   // States for data fetching
   const [products, setProducts] = useState([]);
   const [offers, setOffers] = useState([]);
-  const [stores, setStores] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingOffers, setLoadingOffers] = useState(true);
-  const [loadingStores, setLoadingStores] = useState(true);
   
   // Mobile swipe navigation
   const [activeSection, setActiveSection] = useState(0);
-  const sections = ["products", "offers", "stores"];
+  const sections = ["products", "offers"]; // Removido "stores"
   const sectionRefs = {
     products: useRef(null),
     offers: useRef(null),
-    stores: useRef(null)
   };
 
   // Fetch initial data
@@ -222,18 +218,6 @@ export default function Home() {
       } finally {
         setLoadingOffers(false);
       }
-
-      // Fetch Featured Stores
-      try {
-        setLoadingStores(true);
-        const featuredStores = await getFeaturedStores();
-        setStores(featuredStores);
-      } catch (e) {
-        console.error("Failed to fetch featured stores:", e);
-        setStores([]);
-      } finally {
-        setLoadingStores(false);
-      }
     };
 
     fetchData();
@@ -258,11 +242,13 @@ export default function Home() {
   // Mobile swipe navigation handlers
   const handleTouchStart = (e, section) => {
     // Store touch start position
-    sectionRefs[section].current.startX = e.touches[0].clientX;
+    if (sectionRefs[section].current) {
+      sectionRefs[section].current.startX = e.touches[0].clientX;
+    }
   };
 
   const handleTouchMove = (e, section) => {
-    if (!sectionRefs[section].current.startX) return;
+    if (!sectionRefs[section].current || !sectionRefs[section].current.startX) return;
     
     const currentX = e.touches[0].clientX;
     const diffX = sectionRefs[section].current.startX - currentX;
@@ -464,16 +450,6 @@ export default function Home() {
             >
               Ofertas
             </button>
-            <button
-              onClick={() => setActiveSection(2)}
-              className={`flex-1 py-3 text-center font-medium ${
-                activeSection === 2 
-                  ? "text-blue-600 border-b-2 border-blue-600" 
-                  : "text-gray-500 dark:text-gray-400"
-              }`}
-            >
-              Lojas
-            </button>
           </div>
         </div>
 
@@ -574,13 +550,12 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        {/* Nome da loja clicável */}
+                        {/* Nome da loja como texto simples */}
                         <div 
-                          className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                          onClick={() => navigate(`/store/${product.shop.id}`)}
+                          className="flex items-center gap-1"
                         >
                           <Store className="h-4 w-4 text-gray-500" />
-                          <span className="text-xs text-gray-500">{product.shop.name}</span>
+                          <span className="text-xs text-gray-500">Vendido por {product.shop.name}</span>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -694,13 +669,12 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        {/* Nome da loja clicável */}
+                        {/* Nome da loja como texto simples */}
                         <div 
-                          className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                          onClick={() => navigate(`/store/${offer.shop.id}`)}
+                          className="flex items-center gap-1"
                         >
                           <Store className="h-4 w-4 text-gray-500" />
-                          <span className="text-xs text-gray-500">{offer.shop.name}</span>
+                          <span className="text-xs text-gray-500">Vendido por {offer.shop.name}</span>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -712,84 +686,6 @@ export default function Home() {
                           </button>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Stores Section */}
-        <div 
-          id="stores-section"
-          ref={sectionRefs.stores}
-          className={`py-12 px-4 ${activeSection !== 2 ? 'hidden md:block' : ''}`}
-          onTouchStart={(e) => handleTouchStart(e, "stores")}
-          onTouchMove={(e) => handleTouchMove(e, "stores")}
-        >
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold">Lojas Destacadas</h2>
-              <button
-                onClick={() => navigate("/stores")}
-                className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
-              >
-                Ver todas <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-
-            {loadingStores ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
-              </div>
-            ) : stores.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>Nenhuma loja destacada encontrada.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stores.map((store) => (
-                  <motion.div
-                    key={store.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.8 }}
-                    whileHover={{ y: -5 }}
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
-                  >
-                    <div className="p-6">
-                      <div className="flex items-center gap-4 mb-4">
-                        <img
-                          src={store.logo_url || "/placeholder.svg"}
-                          alt={store.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                          loading="lazy"
-                        />
-                        <div>
-                          <h3 className="font-semibold flex items-center gap-2">
-                            {store.name}
-                            {store.is_verified && (
-                              <Badge variant="secondary" className="text-xs">✓</Badge>
-                            )}
-                          </h3>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="text-sm">{store.rating?.toFixed(1) || '0.0'}</span>
-                            <span className="text-sm text-gray-500">({store.reviewCount})</span>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-500 mb-4">{store.products_count} produtos</p>
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {/* Categories are mocked/removed here */}
-                      </div>
-                      <button
-                        onClick={() => navigate(`/store/${store.id}`)}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        Ver Loja
-                      </button>
                     </div>
                   </motion.div>
                 ))}

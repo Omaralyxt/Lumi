@@ -192,7 +192,7 @@ export default function SalesPage() {
             </div>
           </div>
 
-          {/* Product Info */}
+          {/* Product Info & Actions */}
           <div className="space-y-6">
             <div>
               <div className="flex items-start justify-between">
@@ -272,29 +272,27 @@ export default function SalesPage() {
               </Card>
             )}
 
-            {/* Shop Info */}
+            {/* Delivery and Seller Info (Minimal) */}
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <Link to={`/store/${product.shop.id}`} className="flex items-center space-x-3 group">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm font-body">{product.shop.name.charAt(0)}</span>
-                    </div>
-                    <div>
-                      <h3 className="font-body-semibold group-hover:underline flex items-center">
-                        <StoreIcon className="h-4 w-4 mr-1" />
-                        {product.shop.name}
-                      </h3>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <span>Membro desde {product.shop.memberSince}</span>
-                        <span>•</span>
-                        <span>{product.shop.productCount} produtos</span>
-                      </div>
-                    </div>
-                  </Link>
-                  <Button asChild variant="outline" size="sm" className="font-body">
-                    <Link to={`/store/${product.shop.id}`}>Ver Perfil</Link>
-                  </Button>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Truck className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <h3 className="font-body-semibold">Entrega Rápida</h3>
+                    <p className="text-sm text-gray-600">
+                      Prazo: {product.deliveryInfo.eta} | Custo: MT {product.deliveryInfo.fee.toLocaleString('pt-MZ')}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 border-t pt-3">
+                  <StoreIcon className="h-5 w-5 text-gray-500" />
+                  <div>
+                    <h3 className="font-body-semibold">Vendido por</h3>
+                    <p className="text-sm text-gray-600">
+                      {product.shop.name} {product.shop.isVerified && <CheckCircle className="h-4 w-4 inline text-green-500 ml-1" />}
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -390,21 +388,28 @@ export default function SalesPage() {
           </div>
         )}
 
-        {/* Delivery Info */}
-        <div className="mt-8">
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="font-title text-xl font-body-semibold mb-4">Informações de Entrega</h3>
-              <div className="flex items-center space-x-4">
-                <Truck className="h-6 w-6 text-blue-600" />
-                <div>
-                  <p className="font-body-semibold">Entrega em {product.deliveryInfo.city}</p>
-                  <p className="font-body text-gray-600">Taxa: MT {product.deliveryInfo.fee.toLocaleString('pt-MZ')} • Prazo: {product.deliveryInfo.eta}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Delivery Info (Removed redundant section, info is now in the card above) */}
+        
+        {/* Similar Products (Placeholder) */}
+        {similarProducts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="font-title text-2xl font-bold mb-6">Produtos Similares</h2>
+            {/* Usar ProductGrid, mas sem mostrar info da loja */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {similarProducts.map(p => (
+                <Link key={p.id} to={`/sales/${p.id}`} className="block">
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <img src={p.images[0]} alt={p.title} className="w-full h-32 object-cover" />
+                    <CardContent className="p-3">
+                      <p className="text-sm font-semibold line-clamp-2">{p.title}</p>
+                      <p className="text-lg font-bold text-blue-600 mt-1">MT {p.price.toLocaleString('pt-MZ')}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

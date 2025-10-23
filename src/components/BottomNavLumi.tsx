@@ -14,14 +14,14 @@ import { useFavorites } from "@/context/FavoritesContext";
 const navItems = [
   { path: "/home", icon: Home, label: "Início" },
   { path: "/categories", icon: Grid3X3, label: "Categorias" },
-  { path: "/stores", icon: Store, label: "Lojas" }, // Alterado de /offers para /stores
+  { path: "/offers", icon: Store, label: "Ofertas" }, // Reutilizando Store para Ofertas
   { path: "/favorites", icon: Heart, label: "Favoritos" },
   { path: "/account", icon: User, label: "Conta" },
 ];
 
 export default function BottomNavLumi() {
   const location = useLocation();
-  const { cart } = useCart();
+  const { cartCount } = useCart(); // Usar cartCount do contexto
   const { favorites } = useFavorites();
 
   return (
@@ -34,7 +34,7 @@ export default function BottomNavLumi() {
           // Contagem de itens para carrinho e favoritos
           let badgeCount = 0;
           if (item.path === "/cart") {
-            badgeCount = cart.reduce((total, item) => total + item.quantity, 0);
+            badgeCount = cartCount;
           } else if (item.path === "/favorites") {
             badgeCount = favorites.length;
           }

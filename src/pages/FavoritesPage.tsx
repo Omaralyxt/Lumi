@@ -128,7 +128,7 @@ export default function FavoritesPage() {
                   className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent hover:border-[rgba(255,0,0,0.6)] shadow-[0_0_15px_rgba(255,0,0,0.1)] hover:shadow-[0_0_25px_rgba(255,0,0,0.4)] transition-all duration-300 p-4 flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
                 >
                   {/* Product Image */}
-                  <Link to={`/product/${item.id}`} className="w-full sm:w-24 h-40 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg">
+                  <Link to={`/sales/${item.id}`} className="w-full sm:w-24 h-40 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg">
                     <img 
                       src={item.images[0]} 
                       alt={item.title}
@@ -138,17 +138,15 @@ export default function FavoritesPage() {
                   
                   {/* Product Info */}
                   <div className="flex-1 space-y-1 w-full">
-                    <Link to={`/product/${item.id}`}>
+                    <Link to={`/sales/${item.id}`}>
                       <h3 className="font-body font-semibold text-gray-900 line-clamp-2 hover:text-blue-500 dark:text-white dark:hover:text-blue-400">
                         {item.title}
                       </h3>
                     </Link>
                     
-                    <Link to={`/store/${item.shop.id}`}>
-                      <p className="text-sm text-gray-500 hover:text-blue-500 hover:underline dark:text-gray-400 dark:hover:text-blue-400">
-                        {item.shop.name}
-                      </p>
-                    </Link>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Vendido por: {item.shop.name}
+                    </p>
                     
                     <div className="flex items-center space-x-2">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
