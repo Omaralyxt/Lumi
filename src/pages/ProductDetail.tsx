@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, getSimilarProducts } from "../api/products";
 import { Product } from "../types/product";
-import { Star, Heart, Truck, CheckCircle, Package, ShoppingCart, Plus, Minus, HelpCircle, Send, Upload } from "lucide-react";
+import { Star, Heart, Truck, CheckCircle, Package, ShoppingCart, Plus, Minus, HelpCircle, Send, Upload, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +14,11 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
-// HeaderCart removido
+import { toast } from "sonner";
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart: addProductToCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -28,6 +29,7 @@ export default function ProductDetail() {
   const [error, setError] = useState<string | null>(null);
   const [newReviewRating, setNewReviewRating] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -37,6 +39,15 @@ export default function ProductDetail() {
         
         const productData = await getProductById(id || "");
         setProduct(productData);
+        
+        // Inicializar opções selecionadas
+        const initialOptions: Record<string, string> = {};
+        productData.options.forEach(option => {
+          if (option.values.length > 0) {
+            initialOptions[option.name] = option.values[0];
+          }
+        });
+        setSelectedOptions(initialOptions);
         
         const similarData = await getSimilarProducts(productData.category, productData.id);
         setSimilarProducts(similarData);
@@ -62,6 +73,15 @@ export default function ProductDetail() {
     }
   };
 
+  const handleBuyNow = () => {
+    if (product) {
+      // Adicionar ao carrinho primeiro
+      addProductToCart(product, quantity);
+      // Redirecionar para o checkout
+      navigate("/checkout");
+    }
+  };
+
   const getRatingDistribution = () => {
     if (!product) return [];
     const distribution = [0, 0, 0, 0, 0];
@@ -69,6 +89,13 @@ export default function ProductDetail() {
       distribution[review.rating - 1]++;
     });
     return distribution.map(count => (count / product.reviewCount) * 100).reverse();
+  };
+
+  const handleOptionChange = (optionName: string, value: string) => {
+    setSelectedOptions(prev => ({
+      ...prev,
+      [optionName]: value
+    }));
   };
 
   if (loading) {
@@ -92,10 +119,31 @@ export default function ProductDetail() {
     );
   }
 
+  // Criar variantes do produto com base nas opções selecionadas
+  const productVariants = product.options.length > 0 ? 
+    product.options.map(option => {
+      return {
+        ...product,
+        title: `${product.title} - ${option.name}: ${selectedOptions[option.name] || option.values[0]}`,
+        price: product.price + (option.name === "Armazenamento" && selectedOptions[option.name] === "256GB" ? 4000 : 0)
+      };
+    }) : [product];
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header (Removido, pois AppLayout agora gerencia o cabeçalho global) */}
-      {/* O cabeçalho do AppLayout já contém o carrinho e o logo */}
+      {/* Header */}
+      <div className="bg-white shadow-sm sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center space-x-4">
+            <Link to="/">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <h1 className="text-xl font-bold text-gray-900">{product.title}</h1>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -178,6 +226,37 @@ export default function ProductDetail() {
               </div>
             </div>
 
+            {/* Product Options Selection */}
+            {product.options.length > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-title text-lg font-semibold mb-3">Selecione as opções:</h3>
+                  <div className="space-y-4">
+                    {product.options.map((option, index) => (
+                      <div key={index}>
+                        <Label className="font-body-semibold mb-2 block">{option.name}</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {option.values.map((value) => (
+                            <button
+                              key={value}
+                              onClick={() => handleOptionChange(option.name, value)}
+                              className={`px-4 py-2 rounded-lg border transition-colors ${
+                                selectedOptions[option.name] === value
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-300 hover:border-gray-400'
+                              }`}
+                            >
+                              {value}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Shop Info */}
             <Card>
               <CardContent className="p-4">
@@ -227,9 +306,17 @@ export default function ProductDetail() {
 
             <div className="space-y-3">
               <Button 
+                onClick={handleBuyNow}
+                disabled={product.stock === 0}
+                className="w-full bg-green-600 hover:bg-green-700 text-lg py-6 font-body-semibold"
+              >
+                {product.stock === 0 ? 'Esgotado' : 'Comprar Agora'}
+              </Button>
+              <Button 
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 font-body-semibold"
+                variant="outline"
+                className="w-full text-lg py-6 font-body-semibold"
               >
                 {product.stock === 0 ? 'Esgotado' : 'Adicionar ao Carrinho'}
               </Button>
