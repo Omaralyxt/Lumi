@@ -852,12 +852,18 @@ export default function Home() {
                   className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
                 >
                   <div className="relative">
-                    <img
-                      src={product.images[0]}
-                      alt={product.title}
-                      className="w-full h-48 object-cover"
-                      loading="lazy"
-                    />
+                    {/* Tornando a imagem clicável para a página do produto */}
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    >
+                      <img
+                        src={product.images[0]}
+                        alt={product.title}
+                        className="w-full h-48 object-cover"
+                        loading="lazy"
+                      />
+                    </div>
                     {product.originalPrice && product.originalPrice > product.price && (
                       <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
                         -{Math.round((1 - product.price / product.originalPrice) * 100)}%
@@ -881,7 +887,13 @@ export default function Home() {
                         <Badge variant="secondary" className="text-xs">✓</Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold mb-2 line-clamp-2">{product.title}</h3>
+                    {/* Tornando o título clicável para a página do produto */}
+                    <h3 
+                      className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    >
+                      {product.title}
+                    </h3>
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="text-lg font-bold text-blue-600">
@@ -963,12 +975,18 @@ export default function Home() {
                   className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden border border-red-200 dark:border-red-800"
                 >
                   <div className="relative">
-                    <img
-                      src={offer.images[0]}
-                      alt={offer.title}
-                      className="w-full h-48 object-cover"
-                      loading="lazy"
-                    />
+                    {/* Tornando a imagem clicável para a página do produto */}
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => navigate(`/product/${offer.id}`)}
+                    >
+                      <img
+                        src={offer.images[0]}
+                        alt={offer.title}
+                        className="w-full h-48 object-cover"
+                        loading="lazy"
+                      />
+                    </div>
                     <div className="absolute top-2 left-2 bg-red-500 text-white text-sm px-3 py-1 rounded-full font-bold flex items-center gap-1">
                       <Percent className="h-4 w-4" />
                       {offer.discount}% OFF
@@ -991,7 +1009,13 @@ export default function Home() {
                         <Badge variant="secondary" className="text-xs">✓</Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold mb-2 line-clamp-2">{offer.title}</h3>
+                    {/* Tornando o título clicável para a página do produto */}
+                    <h3 
+                      className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                      onClick={() => navigate(`/product/${offer.id}`)}
+                    >
+                      {offer.title}
+                    </h3>
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="text-lg font-bold text-red-600">
