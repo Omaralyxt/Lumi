@@ -21,6 +21,7 @@ import Profile from "./pages/Profile";
 import StorePage from "./pages/StorePage";
 import CategoryProductsPage from "./pages/CategoryProductsPage";
 import StoresPage from "./pages/StoresPage"; // Importar StoresPage
+import SearchPage from "./pages/SearchPage"; // Importar SearchPage
 import { ThemeProvider } from "./context/ThemeProvider";
 import AppLayout from "./components/AppLayout";
 import { OrdersProvider } from "./context/OrdersContext";
@@ -59,7 +60,8 @@ const App = () => (
                       
                       {/* Rotas Públicas */}
                       <Route path="/cart" element={<CartPage />} />
-                      <Route path="/stores" element={<StoresPage />} /> {/* Nova rota */}
+                      <Route path="/stores" element={<StoresPage />} />
+                      <Route path="/search" element={<SearchPage />} /> {/* Nova rota de busca */}
                       <Route path="/store/:id" element={<StorePage />} />
                       <Route path="/category/:slug" element={<CategoryProductsPage />} />
                       <Route path="/product/:id" element={<ProductDetail />} />

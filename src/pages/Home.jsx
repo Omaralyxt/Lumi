@@ -170,7 +170,6 @@ export default function Home() {
   const { favorites } = useFavorites();
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
   
   // States for data fetching
   const [products, setProducts] = useState([]);
@@ -243,6 +242,7 @@ export default function Home() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      // Redireciona para a nova página de busca avançada
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
@@ -352,11 +352,10 @@ export default function Home() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <button
-                      type="button"
-                      onClick={() => setShowSearch(!showSearch)}
+                      type="submit" // Alterado para submit para acionar a busca
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     >
-                      <Filter className="h-5 w-5" />
+                      <Search className="h-5 w-5" />
                     </button>
                   </div>
                   <button
