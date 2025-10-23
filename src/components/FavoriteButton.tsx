@@ -3,46 +3,26 @@
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useFavorites } from "@/context/FavoritesContext";
+import { Product } from "@/types/product";
 
 interface FavoriteButtonProps {
-  productId: number;
+  product: Product;
   className?: string;
 }
 
-export default function FavoriteButton({ productId, className }: FavoriteButtonProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+export default function FavoriteButton({ product, className }: FavoriteButtonProps) {
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [loading, setLoading] = useState(false);
+  const favoriteStatus = isFavorite(product.id);
 
-  // Carregar estado do favorito do localStorage
-  useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    setIsFavorite(favorites.includes(productId));
-  }, [productId]);
-
-  const toggleFavorite = async () => {
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
     setLoading(true);
     
     try {
-      const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-      
-      if (isFavorite) {
-        // Remover dos favoritos
-        const newFavorites = favorites.filter((id: number) => id !== productId);
-        localStorage.setItem("favorites", JSON.stringify(newFavorites));
-        setIsFavorite(false);
-      } else {
-        // Adicionar aos favoritos
-        favorites.push(productId);
-        localStorage.setItem("favorites", JSON.stringify(favorites));
-        setIsFavorite(true);
-      }
-      
-      // Em um app real, salvaria no backend
-      // await fetch(`/api/favorites/${productId}`, {
-      //   method: isFavorite ? 'DELETE' : 'POST',
-      //   headers: { 'Authorization': `Bearer ${token}` }
-      // });
-      
+      // Simulação de API call se necessário, mas o toggle já é instantâneo via Context
+      toggleFavorite(product);
     } catch (error) {
       console.error("Erro ao atualizar favorito:", error);
     } finally {
@@ -54,11 +34,11 @@ export default function FavoriteButton({ productId, className }: FavoriteButtonP
     <Button 
       variant="ghost" 
       size="sm"
-      onClick={toggleFavorite}
+      onClick={handleToggle}
       disabled={loading}
       className={className}
     >
-      <Heart className={`h-4 w-4 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
+      <Heart className={`h-4 w-4 ${favoriteStatus ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
     </Button>
   );
 }

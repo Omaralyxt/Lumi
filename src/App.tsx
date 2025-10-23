@@ -9,7 +9,6 @@ import CategoriesPage from "./pages/CategoriesPage";
 import OffersPage from "./pages/OffersPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import AccountPage from "./pages/AccountPage";
-import UserTypeSelection from "./components/UserTypeSelection";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
 import ProductDetail from "./pages/ProductDetail";
@@ -27,12 +26,6 @@ import { OrdersProvider } from "./context/OrdersContext";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import { ReviewsProvider } from "./context/ReviewsContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
-import SellerLogin from "./components/SellerLogin";
-import SellerRegister from "./components/SellerRegister";
-import SellerDashboard from "./pages/SellerDashboard";
-import SellerProducts from "./pages/SellerProducts";
-import CreateProduct from "./pages/CreateProduct";
-import SellerOrdersPage from "./pages/SellerOrdersPage";
 import RootRedirect from "./components/RootRedirect";
 
 const queryClient = new QueryClient();
@@ -56,9 +49,8 @@ const App = () => (
                       <Route path="/offers" element={<OffersPage />} />
                       <Route path="/favorites" element={<FavoritesPage />} />
                       
-                      {/* Rotas que exigem login ou redirecionam para login/seleção */}
+                      {/* Rotas que exigem login ou redirecionam para login */}
                       <Route path="/account" element={<AccountPage />} />
-                      <Route path="/user-type" element={<UserTypeSelection />} />
                       <Route path="/orders" element={<OrderHistoryPage />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
@@ -71,17 +63,13 @@ const App = () => (
                       <Route path="/product/:id" element={<ProductDetail />} />
                       <Route path="/sales/:id" element={<SalesPage />} />
                       
-                      {/* Rotas de Autenticação */}
-                      <Route path="/buyer/login" element={<BuyerLogin />} />
-                      <Route path="/buyer/register" element={<BuyerRegister />} />
-                      <Route path="/seller/login" element={<SellerLogin />} />
-                      <Route path="/seller/register" element={<SellerRegister />} />
+                      {/* Rotas de Autenticação (Apenas Comprador) */}
+                      <Route path="/login" element={<BuyerLogin />} />
+                      <Route path="/register" element={<BuyerRegister />} />
                       
-                      {/* Rotas de Vendedor (Protegidas) */}
-                      <Route path="/seller/dashboard" element={<SellerDashboard />} />
-                      <Route path="/seller/products" element={<SellerProducts />} />
-                      <Route path="/seller/create-product" element={<CreateProduct />} />
-                      <Route path="/seller/orders" element={<SellerOrdersPage />} />
+                      {/* Redirecionar rotas antigas de comprador para as novas rotas simplificadas */}
+                      <Route path="/buyer/login" element={<Navigate to="/login" replace />} />
+                      <Route path="/buyer/register" element={<Navigate to="/register" replace />} />
                       
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />

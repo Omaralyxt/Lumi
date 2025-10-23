@@ -86,10 +86,10 @@ export default function AccountPage() {
             <p className="text-gray-600 mb-8">Faça login para acessar sua conta</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg">
-                <Link to="/buyer/login">Entrar como Comprador</Link>
+                <Link to="/login">Entrar</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to="/seller/login">Entrar como Vendedor</Link>
+                <Link to="/register">Criar Conta</Link>
               </Button>
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function AccountPage() {
               </h1>
               <div className="flex items-center space-x-4 mt-2">
                 <Badge variant="secondary">
-                  {userType === 'seller' ? 'Vendedor' : 'Comprador'}
+                  Comprador
                 </Badge>
                 <span className="text-sm text-gray-500">
                   Membro desde {new Date(user?.created_at).toLocaleDateString('pt-BR')}

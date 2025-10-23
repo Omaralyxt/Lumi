@@ -17,25 +17,11 @@ interface ProductGridProps {
 export default function ProductGrid({ products, title, showStoreInfo = true }: ProductGridProps) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const [favorites, setFavorites] = useState(new Set());
 
   // Memoize the handleBuy function to prevent unnecessary re-renders
   const handleBuy = useCallback((product: Product) => {
     addToCart(product, 1);
   }, [addToCart]);
-
-  // Memoize the toggleFavorite function
-  const toggleFavorite = useCallback((productId: number) => {
-    const newFavorites = new Set(favorites);
-    if (newFavorites.has(productId)) {
-      newFavorites.delete(productId);
-      toast.info("Produto removido dos favoritos");
-    } else {
-      newFavorites.add(productId);
-      toast.success("Produto adicionado aos favoritos");
-    }
-    setFavorites(newFavorites);
-  }, [favorites]);
 
   // Memoize the product cards to prevent unnecessary re-renders
   const productCards = useMemo(() => {
@@ -89,18 +75,14 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
             </button>
 
             <FavoriteButton 
-              productId={product.id} 
+              product={product} 
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-2 rounded-full shadow hover:scale-110 hover:shadow-neon-blue transition"
-              onClick={(e) => {
-                e.preventDefault();
-                toggleFavorite(product.id);
-              }}
             />
           </div>
         </div>
       </div>
     ));
-  }, [products, handleBuy, toggleFavorite, showStoreInfo]);
+  }, [products, handleBuy, showStoreInfo]);
 
   return (
     <div className="font-body">

@@ -13,7 +13,7 @@ interface AppLayoutProps {
   children: ReactNode;
 }
 
-const excludedPaths = ["/seller/login", "/seller/register", "/buyer/login", "/buyer/register"];
+const excludedPaths = ["/login", "/register"];
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
@@ -28,14 +28,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       
-      // Redirecionar usuários logados de páginas de autenticação
+      // Redirecionar usuários logados de páginas de autenticação para /home
       if (user && isAuthPage) {
-        const profile = user.user_metadata;
-        if (profile?.user_type === 'seller') {
-          navigate('/seller/dashboard');
-        } else {
-          navigate('/');
-        }
+        navigate('/home');
       }
     };
 
@@ -47,14 +42,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       
       // Redirecionar após login/logout
       if (_event === 'SIGNED_IN') {
-        const profile = session?.user?.user_metadata;
-        if (profile?.user_type === 'seller') {
-          navigate('/seller/dashboard');
-        } else {
-          navigate('/');
-        }
+        navigate('/home');
       } else if (_event === 'SIGNED_OUT') {
-        navigate('/');
+        navigate('/home');
       }
     });
 

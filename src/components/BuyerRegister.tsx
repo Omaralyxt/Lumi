@@ -54,7 +54,7 @@ export default function BuyerRegister() {
       // Se o registro for bem-sucedido, redirecionar para login
       if (data.user) {
         toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
-        navigate("/buyer/login");
+        navigate("/login");
       }
     } catch (err: any) {
       setError(err.message || "Falha no registro");
@@ -73,7 +73,7 @@ export default function BuyerRegister() {
             <span className="text-white font-bold text-2xl">L</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Lumi</h1>
-          <p className="text-gray-600 mt-2">Criar conta de comprador</p>
+          <p className="text-gray-600 mt-2">Criar sua conta</p>
         </div>
 
         <Card>
@@ -201,7 +201,7 @@ export default function BuyerRegister() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Já tem uma conta?{" "}
-                <a href="/buyer/login" className="text-blue-600 hover:underline">
+                <a href="/login" className="text-blue-600 hover:underline">
                   Entre aqui
                 </a>
               </p>

@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 import { Product } from "@/types/product";
 import FavoriteButton from "@/components/FavoriteButton";
 import { toast } from "sonner";
+import { useFavorites } from "@/context/FavoritesContext";
 
 // Dados mockados com estrutura completa para compatibilidade com o carrinho
 const initialFavorites: Product[] = [
@@ -73,14 +74,12 @@ const initialFavorites: Product[] = [
 ];
 
 export default function FavoritesPage() {
-  const [favoritesList, setFavoritesList] = useState(initialFavorites);
+  const { favorites, removeFromFavorites } = useFavorites();
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  // Simulação de remoção de favorito (em um app real, isso usaria o FavoriteButton ou uma API)
-  const removeFavorite = (id: number) => {
-    setFavoritesList(prev => prev.filter(item => item.id !== id));
-    toast.info("Produto removido dos favoritos.");
+  const handleRemoveFavorite = (id: number) => {
+    removeFromFavorites(id);
   };
 
   const handleBuy = (product: Product) => {
@@ -101,7 +100,7 @@ export default function FavoritesPage() {
           </Button>
         </div>
 
-        {favoritesList.length === 0 ? (
+        {favorites.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-gray-700">
               <Heart className="h-8 w-8 text-gray-400" />
@@ -117,13 +116,13 @@ export default function FavoritesPage() {
             {/* Summary */}
             <div className="bg-blue-50/50 rounded-xl p-4 mb-6 dark:bg-blue-900/30 backdrop-blur-sm border border-blue-200 dark:border-blue-900">
               <h3 className="font-semibold text-blue-900 dark:text-blue-300">
-                {favoritesList.length} {favoritesList.length === 1 ? 'Produto' : 'Produtos'} nos seus favoritos
+                {favorites.length} {favorites.length === 1 ? 'Produto' : 'Produtos'} nos seus favoritos
               </h3>
             </div>
 
             {/* Favorites List (using the new card style) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {favoritesList.map((item) => (
+              {favorites.map((item) => (
                 <div 
                   key={item.id} 
                   className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent hover:border-[rgba(255,0,0,0.6)] shadow-[0_0_15px_rgba(255,0,0,0.1)] hover:shadow-[0_0_25px_rgba(255,0,0,0.4)] transition-all duration-300 p-4 flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
@@ -177,13 +176,11 @@ export default function FavoritesPage() {
                     </div>
                   </div>
 
-                  {/* Remove Button */}
-                  <button
-                    onClick={() => removeFavorite(item.id)}
+                  {/* Remove Button (using FavoriteButton to toggle) */}
+                  <FavoriteButton
+                    product={item}
                     className="absolute top-2 right-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-2 rounded-full shadow hover:scale-110 hover:shadow-[0_0_10px_rgba(255,0,0,0.5)] transition text-red-500"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  />
                 </div>
               ))}
             </div>

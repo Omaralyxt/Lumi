@@ -2,7 +2,6 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import authRoutes from './routes/auth.js';
-import sellerRoutes from './routes/seller.js';
 import biometricRoutes from './routes/biometric.js';
 
 dotenv.config();
@@ -24,7 +23,6 @@ const supabase = createClient(
 app.set('supabase', supabase);
 
 app.use('/api/auth', authRoutes);
-app.use('/api/seller', sellerRoutes);
 app.use('/api/biometric', biometricRoutes);
 
 // Usar a porta 3001 para o servidor de API

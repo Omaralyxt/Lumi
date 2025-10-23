@@ -65,7 +65,7 @@ export default function BuyerLogin() {
             <span className="text-white font-bold text-2xl">L</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Lumi</h1>
-          <p className="text-gray-600 mt-2">Login de Comprador</p>
+          <p className="text-gray-600 mt-2">Entrar na sua conta</p>
         </div>
 
         {showPasswordForm ? (
@@ -136,7 +136,7 @@ export default function BuyerLogin() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Não tem uma conta?{" "}
-            <a href="/buyer/register" className="text-blue-600 hover:underline">
+            <a href="/register" className="text-blue-600 hover:underline">
               Cadastre-se
             </a>
           </p>
