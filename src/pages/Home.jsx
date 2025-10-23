@@ -494,13 +494,13 @@ export default function Home() {
                     <div className="relative">
                       {/* Tornando a imagem clicável para a página de vendas */}
                       <div 
-                        className="cursor-pointer"
+                        className="cursor-pointer aspect-square bg-white flex items-center justify-center" // Adicionado aspect-square e bg-white
                         onClick={() => navigate(`/sales/${product.id}`)}
                       >
                         <img
                           src={product.images[0]}
                           alt={product.title}
-                          className="w-full h-48 object-cover"
+                          className="w-full h-full object-contain p-4" // Alterado para object-contain e adicionado padding
                           loading="lazy"
                         />
                       </div>
@@ -616,13 +616,13 @@ export default function Home() {
                     <div className="relative">
                       {/* Tornando a imagem clicável para a página de vendas */}
                       <div 
-                        className="cursor-pointer"
+                        className="cursor-pointer aspect-square bg-white flex items-center justify-center" // Adicionado aspect-square e bg-white
                         onClick={() => navigate(`/sales/${offer.id}`)}
                       >
                         <img
                           src={offer.images[0]}
                           alt={offer.title}
-                          className="w-full h-48 object-cover"
+                          className="w-full h-full object-contain p-4" // Alterado para object-contain e adicionado padding
                           loading="lazy"
                         />
                       </div>
