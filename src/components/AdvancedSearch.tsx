@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { searchProducts, searchStores, getCategories } from "../api/search";
 import { Star, Package, Store, X, Search, Filter } from "lucide-react";
-import { Input } from "@/components/ui/input"; // Importar Input do shadcn/ui
+import { Input } from "@/components/ui/input";
 
 // Tipagem básica para o componente
 interface AdvancedSearchProps {
@@ -10,24 +10,34 @@ interface AdvancedSearchProps {
   onSearch: (query: string) => void;
 }
 
+interface Category {
+  id: number;
+  nome: string;
+}
+
 // Slider de preço otimizado
-function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }) {
+interface PriceSliderProps {
+  minPrice?: number;
+  maxPrice?: number;
+  onChange: (range: [number, number]) => void;
+}
+
+function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }: PriceSliderProps) {
   const [value, setValue] = useState([minPrice, maxPrice]);
-  const [isDragging, setIsDragging] = useState(false);
 
-  const handleMinChange = useCallback((e) => {
-    const newValue = [Number(e.target.value), value[1]];
+  const handleMinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue: [number, number] = [Number(e.target.value), value[1]];
     setValue(newValue);
     onChange(newValue);
   }, [value, onChange]);
 
-  const handleMaxChange = useCallback((e) => {
-    const newValue = [value[0], Number(e.target.value)];
+  const handleMaxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue: [number, number] = [value[0], Number(e.target.value)];
     setValue(newValue);
     onChange(newValue);
   }, [value, onChange]);
 
-  const formatPrice = useCallback((price) => {
+  const formatPrice = useCallback((price: number) => {
     return `MT ${price.toLocaleString('pt-MZ')}`;
   }, []);
 
@@ -79,17 +89,18 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }) {
             right: `${100 - ((value[1] - minPrice) / (maxPrice - minPrice)) * 100}%`
           }}
         ></div>
+        {/* Range inputs are complex to style consistently across browsers, 
+            but we keep them for functionality. We remove pointer-events-none 
+            to allow interaction, which is necessary for range inputs. 
+            The visual representation is handled by the div above. */}
         <input
           type="range"
           min={minPrice}
           max={maxPrice}
           value={value[0]}
           onChange={handleMinChange}
-          className="absolute w-full h-1 bg-transparent appearance-none pointer-events-none"
-          style={{
-            WebkitAppearance: 'none',
-            zIndex: 10
-          }}
+          className="absolute w-full h-1 bg-transparent appearance-none opacity-0"
+          style={{ zIndex: 10 }}
         />
         <input
           type="range"
@@ -97,11 +108,8 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }) {
           max={maxPrice}
           value={value[1]}
           onChange={handleMaxChange}
-          className="absolute w-full h-1 bg-transparent appearance-none pointer-events-none"
-          style={{
-            WebkitAppearance: 'none',
-            zIndex: 10
-          }}
+          className="absolute w-full h-1 bg-transparent appearance-none opacity-0"
+          style={{ zIndex: 10 }}
         />
       </div>
     </div>
@@ -110,16 +118,15 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }) {
 
 export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearchProps) {
   const [query, setQuery] = useState(initialQuery);
-  const [results, setResults] = useState([]);
-  const [filter, setFilter] = useState("products"); // products ou stores
-  const [categories, setCategories] = useState([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [filter, setFilter] = useState<"products" | "stores">("products"); // products ou stores
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("relevance"); // relevance, price-low, price-high, rating
-  const searchRef = useRef(null);
   const isInitialMount = useRef(true);
 
   // Load categories once
@@ -182,7 +189,7 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
     setLoading(false);
   }, [query, filter, selectedCategory, priceRange, minRating, sortBy]);
 
-  const handleQueryChange = (e) => {
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
     setQuery(newQuery);
     onSearch(newQuery); // Atualiza a URL
@@ -194,7 +201,7 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
     onSearch("");
   }, [onSearch]);
 
-  const handleFilterChange = useCallback((newFilter) => {
+  const handleFilterChange = useCallback((newFilter: "products" | "stores") => {
     setFilter(newFilter);
     setSelectedCategory("");
     setMinRating(0);
@@ -363,7 +370,7 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
               </div>
             ) : (
               <div>
-                {results.map((item) =>
+                {results.map((item, index) =>
                   filter === "products" ? (
                     <Link
                       key={item.id}
@@ -389,14 +396,16 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
                         </p>
                         <div className="flex items-center gap-1 mt-1">
                           <div className="flex items-center">
-                            <Star 
-                              key={i} 
-                              className={`h-3 w-3 ${
-                                i < Math.round(item.rating || 0)
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`} 
-                            />
+                            {[...Array(5)].map((_, i) => (
+                              <Star 
+                                key={i} 
+                                className={`h-3 w-3 ${
+                                  i < Math.round(item.rating || 0)
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`} 
+                              />
+                            ))}
                           </div>
                           <span className="font-body text-xs text-gray-500">
                             ({(item.rating || 0).toFixed(1)})
