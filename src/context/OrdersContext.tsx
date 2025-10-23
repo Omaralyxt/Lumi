@@ -3,13 +3,21 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { Order } from '@/types/order';
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { CartItem } from './CartContext';
 
 interface OrdersContextType {
   orders: Order[];
   loading: boolean;
   error: string | null;
   fetchOrders: () => Promise<void>;
-  createOrder: (orderData: any) => Promise<Order>;
+  createOrder: (orderData: {
+    items: CartItem[];
+    total: number;
+    shippingAddress: any; // Usando 'any' temporariamente, idealmente ShippingAddress
+    paymentMethod: string;
+    deliveryInfo: { fee: number; eta: string };
+  }) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   getOrderById: (orderId: string) => Order | undefined;
 }
@@ -23,6 +31,8 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
 
   // Carregar pedidos do localStorage (em um app real, viria da API)
   useEffect(() => {
+    // Em um ambiente real, fetchOrders seria chamado aqui para carregar pedidos do usuário logado.
+    // Por enquanto, mantemos o mock/localStorage para inicialização rápida.
     const storedOrders = localStorage.getItem('orders');
     if (storedOrders) {
       setOrders(JSON.parse(storedOrders));
@@ -54,7 +64,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
               title: "Smartphone Samsung Galaxy A54 5G",
               price: 12500,
               images: ["/placeholder.svg"],
-              shop: { name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
+              shop: { id: 'mock-store-1', name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
               quantity: 1,
               stock: 15,
               category: "Eletrónicos",
@@ -67,7 +77,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
               rating: 4.5,
               reviewCount: 128,
               timeDelivery: "2-5 dias úteis",
-            }
+            } as CartItem
           ],
           shippingAddress: {
             name: "João Silva",
@@ -90,21 +100,81 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const createOrder = async (orderData: any): Promise<Order> => {
+  const createOrder = async (orderData: {
+    items: CartItem[];
+    total: number;
+    shippingAddress: any;
+    paymentMethod: string;
+    deliveryInfo: { fee: number; eta: string };
+  }): Promise<Order> => {
     setLoading(true);
     try {
-      // Em um app real, isso enviaria os dados para a API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Usuário não autenticado.");
+      }
+
+      // 1. Inserir o pedido principal na tabela 'orders'
+      // Nota: Assumimos que todos os itens no carrinho pertencem à mesma loja para simplificar o store_id.
+      // Em um marketplace real, isso seria mais complexo (um pedido por loja ou um pedido mestre).
+      // Usaremos o store_id do primeiro item como mock para o pedido principal.
+      const storeId = orderData.items[0]?.shop.id;
+      if (!storeId) {
+        throw new Error("Carrinho vazio ou sem informações de loja.");
+      }
+
+      const { data: orderResult, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          store_id: storeId,
+          customer_id: user.id,
+          total_amount: orderData.total,
+          status: 'pending',
+          payment_method: orderData.paymentMethod,
+          // tracking_code e outros campos podem ser adicionados aqui
+        })
+        .select()
+        .single();
+
+      if (orderError || !orderResult) {
+        console.error("Erro ao inserir pedido:", orderError);
+        throw new Error("Falha ao criar pedido no banco de dados.");
+      }
+
+      const newOrderId = orderResult.id;
+
+      // 2. Inserir os itens do pedido na tabela 'order_items'
+      const orderItemsPayload = orderData.items.map(item => ({
+        order_id: newOrderId,
+        product_id: item.id, // Assumindo que item.id é o UUID do produto
+        store_id: item.shop.id,
+        quantity: item.quantity,
+        price_at_purchase: item.price,
+        product_name: item.title,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItemsPayload);
+
+      if (itemsError) {
+        console.error("Erro ao inserir itens do pedido:", itemsError);
+        // Em um cenário real, você faria rollback do pedido principal aqui.
+        throw new Error("Falha ao registrar itens do pedido.");
+      }
+
+      // 3. Construir o objeto Order para o frontend (usando dados do Supabase + dados locais)
+      const estimatedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
       const newOrder: Order = {
-        id: `ORD-${Date.now()}`,
-        orderDate: new Date().toISOString(),
-        total: orderData.total,
-        status: 'pending',
+        id: newOrderId,
+        orderDate: orderResult.created_at,
+        total: orderResult.total_amount,
+        status: orderResult.status,
         items: orderData.items,
         shippingAddress: orderData.shippingAddress,
-        paymentMethod: orderData.paymentMethod,
-        estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        paymentMethod: orderResult.payment_method,
+        estimatedDelivery: estimatedDelivery,
       };
       
       setOrders(prev => [newOrder, ...prev]);
