@@ -37,7 +37,21 @@ const mapSupabaseProductToFrontend = (product: any, storeId: string): Product =>
   } as Product;
 };
 
-// Função para buscar lojas em destaque (agora busca lojas ativas)
+// Função auxiliar para buscar a contagem de produtos de uma loja
+const getProductCount = async (storeId: string): Promise<number> => {
+  const { count, error } = await supabase
+    .from('products')
+    .select('id', { count: 'exact', head: true })
+    .eq('store_id', storeId);
+
+  if (error) {
+    console.error("Erro ao contar produtos:", error);
+    return 0;
+  }
+  return count || 0;
+};
+
+// Função para buscar lojas em destaque
 export const getFeaturedStores = async (): Promise<any[]> => {
   const { data, error } = await supabase
     .from('stores')
@@ -51,14 +65,16 @@ export const getFeaturedStores = async (): Promise<any[]> => {
     return [];
   }
   
-  return data.map(store => ({
+  const storesWithCount = await Promise.all(data.map(async (store) => ({
     ...store,
     rating: 4.5, // Mocked
-    products_count: 100, // Mocked
-  }));
+    products_count: await getProductCount(store.id),
+  })));
+
+  return storesWithCount;
 };
 
-// Função para buscar lojas por busca (agora busca lojas ativas)
+// Função para buscar lojas por busca
 export const searchStores = async (query: string): Promise<any[]> => {
   let queryBuilder = supabase
     .from('stores')
@@ -76,14 +92,16 @@ export const searchStores = async (query: string): Promise<any[]> => {
     return [];
   }
 
-  return data.map(store => ({
+  const storesWithCount = await Promise.all(data.map(async (store) => ({
     ...store,
     rating: 4.5, // Mocked
-    products_count: 100, // Mocked
-  }));
+    products_count: await getProductCount(store.id),
+  })));
+
+  return storesWithCount;
 };
 
-// Função para buscar uma loja por ID (usando Supabase)
+// Função para buscar uma loja por ID
 export const getStoreById = async (id: string): Promise<any> => {
   const { data, error } = await supabase
     .from('stores')
@@ -95,16 +113,18 @@ export const getStoreById = async (id: string): Promise<any> => {
     throw new Error("Loja não encontrada");
   }
   
+  const products_count = await getProductCount(data.id);
+
   return {
     ...data,
     rating: 4.5, // Mocked
-    products_count: 100, // Mocked
+    products_count: products_count,
     is_verified: data.is_verified,
     memberSince: new Date(data.created_at).toLocaleDateString('pt-MZ', { year: 'numeric' }),
   };
 };
 
-// Função para buscar produtos de uma loja específica (usando Supabase)
+// Função para buscar produtos de uma loja específica
 export const getProductsByStoreId = async (storeId: string): Promise<Product[]> => {
   const { data: productsData, error: productsError } = await supabase
     .from('products')

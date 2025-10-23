@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { searchStores } from "@/api/stores"; // Importar a função de busca otimizada
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Store, CheckCircle, ArrowLeft, Search } from "lucide-react";
@@ -35,29 +35,10 @@ export default function StoresPage() {
     setError(null);
     
     try {
-      // Buscar lojas ativas, ordenadas por data de criação (mais recentes primeiro)
-      let query = supabase
-        .from('stores')
-        .select('id, name, logo_url, description, banner_url, is_verified, created_at')
-        .eq('active', true)
-        .order('created_at', { ascending: false });
+      // Usar a função searchStores da API, que agora lida com a busca e contagem de produtos
+      const fetchedStores = await searchStores(searchQuery);
 
-      if (searchQuery) {
-        query = query.ilike('name', `%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      // Simular dados adicionais que viriam de joins ou funções de banco de dados
-      const enrichedStores: StoreProfile[] = data.map(store => ({
-        ...store,
-        rating: 4.5, // Mocked
-        products_count: 100, // Mocked
-      }));
-
-      setStores(enrichedStores as StoreProfile[]);
+      setStores(fetchedStores as StoreProfile[]);
     } catch (err: any) {
       console.error("Erro ao buscar lojas:", err);
       setError("Não foi possível carregar as lojas. Tente novamente.");
@@ -68,8 +49,15 @@ export default function StoresPage() {
   };
 
   useEffect(() => {
-    fetchStores();
-  }, [searchQuery]);
+    // Debounce simples para a busca
+    const handler = setTimeout(() => {
+      fetchStores();
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]); // Dispara a busca sempre que a query muda
 
   if (loading) {
     return <Loading />;
@@ -119,23 +107,21 @@ export default function StoresPage() {
                   key={store.id} 
                   className="overflow-hidden group hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700"
                 >
-                  {/* Banner (if exists) */}
-                  {store.banner_url && (
-                    <div className="h-32 bg-gray-200 overflow-hidden">
-                      <img 
-                        src={store.banner_url} 
-                        alt={`Banner de ${store.name}`} 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  )}
+                  {/* Banner (if exists) - Usando placeholder se banner_url for nulo */}
+                  <div className="h-32 bg-gray-200 overflow-hidden">
+                    <img 
+                      src={store.banner_url || "/placeholder.svg"} 
+                      alt={`Banner de ${store.name}`} 
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
 
                   <CardContent className="p-6 flex flex-col md:flex-row items-start md:items-center gap-6">
                     {/* Logo */}
                     <img 
                       src={store.logo_url || "/placeholder.svg"} 
                       alt={store.name} 
-                      className="w-20 h-20 rounded-full border-4 border-white dark:border-gray-900 shadow-md flex-shrink-0 -mt-10 md:mt-0"
+                      className="w-20 h-20 rounded-full border-4 border-white dark:border-gray-900 shadow-md flex-shrink-0 -mt-10 md:mt-0 object-cover"
                     />
                     
                     {/* Info */}
