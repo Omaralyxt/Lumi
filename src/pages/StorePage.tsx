@@ -19,6 +19,7 @@ interface StoreProfile {
   products_count: number;
   is_verified: boolean;
   description: string;
+  memberSince: string; // Adicionado para garantir que o tipo está correto
 }
 
 export default function StorePage() {
@@ -47,6 +48,7 @@ export default function StorePage() {
           rating: storeData.rating || 4.5,
           products_count: productsData.length,
           description: storeData.description || "Sem descrição.",
+          memberSince: storeData.memberSince, // Usando o campo formatado da API
         });
         setProducts(productsData);
       } catch (err) {
@@ -114,7 +116,7 @@ export default function StorePage() {
                     <span className="text-sm text-gray-500 ml-1">({products.length} produtos)</span>
                   </div>
                   <span className="text-gray-300">|</span>
-                  <span className="text-sm text-gray-600">{store.products_count} produtos</span>
+                  <span className="text-sm text-gray-600">Membro desde {store.memberSince}</span>
                 </div>
               </div>
               <Button>Seguir Loja</Button>
