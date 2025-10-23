@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, getSimilarProducts } from "@/api/products";
 import { Product } from "@/types/product";
@@ -9,12 +9,12 @@ import {
   Heart, 
   Truck, 
   CheckCircle, 
-  Package, 
   ShoppingCart, 
   Plus, 
   Minus, 
   ArrowLeft,
-  Store as StoreIcon
+  Store as StoreIcon,
+  Share2 // Novo ícone para partilha
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -94,6 +94,29 @@ export default function SalesPage() {
       [optionName]: value
     }));
   };
+  
+  const handleShare = useCallback(async () => {
+    if (!product) return;
+
+    const shareData = {
+      title: product.title,
+      text: `Confira este produto incrível na Lumi: ${product.title}`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: Copy link to clipboard
+        await navigator.clipboard.writeText(shareData.url);
+        toast.success("Link do produto copiado para a área de transferência!");
+      }
+    } catch (err) {
+      console.error('Erro ao partilhar:', err);
+      toast.error("Não foi possível partilhar o link.");
+    }
+  }, [product]);
 
   if (loading) {
     return (
@@ -121,13 +144,18 @@ export default function SalesPage() {
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center space-x-4">
-            <Link to="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold text-gray-900">{product.title}</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link to="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <h1 className="text-xl font-bold text-gray-900 truncate">{product.title}</h1>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleShare}>
+              <Share2 className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
