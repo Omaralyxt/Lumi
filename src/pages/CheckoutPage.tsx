@@ -14,6 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
+interface CheckoutErrors {
+  address?: string;
+  payment?: string;
+}
+
 const deliveryAddresses = [
   {
     id: 1,
@@ -86,7 +91,7 @@ export default function Checkout() {
   
   const [selectedAddress, setSelectedAddress] = useState(deliveryAddresses[0]);
   const [selectedPayment, setSelectedPayment] = useState("mpesa");
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<CheckoutErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderStep, setOrderStep] = useState<"address" | "payment" | "confirm">("address");
   const [newAddress, setNewAddress] = useState({
@@ -107,7 +112,7 @@ export default function Checkout() {
   const total = subtotal + deliveryFee;
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: CheckoutErrors = {};
     
     if (orderStep === "address" && !selectedAddress) {
       newErrors.address = "Por favor, selecione um endereço de entrega";

@@ -17,7 +17,7 @@ export interface QA {
 }
 
 export interface Shop {
-  id: number;
+  id: string; // Alterado para string para corresponder ao UUID do Supabase
   name: string;
   rating: number;
   reviewCount: number;
@@ -38,7 +38,7 @@ export interface Option {
 }
 
 export interface Product {
-  id: number;
+  id: string | number; // Mantendo number para compatibilidade com mocks, mas permitindo string (UUID)
   title: string;
   description: string;
   price: number;

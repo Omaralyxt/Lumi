@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { searchProducts, searchStores, getCategories } from "../api/search";
+import { searchProducts, getCategories } from "../api/search";
 import { Star, Package, Store, X, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 

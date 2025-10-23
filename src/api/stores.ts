@@ -10,7 +10,7 @@ const mapSupabaseProductToFrontend = (product: any, storeId: string): Product =>
   // Campos complexos (reviews, options, deliveryInfo) serão mockados ou definidos como vazios
   // pois não temos a estrutura completa no Supabase para eles ainda.
   return {
-    id: product.id,
+    id: product.id, // product.id é string (UUID)
     title: product.name,
     description: product.description || 'Sem descrição.',
     price: basePrice,
@@ -18,7 +18,7 @@ const mapSupabaseProductToFrontend = (product: any, storeId: string): Product =>
     rating: 4.5, // Mocked rating
     reviewCount: 0, // Mocked count
     shop: {
-      id: storeId,
+      id: storeId, // storeId é string (UUID)
       name: product.stores?.name || 'Loja Desconhecida',
       rating: 4.5,
       reviewCount: 0,
@@ -73,6 +73,3 @@ export const getProductsByStoreId = async (storeId: string): Promise<Product[]> 
 
   return productsData.map(product => mapSupabaseProductToFrontend(product, storeId));
 };
-
-// Funções de loja removidas: getFeaturedStores, searchStores, getStoreById
-// Se necessário, o backend ainda pode usar essas informações, mas o frontend não as expõe.

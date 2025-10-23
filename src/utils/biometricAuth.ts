@@ -1,4 +1,5 @@
 import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
+import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
 
 export interface BiometricRegistrationOptions {
   userId: string;
@@ -23,11 +24,11 @@ export async function registerBiometric(options: BiometricRegistrationOptions): 
     const challenge = new Uint8Array(32);
     window.crypto.getRandomValues(challenge);
 
-    const registrationOptions = {
-      challenge,
+    const registrationOptions: PublicKeyCredentialCreationOptionsJSON = {
+      challenge: Buffer.from(challenge).toString('base64url'),
       rp: { name: "Lumi Marketplace", id: window.location.hostname },
       user: {
-        id: new TextEncoder().encode(userId),
+        id: Buffer.from(userId).toString('base64url'),
         name: email,
         displayName: email,
       },
@@ -37,7 +38,7 @@ export async function registerBiometric(options: BiometricRegistrationOptions): 
       attestation: "none",
     };
 
-    const registrationResponse = await startRegistration(registrationOptions);
+    const registrationResponse = await startRegistration({ optionsJSON: registrationOptions });
 
     // 2. Enviar a resposta para o servidor para verificação e salvamento
     const token = localStorage.getItem("lumi_token");
@@ -71,14 +72,14 @@ export async function authenticateBiometric(): Promise<{ success: boolean; error
     const challenge = new Uint8Array(32);
     window.crypto.getRandomValues(challenge);
 
-    const authenticationOptions = {
-      challenge,
+    const authenticationOptions: PublicKeyCredentialRequestOptionsJSON = {
+      challenge: Buffer.from(challenge).toString('base64url'),
       rpId: window.location.hostname,
       userVerification: "required",
       timeout: 60000,
     };
 
-    const authenticationResponse = await startAuthentication(authenticationOptions);
+    const authenticationResponse = await startAuthentication({ optionsJSON: authenticationOptions });
 
     // 2. Enviar a resposta para o servidor para verificação
     const verifyResponse = await fetch('/api/biometric/login', {

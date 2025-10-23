@@ -1,4 +1,4 @@
-import { CartItem } from './CartContext';
+import { CartItem } from '@/context/CartContext';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
 
