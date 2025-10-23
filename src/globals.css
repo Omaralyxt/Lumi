@@ -205,4 +205,13 @@ html {
     border-color: #00aaff; /* Cor neon */
     box-shadow: 0 0 20px rgba(0, 170, 255, 0.7); /* Sombra neon mais forte */
   }
+  
+  /* Classes para garantir texto visível em fundos brancos no modo escuro */
+  .dark .text-on-white-bg {
+    @apply text-gray-900;
+  }
+  
+  .dark .text-on-light-bg {
+    @apply text-gray-800;
+  }
 }

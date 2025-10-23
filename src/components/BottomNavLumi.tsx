@@ -45,7 +45,7 @@ export default function BottomNavLumi() {
               to={item.path}
               className={`flex flex-col items-center justify-center h-full w-full transition-colors ${
                 isActive 
-                  ? "text-blue-600" 
+                  ? "text-blue-600 dark:text-blue-400" 
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               }`}
             >
@@ -57,7 +57,13 @@ export default function BottomNavLumi() {
                   </span>
                 )}
               </div>
-              <span className="text-xs mt-1">{item.label}</span>
+              <span className={`text-xs mt-1 ${
+                isActive 
+                  ? "text-blue-600 dark:text-blue-400 font-medium" 
+                  : "text-gray-500 dark:text-gray-400"
+              }`}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
