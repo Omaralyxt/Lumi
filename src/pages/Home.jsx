@@ -852,10 +852,10 @@ export default function Home() {
                   className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
                 >
                   <div className="relative">
-                    {/* Tornando a imagem clicável para a página do produto */}
+                    {/* Tornando a imagem clicável para a página de vendas */}
                     <div 
                       className="cursor-pointer"
-                      onClick={() => navigate(`/product/${product.id}`)}
+                      onClick={() => navigate(`/sales/${product.id}`)}
                     >
                       <img
                         src={product.images[0]}
@@ -887,10 +887,10 @@ export default function Home() {
                         <Badge variant="secondary" className="text-xs">✓</Badge>
                       )}
                     </div>
-                    {/* Tornando o título clicável para a página do produto */}
+                    {/* Tornando o título clicável para a página de vendas */}
                     <h3 
                       className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                      onClick={() => navigate(`/product/${product.id}`)}
+                      onClick={() => navigate(`/sales/${product.id}`)}
                     >
                       {product.title}
                     </h3>
@@ -910,8 +910,12 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Package className="h-4 w-4 text-gray-500" />
+                      {/* Nome da loja clicável */}
+                      <div 
+                        className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                        onClick={() => navigate(`/store/${product.shop.id}`)}
+                      >
+                        <Store className="h-4 w-4 text-gray-500" />
                         <span className="text-xs text-gray-500">{product.shop.name}</span>
                       </div>
                       <div className="flex gap-2">
@@ -975,10 +979,10 @@ export default function Home() {
                   className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden border border-red-200 dark:border-red-800"
                 >
                   <div className="relative">
-                    {/* Tornando a imagem clicável para a página do produto */}
+                    {/* Tornando a imagem clicável para a página de vendas */}
                     <div 
                       className="cursor-pointer"
-                      onClick={() => navigate(`/product/${offer.id}`)}
+                      onClick={() => navigate(`/sales/${offer.id}`)}
                     >
                       <img
                         src={offer.images[0]}
@@ -1009,10 +1013,10 @@ export default function Home() {
                         <Badge variant="secondary" className="text-xs">✓</Badge>
                       )}
                     </div>
-                    {/* Tornando o título clicável para a página do produto */}
+                    {/* Tornando o título clicável para a página de vendas */}
                     <h3 
                       className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                      onClick={() => navigate(`/product/${offer.id}`)}
+                      onClick={() => navigate(`/sales/${offer.id}`)}
                     >
                       {offer.title}
                     </h3>
@@ -1030,8 +1034,12 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Package className="h-4 w-4 text-gray-500" />
+                      {/* Nome da loja clicável */}
+                      <div 
+                        className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                        onClick={() => navigate(`/store/${offer.shop.id}`)}
+                      >
+                        <Store className="h-4 w-4 text-gray-500" />
                         <span className="text-xs text-gray-500">{offer.shop.name}</span>
                       </div>
                       <div className="flex gap-2">

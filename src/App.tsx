@@ -13,6 +13,7 @@ import UserTypeSelection from "./components/UserTypeSelection";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
 import ProductDetail from "./pages/ProductDetail";
+import SalesPage from "./pages/SalesPage";
 import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -32,7 +33,7 @@ import SellerDashboard from "./pages/SellerDashboard";
 import SellerProducts from "./pages/SellerProducts";
 import CreateProduct from "./pages/CreateProduct";
 import SellerOrdersPage from "./pages/SellerOrdersPage";
-import RootRedirect from "./components/RootRedirect"; // Renamed import
+import RootRedirect from "./components/RootRedirect";
 
 const queryClient = new QueryClient();
 
@@ -41,57 +42,55 @@ const App = () => (
     <ThemeProvider defaultTheme="light" storageKey="lumi-theme">
       <TooltipProvider>
         <FavoritesProvider>
-          {/* CompareProvider removido */}
-            <CartProvider>
-              <OrdersProvider>
-                <ReviewsProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <AppLayout>
-                      <Routes>
-                        <Route path="/" element={<RootRedirect />} />
-                        <Route path="/home" element={<Home />} />
-                        <Route path="/categories" element={<CategoriesPage />} />
-                        <Route path="/offers" element={<OffersPage />} />
-                        <Route path="/favorites" element={<FavoritesPage />} />
-                        
-                        {/* Rotas que exigem login ou redirecionam para login/seleção */}
-                        <Route path="/account" element={<AccountPage />} />
-                        <Route path="/user-type" element={<UserTypeSelection />} />
-                        <Route path="/orders" element={<OrderHistoryPage />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
-                        <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
-                        
-                        {/* Rotas Públicas */}
-                        {/* Rota /compare removida */}
-                        <Route path="/cart" element={<CartPage />} />
-                        <Route path="/store/:id" element={<StorePage />} />
-                        <Route path="/category/:slug" element={<CategoryProductsPage />} />
-                        <Route path="/product/:id" element={<ProductDetail />} />
-                        
-                        {/* Rotas de Autenticação */}
-                        <Route path="/buyer/login" element={<BuyerLogin />} />
-                        <Route path="/buyer/register" element={<BuyerRegister />} />
-                        <Route path="/seller/login" element={<SellerLogin />} />
-                        <Route path="/seller/register" element={<SellerRegister />} />
-                        
-                        {/* Rotas de Vendedor (Protegidas) */}
-                        <Route path="/seller/dashboard" element={<SellerDashboard />} />
-                        <Route path="/seller/products" element={<SellerProducts />} />
-                        <Route path="/seller/create-product" element={<CreateProduct />} />
-                        <Route path="/seller/orders" element={<SellerOrdersPage />} />
-                        
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </AppLayout>
-                  </BrowserRouter>
-                </ReviewsProvider>
-              </OrdersProvider>
-            </CartProvider>
-          {/* CompareProvider removido */}
+          <CartProvider>
+            <OrdersProvider>
+              <ReviewsProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppLayout>
+                    <Routes>
+                      <Route path="/" element={<RootRedirect />} />
+                      <Route path="/home" element={<Home />} />
+                      <Route path="/categories" element={<CategoriesPage />} />
+                      <Route path="/offers" element={<OffersPage />} />
+                      <Route path="/favorites" element={<FavoritesPage />} />
+                      
+                      {/* Rotas que exigem login ou redirecionam para login/seleção */}
+                      <Route path="/account" element={<AccountPage />} />
+                      <Route path="/user-type" element={<UserTypeSelection />} />
+                      <Route path="/orders" element={<OrderHistoryPage />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
+                      
+                      {/* Rotas Públicas */}
+                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/store/:id" element={<StorePage />} />
+                      <Route path="/category/:slug" element={<CategoryProductsPage />} />
+                      <Route path="/product/:id" element={<ProductDetail />} />
+                      <Route path="/sales/:id" element={<SalesPage />} />
+                      
+                      {/* Rotas de Autenticação */}
+                      <Route path="/buyer/login" element={<BuyerLogin />} />
+                      <Route path="/buyer/register" element={<BuyerRegister />} />
+                      <Route path="/seller/login" element={<SellerLogin />} />
+                      <Route path="/seller/register" element={<SellerRegister />} />
+                      
+                      {/* Rotas de Vendedor (Protegidas) */}
+                      <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                      <Route path="/seller/products" element={<SellerProducts />} />
+                      <Route path="/seller/create-product" element={<CreateProduct />} />
+                      <Route path="/seller/orders" element={<SellerOrdersPage />} />
+                      
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </AppLayout>
+                </BrowserRouter>
+              </ReviewsProvider>
+            </OrdersProvider>
+          </CartProvider>
         </FavoritesProvider>
       </TooltipProvider>
     </ThemeProvider>

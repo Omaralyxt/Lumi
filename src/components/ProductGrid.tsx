@@ -44,8 +44,8 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
         key={product.id}
         className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent shadow-[0_0_15px_rgba(0,170,255,0.1)] hover:shadow-neon-blue-lg transition-all duration-300 hover:scale-[1.02] dark:border-neon-blue/30 dark:hover:border-neon-blue"
       >
-        {/* Imagem - Clicável para página do produto */}
-        <Link to={`/product/${product.id}`}>
+        {/* Imagem - Clicável para página de vendas */}
+        <Link to={`/sales/${product.id}`}>
           <img
             src={product.images[0]}
             alt={product.title}
@@ -56,7 +56,7 @@ export default function ProductGrid({ products, title, showStoreInfo = true }: P
 
         {/* Conteúdo */}
         <div className="p-4">
-          <Link to={`/product/${product.id}`}>
+          <Link to={`/sales/${product.id}`}>
             <h3 className="font-body font-semibold truncate text-gray-900 dark:text-gray-100 hover:text-blue-500 transition-colors cursor-pointer">
               {product.title}
             </h3>
