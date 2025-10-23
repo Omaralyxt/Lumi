@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Home, 
   Grid3X3, 
-  Clock, 
+  Store, // Usar Store para Lojas
   User, 
   Heart 
 } from "lucide-react";
@@ -14,7 +14,7 @@ import { useFavorites } from "@/context/FavoritesContext";
 const navItems = [
   { path: "/home", icon: Home, label: "Início" },
   { path: "/categories", icon: Grid3X3, label: "Categorias" },
-  { path: "/offers", icon: Clock, label: "Ofertas" },
+  { path: "/stores", icon: Store, label: "Lojas" }, // Alterado de /offers para /stores
   { path: "/favorites", icon: Heart, label: "Favoritos" },
   { path: "/account", icon: User, label: "Conta" },
 ];

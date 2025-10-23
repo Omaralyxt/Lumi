@@ -20,6 +20,7 @@ import OrderHistoryPage from "./pages/OrderHistoryPage";
 import Profile from "./pages/Profile";
 import StorePage from "./pages/StorePage";
 import CategoryProductsPage from "./pages/CategoryProductsPage";
+import StoresPage from "./pages/StoresPage"; // Importar StoresPage
 import { ThemeProvider } from "./context/ThemeProvider";
 import AppLayout from "./components/AppLayout";
 import { OrdersProvider } from "./context/OrdersContext";
@@ -58,6 +59,7 @@ const App = () => (
                       
                       {/* Rotas Públicas */}
                       <Route path="/cart" element={<CartPage />} />
+                      <Route path="/stores" element={<StoresPage />} /> {/* Nova rota */}
                       <Route path="/store/:id" element={<StorePage />} />
                       <Route path="/category/:slug" element={<CategoryProductsPage />} />
                       <Route path="/product/:id" element={<ProductDetail />} />

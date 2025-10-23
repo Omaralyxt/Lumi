@@ -11,6 +11,7 @@ interface SwipeablePageProps {
 const pages = [
   { id: "home", path: "/home", label: "Home" },
   { id: "categories", path: "/categories", label: "Categorias" },
+  { id: "stores", path: "/stores", label: "Lojas" }, // Adicionado 'stores'
   { id: "offers", path: "/offers", label: "Ofertas" },
   { id: "favorites", path: "/favorites", label: "Favoritos" },
   { id: "account", path: "/account", label: "Conta" },
