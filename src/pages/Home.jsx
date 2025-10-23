@@ -51,7 +51,7 @@ import logo from "@/assets/images/logo.svg";
 import BannerCarousel from "@/components/BannerCarousel";
 import SwipeablePage from "@/components/SwipeablePage";
 import { getFeaturedProducts } from "@/api/products";
-import { searchProducts } from "@/api/search"; // Usado para simular ofertas
+import { searchProducts, getCategoryCounts } from "@/api/search"; // Importando getCategoryCounts
 
 // Mock data for banners (mantido, pois não temos tabela de banners no Supabase)
 const banners = [
@@ -81,63 +81,64 @@ const banners = [
   }
 ];
 
-// Mock data for categories (mantido)
+// Mock data for categories (mantido, mas a contagem será atualizada)
 const categories = [
   {
     id: 1,
     name: "Eletrónicos",
     icon: Smartphone,
     color: "bg-blue-100 text-blue-600",
-    count: 1245,
+    count: 0, // Inicializado com 0
   },
   {
     id: 2,
     name: "Computadores",
     icon: Laptop,
     color: "bg-purple-100 text-purple-600",
-    count: 856,
+    count: 0,
   },
   {
+  // Adicionando categorias que podem estar no Supabase mas não estavam no mock original
     id: 3,
     name: "Casa & Cozinha",
     icon: HomeIcon,
     color: "bg-green-100 text-green-600",
-    count: 623,
+    count: 0,
   },
   {
     id: 4,
     name: "Moda",
     icon: Shirt,
     color: "bg-pink-100 text-pink-600",
-    count: 934,
+    count: 0,
   },
   {
     id: 5,
     name: "Livros",
     icon: Book,
     color: "bg-yellow-100 text-yellow-600",
-    count: 412,
+    count: 0,
   },
   {
     id: 6,
     name: "Jogos",
     icon: Gamepad,
     color: "bg-red-100 text-red-600",
-    count: 278,
+    count: 0,
   },
   {
     id: 7,
     name: "Fotografia",
     icon: Camera,
     color: "bg-indigo-100 text-indigo-600",
-    count: 156,
+    count: 0,
   },
   {
     id: 8,
     name: "Automóvel",
     icon: Car,
     color: "bg-gray-100 text-gray-600",
-    count: 89,
+    count: 0,
   },
 ];
 
@@ -175,6 +176,7 @@ export default function Home() {
   const [offers, setOffers] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingOffers, setLoadingOffers] = useState(true);
+  const [categoryData, setCategoryData] = useState(categories); // Novo estado para categorias com contagem atualizada
   
   // Mobile swipe navigation
   const [activeSection, setActiveSection] = useState(0);
@@ -187,7 +189,21 @@ export default function Home() {
   // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch Featured Products (used for Products section)
+      // 1. Fetch Category Counts
+      try {
+        const counts = await getCategoryCounts();
+        
+        setCategoryData(prevCategories => 
+          prevCategories.map(cat => ({
+            ...cat,
+            count: counts[cat.name] || 0,
+          }))
+        );
+      } catch (e) {
+        console.error("Failed to fetch category counts:", e);
+      }
+
+      // 2. Fetch Featured Products (used for Products section)
       try {
         setLoadingProducts(true);
         const featuredProducts = await getFeaturedProducts();
@@ -199,7 +215,7 @@ export default function Home() {
         setLoadingProducts(false);
       }
 
-      // Fetch Offers (simulated by fetching products and filtering/modifying)
+      // 3. Fetch Offers (simulated by fetching products and filtering/modifying)
       try {
         setLoadingOffers(true);
         const allProducts = await searchProducts("", undefined, undefined, 4); // Get highly rated products
@@ -406,7 +422,7 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {categories.map((category) => (
+              {categoryData.map((category) => (
                 <motion.div
                   key={category.id}
                   initial={{ opacity: 0, y: 20 }}

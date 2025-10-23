@@ -60,6 +60,36 @@ export const getCategories = async (): Promise<any[]> => {
   return mockCategories;
 };
 
+// NOVA FUNÇÃO: Buscar contagem de produtos por categoria
+export const getCategoryCounts = async (): Promise<Record<string, number>> => {
+  // Usamos a função RPC 'count_products_by_category' se ela existisse,
+  // mas como não existe, faremos uma consulta simples e agruparemos no cliente
+  // ou usaremos a funcionalidade de contagem do Supabase (que é limitada para GROUP BY).
+  
+  // Para simplificar e usar a API REST do Supabase, vamos buscar todos os produtos
+  // e agrupar no cliente, ou usar uma função de banco de dados se necessário.
+  // Como não temos permissão para criar funções SQL, vamos simular a contagem
+  // ou buscar todos os produtos e agrupar no cliente (o que pode ser ineficiente).
+  
+  // Vamos simular a contagem baseada nos produtos existentes para evitar consultas grandes:
+  const { data, error } = await supabase
+    .from('products')
+    .select('category');
+    
+  if (error) {
+    console.error("Erro ao buscar categorias para contagem:", error);
+    return {};
+  }
+  
+  const counts: Record<string, number> = {};
+  data.forEach(product => {
+    const category = product.category || 'Outros';
+    counts[category] = (counts[category] || 0) + 1;
+  });
+  
+  return counts;
+};
+
 // Função para buscar produtos (usando Supabase)
 export const searchProducts = async (
   query: string,
