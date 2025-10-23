@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clock, Zap, Percent, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,96 +8,52 @@ import { Badge } from "@/components/ui/badge";
 import ProductGrid from "@/components/ProductGrid";
 import { Link } from "react-router-dom";
 import SwipeablePage from "@/components/SwipeablePage";
+import { searchProducts } from "@/api/search";
+import { Product } from "@/types/product";
+import Loading from "@/components/Loading";
 
-// Mock data adaptado para o tipo Product
-const offers = [
-  {
-    id: 1,
-    title: "Smartphone Samsung Galaxy A54 5G",
-    originalPrice: 15000,
-    price: 12500,
-    rating: 4.5,
-    reviewCount: 128,
-    stock: 10,
-    timeLeft: "2h 30m",
-    images: ["/placeholder.svg"],
-    shop: { id: 1, name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 2,
-    title: "Tênis Esportivo Nike Air Max",
-    originalPrice: 3500,
-    price: 2500,
-    rating: 4.2,
-    reviewCount: 89,
-    stock: 15,
-    timeLeft: "5h 15m",
-    images: ["/placeholder.svg"],
-    shop: { id: 2, name: "ModaExpress", rating: 4.5, reviewCount: 234, isVerified: true },
-    category: "Moda",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 100, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    timeDelivery: "2-3 dias úteis",
-  },
-  {
-    id: 3,
-    title: "Panela de Pressão Inox",
-    originalPrice: 2200,
-    price: 1800,
-    rating: 4.8,
-    reviewCount: 156,
-    stock: 5,
-    timeLeft: "1d 3h",
-    images: ["/placeholder.svg"],
-    shop: { id: 3, name: "CozinhaFeliz", rating: 4.9, reviewCount: 412, isVerified: true },
-    category: "Casa & Cozinha",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 80, eta: "2-3 dias" },
-    reviews: [],
-    options: [],
-    timeDelivery: "3-5 dias úteis",
-  },
-  {
-    id: 4,
-    title: "Fone de Ouvido Bluetooth",
-    originalPrice: 2800,
-    price: 1999,
-    rating: 4.3,
-    reviewCount: 67,
-    stock: 12,
-    timeLeft: "3h 45m",
-    images: ["/placeholder.svg"],
-    shop: { id: 1, name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 120, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    timeDelivery: "2-4 dias úteis",
-  },
-];
+interface OfferProduct extends Product {
+  discount: number;
+  timeLeft: string;
+}
 
 export default function OffersPage() {
+  const [offers, setOffers] = useState<OfferProduct[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<"discount" | "time" | "rating">("discount");
 
+  useEffect(() => {
+    const fetchOffers = async () => {
+      setLoading(true);
+      try {
+        // Buscar todos os produtos e simular que são ofertas
+        const allProducts = await searchProducts("", undefined, undefined, 0); 
+        
+        // Simular desconto e tempo restante
+        const simulatedOffers: OfferProduct[] = allProducts.slice(0, 8).map(p => {
+          const discount = Math.floor(Math.random() * 30) + 10; // 10% a 40%
+          const originalPrice = p.price / (1 - discount / 100);
+          
+          return {
+            ...p,
+            originalPrice: parseFloat(originalPrice.toFixed(2)),
+            discount: discount,
+            timeLeft: `${Math.floor(Math.random() * 23) + 1}h ${Math.floor(Math.random() * 59) + 1}m`,
+          };
+        });
+        
+        setOffers(simulatedOffers);
+      } catch (e) {
+        console.error("Failed to fetch offers:", e);
+        setOffers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOffers();
+  }, []);
+
   const sortedOffers = [...offers].sort((a, b) => {
-    // Cálculo de desconto para ordenação
     const discountA = a.originalPrice ? (a.originalPrice - a.price) / a.originalPrice : 0;
     const discountB = b.originalPrice ? (b.originalPrice - b.price) / b.originalPrice : 0;
 
@@ -114,11 +70,13 @@ export default function OffersPage() {
     }
   });
 
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <SwipeablePage currentPage="offers">
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 font-body text-gray-900 dark:text-gray-100 transition-colors duration-500">
-        {/* Header (Removido, pois AppLayout já fornece o cabeçalho principal) */}
-
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="font-title text-4xl text-gray-900 dark:text-gray-100 tracking-wide mb-6">
@@ -174,7 +132,13 @@ export default function OffersPage() {
           </div>
 
           {/* Offers Grid using ProductGrid */}
-          <ProductGrid products={sortedOffers} showStoreInfo={true} />
+          {sortedOffers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>Nenhuma oferta disponível no momento.</p>
+            </div>
+          ) : (
+            <ProductGrid products={sortedOffers} showStoreInfo={true} />
+          )}
         </div>
       </div>
     </SwipeablePage>

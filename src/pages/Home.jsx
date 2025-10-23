@@ -50,8 +50,11 @@ import { toast } from "sonner";
 import logo from "@/assets/images/logo.svg";
 import BannerCarousel from "@/components/BannerCarousel";
 import SwipeablePage from "@/components/SwipeablePage";
+import { getFeaturedProducts } from "@/api/products";
+import { getFeaturedStores } from "@/api/stores";
+import { searchProducts } from "@/api/search"; // Usado para simular ofertas
 
-// Mock data for banners
+// Mock data for banners (mantido, pois não temos tabela de banners no Supabase)
 const banners = [
   {
     id: 1,
@@ -79,7 +82,7 @@ const banners = [
   }
 ];
 
-// Mock data for categories
+// Mock data for categories (mantido)
 const categories = [
   {
     id: 1,
@@ -139,283 +142,7 @@ const categories = [
   },
 ];
 
-// Mock data for featured products
-const initialProducts = [
-  {
-    id: 1,
-    title: "Smartphone Samsung Galaxy A54 5G",
-    price: 12500,
-    originalPrice: 15000,
-    images: ["/placeholder.svg"],
-    shop: { name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-    quantity: 1,
-    stock: 15,
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.5,
-    reviewCount: 128,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 2,
-    title: "Fone de Ouvido Bluetooth Sony WH-1000XM5",
-    price: 18500,
-    originalPrice: 22000,
-    images: ["/placeholder.svg"],
-    shop: { name: "AudioPro MZ", rating: 4.9, reviewCount: 189, isVerified: true },
-    quantity: 1,
-    stock: 8,
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.8,
-    reviewCount: 67,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 3,
-    title: "Notebook Dell Inspiron 15 3520",
-    price: 28500,
-    originalPrice: 32000,
-    images: ["/placeholder.svg"],
-    shop: { name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-    quantity: 1,
-    stock: 5,
-    category: "Computadores",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.6,
-    reviewCount: 92,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 4,
-    title: "Smartwatch Apple Watch Series 9",
-    price: 22500,
-    originalPrice: 25000,
-    images: ["/placeholder.svg"],
-    shop: { name: "Apple Store MZ", rating: 4.8, reviewCount: 267, isVerified: true },
-    quantity: 1,
-    stock: 12,
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.7,
-    reviewCount: 145,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 5,
-    title: "Câmera Canon EOS R6 Mark II",
-    price: 45000,
-    originalPrice: 52000,
-    images: ["/placeholder.svg"],
-    shop: { name: "FotoPro MZ", rating: 4.9, reviewCount: 124, isVerified: true },
-    quantity: 1,
-    stock: 3,
-    category: "Fotografia",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.9,
-    reviewCount: 56,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 6,
-    title: "Console PlayStation 5",
-    price: 32000,
-    originalPrice: 35000,
-    images: ["/placeholder.svg"],
-    shop: { name: "GameStore MZ", rating: 4.8, reviewCount: 210, isVerified: true },
-    quantity: 1,
-    stock: 7,
-    category: "Jogos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.8,
-    reviewCount: 89,
-    timeDelivery: "2-5 dias úteis",
-  },
-];
-
-// Mock data for offers
-const initialOffers = [
-  {
-    id: 1,
-    title: "Smartphone Xiaomi Redmi Note 13 Pro",
-    discount: 25,
-    price: 11250,
-    originalPrice: 15000,
-    images: ["/placeholder.svg"],
-    shop: { name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-    quantity: 1,
-    stock: 20,
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.4,
-    reviewCount: 89,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 2,
-    title: "Fone de Ouvido Gamer HyperX Cloud Stinger",
-    discount: 30,
-    price: 5250,
-    originalPrice: 7500,
-    images: ["/placeholder.svg"],
-    shop: { name: "GamingPro MZ", rating: 4.6, reviewCount: 156, isVerified: true },
-    quantity: 1,
-    stock: 15,
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.5,
-    reviewCount: 67,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 3,
-    title: "Smart TV Samsung 50\" 4K Ultra HD",
-    discount: 20,
-    price: 18500,
-    originalPrice: 23125,
-    images: ["/placeholder.svg"],
-    shop: { name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-    quantity: 1,
-    stock: 8,
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.6,
-    reviewCount: 112,
-    timeDelivery: "2-5 dias úteis",
-  },
-  {
-    id: 4,
-    title: "Tablet Samsung Galaxy Tab S8",
-    discount: 15,
-    price: 17000,
-    originalPrice: 20000,
-    images: ["/placeholder.svg"],
-    shop: { name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-    quantity: 1,
-    stock: 12,
-    category: "Eletrónicos",
-    description: "",
-    features: [],
-    specifications: {},
-    deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
-    options: [],
-    rating: 4.5,
-    reviewCount: 78,
-    timeDelivery: "2-5 dias úteis",
-  },
-];
-
-// Mock data for stores
-const initialStores = [
-  {
-    id: 1,
-    name: "TechStore MZ",
-    logo: "/placeholder.svg",
-    rating: 4.7,
-    reviewCount: 342,
-    isVerified: true,
-    productsCount: 1245,
-    categories: ["Eletrónicos", "Computadores", "Acessórios"],
-  },
-  {
-    id: 2,
-    name: "Fashion Hub",
-    logo: "/placeholder.svg",
-    rating: 4.5,
-    reviewCount: 267,
-    isVerified: true,
-    productsCount: 892,
-    categories: ["Moda", "Acessórios", "Beleza"],
-  },
-  {
-    id: 3,
-    name: "Home & Garden",
-    logo: "/placeholder.svg",
-    rating: 4.6,
-    reviewCount: 189,
-    isVerified: true,
-    productsCount: 634,
-    categories: ["Casa & Cozinha", "Decoração", "Jardinagem"],
-  },
-  {
-    id: 4,
-    name: "Sports World",
-    logo: "/placeholder.svg",
-    rating: 4.8,
-    reviewCount: 145,
-    isVerified: true,
-    productsCount: 423,
-    categories: ["Desporto", "Fitness", "Outdoor"],
-  },
-  {
-    id: 5,
-    name: "Book Lovers",
-    logo: "/placeholder.svg",
-    rating: 4.9,
-    reviewCount: 210,
-    isVerified: true,
-    productsCount: 567,
-    categories: ["Livros", "Educação", "Papelaria"],
-  },
-  {
-    id: 6,
-    name: "Auto Parts MZ",
-    logo: "/placeholder.svg",
-    rating: 4.4,
-    reviewCount: 98,
-    isVerified: true,
-    productsCount: 321,
-    categories: ["Automóvel", "Peças", "Acessórios"],
-  },
-];
-
-// Mock data for features
+// Mock data for features (mantido)
 const features = [
   {
     id: 1,
@@ -443,23 +170,15 @@ export default function Home() {
   const { favorites } = useFavorites();
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   
-  // States for infinite scroll
-  const [products, setProducts] = useState(initialProducts);
-  const [offers, setOffers] = useState(initialOffers);
-  const [stores, setStores] = useState(initialStores);
-  const [productsPage, setProductsPage] = useState(1);
-  const [offersPage, setOffersPage] = useState(1);
-  const [storesPage, setStoresPage] = useState(1);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  const [loadingOffers, setLoadingOffers] = useState(false);
-  const [loadingStores, setLoadingStores] = useState(false);
-  const [hasMoreProducts, setHasMoreProducts] = useState(true);
-  const [hasMoreOffers, setHasMoreOffers] = useState(true);
-  const [hasMoreStores, setHasMoreStores] = useState(true);
+  // States for data fetching
+  const [products, setProducts] = useState([]);
+  const [offers, setOffers] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingOffers, setLoadingOffers] = useState(true);
+  const [loadingStores, setLoadingStores] = useState(true);
   
   // Mobile swipe navigation
   const [activeSection, setActiveSection] = useState(0);
@@ -469,6 +188,57 @@ export default function Home() {
     offers: useRef(null),
     stores: useRef(null)
   };
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch Featured Products (used for Products section)
+      try {
+        setLoadingProducts(true);
+        const featuredProducts = await getFeaturedProducts();
+        setProducts(featuredProducts);
+      } catch (e) {
+        console.error("Failed to fetch featured products:", e);
+        setProducts([]);
+      } finally {
+        setLoadingProducts(false);
+      }
+
+      // Fetch Offers (simulated by fetching products and filtering/modifying)
+      try {
+        setLoadingOffers(true);
+        const allProducts = await searchProducts("", undefined, undefined, 4); // Get highly rated products
+        // Simulate discount for offers
+        const simulatedOffers = allProducts.slice(0, 4).map(p => ({
+          ...p,
+          originalPrice: p.price * 1.25, // 25% discount simulation
+          price: p.price,
+          discount: 20,
+          timeDelivery: "24h restantes"
+        }));
+        setOffers(simulatedOffers);
+      } catch (e) {
+        console.error("Failed to fetch offers:", e);
+        setOffers([]);
+      } finally {
+        setLoadingOffers(false);
+      }
+
+      // Fetch Featured Stores
+      try {
+        setLoadingStores(true);
+        const featuredStores = await getFeaturedStores();
+        setStores(featuredStores);
+      } catch (e) {
+        console.error("Failed to fetch featured stores:", e);
+        setStores([]);
+      } finally {
+        setLoadingStores(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -484,120 +254,6 @@ export default function Home() {
   const handleAddToFavorites = (product) => {
     toast.success(`${product.title} adicionado aos favoritos!`);
   };
-
-  // Simulate loading more products
-  const loadMoreProducts = useCallback(() => {
-    if (loadingProducts || !hasMoreProducts) return;
-    
-    setLoadingProducts(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, this would be an API call with pagination
-      const newProducts = initialProducts.map(product => ({
-        ...product,
-        id: product.id + productsPage * 100 // Just to make IDs unique
-      }));
-      
-      setProducts(prev => [...prev, ...newProducts]);
-      setProductsPage(prev => prev + 1);
-      
-      // Simulate reaching the end after 3 pages
-      if (productsPage >= 3) {
-        setHasMoreProducts(false);
-      }
-      
-      setLoadingProducts(false);
-    }, 1000);
-  }, [loadingProducts, hasMoreProducts, productsPage]);
-
-  // Simulate loading more offers
-  const loadMoreOffers = useCallback(() => {
-    if (loadingOffers || !hasMoreOffers) return;
-    
-    setLoadingOffers(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, this would be an API call with pagination
-      const newOffers = initialOffers.map(offer => ({
-        ...offer,
-        id: offer.id + offersPage * 100 // Just to make IDs unique
-      }));
-      
-      setOffers(prev => [...prev, ...newOffers]);
-      setOffersPage(prev => prev + 1);
-      
-      // Simulate reaching the end after 3 pages
-      if (offersPage >= 3) {
-        setHasMoreOffers(false);
-      }
-      
-      setLoadingOffers(false);
-    }, 1000);
-  }, [loadingOffers, hasMoreOffers, offersPage]);
-
-  // Simulate loading more stores
-  const loadMoreStores = useCallback(() => {
-    if (loadingStores || !hasMoreStores) return;
-    
-    setLoadingStores(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, this would be an API call with pagination
-      const newStores = initialStores.map(store => ({
-        ...store,
-        id: store.id + storesPage * 100 // Just to make IDs unique
-      }));
-      
-      setStores(prev => [...prev, ...newStores]);
-      setStoresPage(prev => prev + 1);
-      
-      // Simulate reaching the end after 3 pages
-      if (storesPage >= 3) {
-        setHasMoreStores(false);
-      }
-      
-      setLoadingStores(false);
-    }, 1000);
-  }, [loadingStores, hasMoreStores, storesPage]);
-
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const section = entry.target.id;
-            
-            if (section === "products-section" && hasMoreProducts) {
-              loadMoreProducts();
-            } else if (section === "offers-section" && hasMoreOffers) {
-              loadMoreOffers();
-            } else if (section === "stores-section" && hasMoreStores) {
-              loadMoreStores();
-            }
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    const productsSection = document.getElementById("products-section");
-    const offersSection = document.getElementById("offers-section");
-    const storesSection = document.getElementById("stores-section");
-    
-    if (productsSection) observer.observe(productsSection);
-    if (offersSection) observer.observe(offersSection);
-    if (storesSection) observer.observe(storesSection);
-
-    return () => {
-      if (productsSection) observer.unobserve(productsSection);
-      if (offersSection) observer.unobserve(offersSection);
-      if (storesSection) observer.unobserve(storesSection);
-    };
-  }, [loadMoreProducts, loadMoreOffers, loadMoreStores, hasMoreProducts, hasMoreOffers, hasMoreStores]);
 
   // Mobile swipe navigation handlers
   const handleTouchStart = (e, section) => {
@@ -629,7 +285,7 @@ export default function Home() {
   // Funções para navegar entre páginas
   const goToPreviousPage = () => {
     // Navegar para a página anterior (conta -> favoritos -> ofertas -> categorias -> home)
-    const currentPageIndex = 4; // Home é a primeira página
+    const currentPageIndex = 0; // Home é a primeira página
     if (currentPageIndex > 0) {
       const previousPage = ['account', 'favorites', 'offers', 'categories', 'home'][currentPageIndex - 1];
       navigate(`/${previousPage}`);
@@ -822,7 +478,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Products Section with Infinite Scroll */}
+        {/* Products Section */}
         <div 
           id="products-section"
           ref={sectionRefs.products}
@@ -841,115 +497,111 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
-                >
-                  <div className="relative">
-                    {/* Tornando a imagem clicável para a página de vendas */}
-                    <div 
-                      className="cursor-pointer"
-                      onClick={() => navigate(`/sales/${product.id}`)}
-                    >
-                      <img
-                        src={product.images[0]}
-                        alt={product.title}
-                        className="w-full h-48 object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                        -{Math.round((1 - product.price / product.originalPrice) * 100)}%
-                      </div>
-                    )}
-                    <button
-                      onClick={() => handleAddToFavorites(product)}
-                      className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-neon-blue transition-shadow"
-                    >
-                      <HeartIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm ml-1">{product.rating}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">({product.reviewCount})</span>
-                      {product.shop.isVerified && (
-                        <Badge variant="secondary" className="text-xs">✓</Badge>
-                      )}
-                    </div>
-                    {/* Tornando o título clicável para a página de vendas */}
-                    <h3 
-                      className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                      onClick={() => navigate(`/sales/${product.id}`)}
-                    >
-                      {product.title}
-                    </h3>
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-lg font-bold text-blue-600">
-                          MT {product.price.toLocaleString('pt-MZ')}
-                        </p>
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <p className="text-sm text-gray-500 line-through">
-                            MT {product.originalPrice.toLocaleString('pt-MZ')}
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500">{product.timeDelivery}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      {/* Nome da loja clicável */}
-                      <div 
-                        className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                        onClick={() => navigate(`/store/${product.shop.id}`)}
-                      >
-                        <Store className="h-4 w-4 text-gray-500" />
-                        <span className="text-xs text-gray-500">{product.shop.name}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                          title="Adicionar ao carrinho"
-                        >
-                          <ShoppingCart className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Loading indicator for products */}
-            {loadingProducts && (
+            {loadingProducts ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
               </div>
-            )}
-
-            {/* End of products message */}
-            {!hasMoreProducts && (
+            ) : products.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p>Não há mais produtos para carregar</p>
+                <p>Nenhum produto em destaque encontrado.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {products.map((product) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                    whileHover={{ y: -5 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
+                  >
+                    <div className="relative">
+                      {/* Tornando a imagem clicável para a página de vendas */}
+                      <div 
+                        className="cursor-pointer"
+                        onClick={() => navigate(`/sales/${product.id}`)}
+                      >
+                        <img
+                          src={product.images[0]}
+                          alt={product.title}
+                          className="w-full h-48 object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      {product.originalPrice && product.originalPrice > product.price && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                          -{Math.round((1 - product.price / product.originalPrice) * 100)}%
+                        </div>
+                      )}
+                      <button
+                        onClick={() => handleAddToFavorites(product)}
+                        className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-neon-blue transition-shadow"
+                      >
+                        <HeartIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                      </button>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="text-sm ml-1">{product.rating}</span>
+                        </div>
+                        <span className="text-sm text-gray-500">({product.reviewCount})</span>
+                        {product.shop.isVerified && (
+                          <Badge variant="secondary" className="text-xs">✓</Badge>
+                        )}
+                      </div>
+                      {/* Tornando o título clicável para a página de vendas */}
+                      <h3 
+                        className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                        onClick={() => navigate(`/sales/${product.id}`)}
+                      >
+                        {product.title}
+                      </h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="text-lg font-bold text-blue-600">
+                            MT {product.price.toLocaleString('pt-MZ')}
+                          </p>
+                          {product.originalPrice && product.originalPrice > product.price && (
+                            <p className="text-sm text-gray-500 line-through">
+                              MT {product.originalPrice.toLocaleString('pt-MZ')}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">{product.timeDelivery}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        {/* Nome da loja clicável */}
+                        <div 
+                          className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                          onClick={() => navigate(`/store/${product.shop.id}`)}
+                        >
+                          <Store className="h-4 w-4 text-gray-500" />
+                          <span className="text-xs text-gray-500">{product.shop.name}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleAddToCart(product)}
+                            className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            title="Adicionar ao carrinho"
+                          >
+                            <ShoppingCart className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Offers Section with Infinite Scroll */}
+        {/* Offers Section */}
         <div 
           id="offers-section"
           ref={sectionRefs.offers}
@@ -968,112 +620,108 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {offers.map((offer) => (
-                <motion.div
-                  key={offer.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.7 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden border border-red-200 dark:border-red-800"
-                >
-                  <div className="relative">
-                    {/* Tornando a imagem clicável para a página de vendas */}
-                    <div 
-                      className="cursor-pointer"
-                      onClick={() => navigate(`/sales/${offer.id}`)}
-                    >
-                      <img
-                        src={offer.images[0]}
-                        alt={offer.title}
-                        className="w-full h-48 object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="absolute top-2 left-2 bg-red-500 text-white text-sm px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                      <Percent className="h-4 w-4" />
-                      {offer.discount}% OFF
-                    </div>
-                    <button
-                      onClick={() => handleAddToFavorites(offer)}
-                      className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-neon-blue transition-shadow"
-                    >
-                      <HeartIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm ml-1">{offer.rating}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">({offer.reviewCount})</span>
-                      {offer.shop.isVerified && (
-                        <Badge variant="secondary" className="text-xs">✓</Badge>
-                      )}
-                    </div>
-                    {/* Tornando o título clicável para a página de vendas */}
-                    <h3 
-                      className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                      onClick={() => navigate(`/sales/${offer.id}`)}
-                    >
-                      {offer.title}
-                    </h3>
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-lg font-bold text-red-600">
-                          MT {offer.price.toLocaleString('pt-MZ')}
-                        </p>
-                        <p className="text-sm text-gray-500 line-through">
-                          MT {offer.originalPrice.toLocaleString('pt-MZ')}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500">{offer.timeDelivery}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      {/* Nome da loja clicável */}
-                      <div 
-                        className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                        onClick={() => navigate(`/store/${offer.shop.id}`)}
-                      >
-                        <Store className="h-4 w-4 text-gray-500" />
-                        <span className="text-xs text-gray-500">{offer.shop.name}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleAddToCart(offer)}
-                          className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                          title="Adicionar ao carrinho"
-                        >
-                          <ShoppingCart className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Loading indicator for offers */}
-            {loadingOffers && (
+            {loadingOffers ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
               </div>
-            )}
-
-            {/* End of offers message */}
-            {!hasMoreOffers && (
+            ) : offers.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p>Não há mais ofertas para carregar</p>
+                <p>Nenhuma oferta encontrada.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {offers.map((offer) => (
+                  <motion.div
+                    key={offer.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.7 }}
+                    whileHover={{ y: -5 }}
+                    className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden border border-red-200 dark:border-red-800"
+                  >
+                    <div className="relative">
+                      {/* Tornando a imagem clicável para a página de vendas */}
+                      <div 
+                        className="cursor-pointer"
+                        onClick={() => navigate(`/sales/${offer.id}`)}
+                      >
+                        <img
+                          src={offer.images[0]}
+                          alt={offer.title}
+                          className="w-full h-48 object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-sm px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                        <Percent className="h-4 w-4" />
+                        {offer.discount}% OFF
+                      </div>
+                      <button
+                        onClick={() => handleAddToFavorites(offer)}
+                        className="absolute top-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md hover:shadow-neon-blue transition-shadow"
+                      >
+                        <HeartIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                      </button>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="text-sm ml-1">{offer.rating}</span>
+                        </div>
+                        <span className="text-sm text-gray-500">({offer.reviewCount})</span>
+                        {offer.shop.isVerified && (
+                          <Badge variant="secondary" className="text-xs">✓</Badge>
+                        )}
+                      </div>
+                      {/* Tornando o título clicável para a página de vendas */}
+                      <h3 
+                        className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                        onClick={() => navigate(`/sales/${offer.id}`)}
+                      >
+                        {offer.title}
+                      </h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="text-lg font-bold text-red-600">
+                            MT {offer.price.toLocaleString('pt-MZ')}
+                          </p>
+                          <p className="text-sm text-gray-500 line-through">
+                            MT {offer.originalPrice.toLocaleString('pt-MZ')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">{offer.timeDelivery}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        {/* Nome da loja clicável */}
+                        <div 
+                          className="flex items-center gap-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                          onClick={() => navigate(`/store/${offer.shop.id}`)}
+                        >
+                          <Store className="h-4 w-4 text-gray-500" />
+                          <span className="text-xs text-gray-500">{offer.shop.name}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleAddToCart(offer)}
+                            className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                            title="Adicionar ao carrinho"
+                          >
+                            <ShoppingCart className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Stores Section with Infinite Scroll */}
+        {/* Stores Section */}
         <div 
           id="stores-section"
           ref={sectionRefs.stores}
@@ -1092,71 +740,60 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stores.map((store) => (
-                <motion.div
-                  key={store.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
-                >
-                  <div className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <img
-                        src={store.logo}
-                        alt={store.name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                        loading="lazy"
-                      />
-                      <div>
-                        <h3 className="font-semibold flex items-center gap-2">
-                          {store.name}
-                          {store.isVerified && (
-                            <Badge variant="secondary" className="text-xs">✓</Badge>
-                          )}
-                        </h3>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="text-sm">{store.rating}</span>
-                          <span className="text-sm text-gray-500">({store.reviewCount})</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-4">{store.productsCount} produtos</p>
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {store.categories.map((category, index) => (
-                        <span
-                          key={index}
-                          className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full"
-                        >
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => navigate(`/store/${store.id}`)}
-                      className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Ver Loja
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Loading indicator for stores */}
-            {loadingStores && (
+            {loadingStores ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
               </div>
-            )}
-
-            {/* End of stores message */}
-            {!hasMoreStores && (
+            ) : stores.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p>Não há mais lojas para carregar</p>
+                <p>Nenhuma loja destacada encontrada.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stores.map((store) => (
+                  <motion.div
+                    key={store.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.8 }}
+                    whileHover={{ y: -5 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-neon-blue transition-shadow overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-center gap-4 mb-4">
+                        <img
+                          src={store.logo_url || "/placeholder.svg"}
+                          alt={store.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                          loading="lazy"
+                        />
+                        <div>
+                          <h3 className="font-semibold flex items-center gap-2">
+                            {store.name}
+                            {store.is_verified && (
+                              <Badge variant="secondary" className="text-xs">✓</Badge>
+                            )}
+                          </h3>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="text-sm">{store.rating?.toFixed(1) || '0.0'}</span>
+                            <span className="text-sm text-gray-500">({store.reviewCount})</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-4">{store.products_count} produtos</p>
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {/* Categories are mocked/removed here */}
+                      </div>
+                      <button
+                        onClick={() => navigate(`/store/${store.id}`)}
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Ver Loja
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>

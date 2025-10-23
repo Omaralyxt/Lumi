@@ -36,7 +36,7 @@ export default function CategoryProductsPage() {
         setLoading(true);
         setError(null);
         
-        // Usamos o nome da categoria para buscar na API mockada
+        // Usamos o nome da categoria para buscar na API refatorada
         const fetchedProducts = await getProductsByCategory(categoryName);
         setProducts(fetchedProducts);
         
