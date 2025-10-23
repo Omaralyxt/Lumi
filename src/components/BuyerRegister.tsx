@@ -34,10 +34,6 @@ export default function BuyerRegister() {
       setLoading(false);
       return;
     }
-    
-    const nameParts = formData.name.trim().split(/\s+/);
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
 
     try {
       // Registrar usuário no Supabase Auth
@@ -46,8 +42,7 @@ export default function BuyerRegister() {
         password: formData.password,
         options: {
           data: {
-            first_name: firstName,
-            last_name: lastName,
+            full_name: formData.name,
             phone: formData.phone,
             user_type: "buyer"
           }
