@@ -115,13 +115,16 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // 1. Inserir o pedido principal na tabela 'orders'
-      // Nota: Assumimos que todos os itens no carrinho pertencem à mesma loja para simplificar o store_id.
-      // Em um marketplace real, isso seria mais complexo (um pedido por loja ou um pedido mestre).
-      // Usaremos o store_id do primeiro item como mock para o pedido principal.
+      // Nota: Em um marketplace, cada item pode ser de uma loja diferente.
+      // Para simplificar, criaremos um pedido mestre no frontend e itens relacionados.
+      // Se o backend exigir um store_id único para 'orders', usaremos o primeiro item.
       const storeId = orderData.items[0]?.shop.id;
       if (!storeId) {
         throw new Error("Carrinho vazio ou sem informações de loja.");
       }
+      
+      // Serializar o endereço de envio para caber em um campo de texto (tracking_code)
+      const serializedAddress = JSON.stringify(orderData.shippingAddress);
 
       const { data: orderResult, error: orderError } = await supabase
         .from('orders')
@@ -131,7 +134,10 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           total_amount: orderData.total,
           status: 'pending',
           payment_method: orderData.paymentMethod,
-          // tracking_code e outros campos podem ser adicionados aqui
+          // Usando 'tracking_code' para armazenar o endereço de envio serializado (solução temporária)
+          tracking_code: serializedAddress, 
+          // payment_status não existe na tabela, mas assumimos 'pago' após o checkout
+          // Se a tabela orders fosse alterada, adicionaríamos payment_status: 'pago'
         })
         .select()
         .single();
@@ -151,6 +157,10 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         quantity: item.quantity,
         price_at_purchase: item.price,
         product_name: item.title,
+        // Adicionando product_image e total_price
+        product_image: item.images[0] || '/placeholder.svg',
+        total_price: item.price * item.quantity,
+        unit_price: item.price,
       }));
 
       const { error: itemsError } = await supabase
@@ -162,8 +172,23 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         // Em um cenário real, você faria rollback do pedido principal aqui.
         throw new Error("Falha ao registrar itens do pedido.");
       }
+      
+      // 3. Criar notificação para o vendedor (usando o store_id do pedido mestre)
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          store_id: storeId,
+          order_id: newOrderId,
+          type: 'new_order',
+          message: `Novo pedido #${newOrderId.substring(0, 8)} recebido! Total: MT ${orderData.total.toLocaleString('pt-MZ')}`,
+        });
+        
+      if (notificationError) {
+        console.error("Erro ao criar notificação:", notificationError);
+        // Não lançamos erro fatal, pois o pedido já foi criado.
+      }
 
-      // 3. Construir o objeto Order para o frontend (usando dados do Supabase + dados locais)
+      // 4. Construir o objeto Order para o frontend (usando dados do Supabase + dados locais)
       const estimatedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
       const newOrder: Order = {
