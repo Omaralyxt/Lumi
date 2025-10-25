@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { Order } from '@/types/order';
+import { Order, PaymentStatus } from '@/types/order';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from './CartContext';
@@ -23,6 +23,16 @@ interface OrdersContextType {
 }
 
 const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
+
+// Helper function to generate a unique order number (LMI-YYYYMMDD-XXXX)
+const generateOrderNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000); // 4 random digits
+  return `LMI-${year}${month}${day}-${randomSuffix}`;
+};
 
 export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -48,19 +58,24 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     setError(null);
     try {
-      // Em um app real, isso faria uma chamada à API
+      // Simulação de fetch de pedidos (mantida para compatibilidade)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Simular dados de pedidos
+      // Em um app real, buscaríamos orders e order_items do Supabase aqui.
+      
+      // Manter mock para evitar que a página de histórico quebre se não houver dados
       const mockOrders: Order[] = [
         {
           id: 'ORD-001234',
           orderDate: '2024-07-28T10:30:00Z',
           total: 12750,
           status: 'shipped',
+          paymentStatus: 'paid',
+          orderNumber: 'LMI-20240728-1234',
+          shippingCost: 250,
           items: [
             {
-              id: 1,
+              id: 'mock-prod-1',
               title: "Smartphone Samsung Galaxy A54 5G",
               price: 12500,
               images: ["/placeholder.svg"],
@@ -79,6 +94,12 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
               timeDelivery: "2-5 dias úteis",
             } as CartItem
           ],
+          buyerName: "João Silva",
+          buyerEmail: "joao@email.com",
+          buyerPhone: "+258 82 123 4567",
+          buyerAddress: "Av. Kenneth Kaunda, 123",
+          buyerCity: "Maputo",
+          buyerCountry: "Mozambique",
           shippingAddress: {
             name: "João Silva",
             phone: "+258 82 123 4567",
@@ -88,7 +109,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           },
           paymentMethod: "M-Pesa",
           estimatedDelivery: "2024-07-30",
-        }
+        } as Order
       ];
       
       setOrders(mockOrders);
@@ -108,37 +129,46 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     deliveryInfo: { fee: number; eta: string };
   }): Promise<Order> => {
     setLoading(true);
+    
+    // Usamos uma transação simulada no cliente, mas o Supabase fará a transação real
+    // se usarmos uma função RPC, o que não estamos fazendo aqui.
+    // Portanto, faremos as inserções sequencialmente e lidaremos com erros.
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("Usuário não autenticado.");
       }
-
-      // 1. Inserir o pedido principal na tabela 'orders'
-      // Nota: Em um marketplace, cada item pode ser de uma loja diferente.
-      // Para simplificar, criaremos um pedido mestre no frontend e itens relacionados.
-      // Se o backend exigir um store_id único para 'orders', usaremos o primeiro item.
-      const storeId = orderData.items[0]?.shop.id;
+      
+      const orderNumber = generateOrderNumber();
+      const firstItem = orderData.items[0];
+      const storeId = firstItem?.shop.id;
+      
       if (!storeId) {
         throw new Error("Carrinho vazio ou sem informações de loja.");
       }
       
-      // Serializar o endereço de envio para caber em um campo de texto (tracking_code)
-      const serializedAddress = JSON.stringify(orderData.shippingAddress);
+      // 1. Inserir o pedido principal na tabela 'orders'
+      const orderPayload = {
+        buyer_id: user.id,
+        buyer_name: orderData.shippingAddress.name,
+        buyer_email: user.email, // Assumindo que o email está no perfil de auth
+        buyer_phone: orderData.shippingAddress.phone,
+        buyer_address: orderData.shippingAddress.address,
+        buyer_city: orderData.shippingAddress.city,
+        buyer_country: 'Mozambique', // Default
+        order_number: orderNumber,
+        status: 'pending',
+        payment_method: orderData.paymentMethod,
+        payment_status: 'awaiting_payment' as PaymentStatus,
+        total_amount: orderData.total,
+        shipping_cost: orderData.deliveryInfo.fee,
+        estimated_delivery: orderData.deliveryInfo.eta,
+      };
 
       const { data: orderResult, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          store_id: storeId,
-          customer_id: user.id,
-          total_amount: orderData.total,
-          status: 'pending',
-          payment_method: orderData.paymentMethod,
-          // Usando 'tracking_code' para armazenar o endereço de envio serializado (solução temporária)
-          tracking_code: serializedAddress, 
-          // payment_status não existe na tabela, mas assumimos 'pago' após o checkout
-          // Se a tabela orders fosse alterada, adicionaríamos payment_status: 'pago'
-        })
+        .insert(orderPayload)
         .select()
         .single();
 
@@ -148,19 +178,17 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const newOrderId = orderResult.id;
-
+      
       // 2. Inserir os itens do pedido na tabela 'order_items'
       const orderItemsPayload = orderData.items.map(item => ({
         order_id: newOrderId,
-        product_id: item.id, // Assumindo que item.id é o UUID do produto
+        product_id: item.id, 
         store_id: item.shop.id,
-        quantity: item.quantity,
-        price_at_purchase: item.price,
         product_name: item.title,
-        // Adicionando product_image e total_price
-        product_image: item.images[0] || '/placeholder.svg',
-        total_price: item.price * item.quantity,
-        unit_price: item.price,
+        variant: item.options.length > 0 ? item.options.map(o => `${o.name}: ${o.values[0]}`).join(', ') : null, // Simulação de variante
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
       }));
 
       const { error: itemsError } = await supabase
@@ -173,14 +201,15 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Falha ao registrar itens do pedido.");
       }
       
-      // 3. Criar notificação para o vendedor (usando o store_id do pedido mestre)
+      // 3. Criar notificação para o vendedor
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           store_id: storeId,
           order_id: newOrderId,
           type: 'new_order',
-          message: `Novo pedido #${newOrderId.substring(0, 8)} recebido! Total: MT ${orderData.total.toLocaleString('pt-MZ')}`,
+          title: 'Novo pedido recebido',
+          message: `Você recebeu um novo pedido de ${orderPayload.buyer_name} (${orderData.items.length} itens).`,
         });
         
       if (notificationError) {
@@ -188,18 +217,25 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         // Não lançamos erro fatal, pois o pedido já foi criado.
       }
 
-      // 4. Construir o objeto Order para o frontend (usando dados do Supabase + dados locais)
-      const estimatedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
+      // 4. Construir o objeto Order para o frontend
       const newOrder: Order = {
         id: newOrderId,
         orderDate: orderResult.created_at,
         total: orderResult.total_amount,
-        status: orderResult.status,
+        status: orderResult.status as Order['status'],
+        paymentStatus: orderResult.payment_status as PaymentStatus,
+        orderNumber: orderResult.order_number,
+        shippingCost: orderResult.shipping_cost,
         items: orderData.items,
+        buyerName: orderResult.buyer_name,
+        buyerEmail: orderResult.buyer_email,
+        buyerPhone: orderResult.buyer_phone,
+        buyerAddress: orderResult.buyer_address,
+        buyerCity: orderResult.buyer_city,
+        buyerCountry: orderResult.buyer_country,
         shippingAddress: orderData.shippingAddress,
         paymentMethod: orderResult.payment_method,
-        estimatedDelivery: estimatedDelivery,
+        estimatedDelivery: orderResult.estimated_delivery,
       };
       
       setOrders(prev => [newOrder, ...prev]);
