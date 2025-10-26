@@ -280,7 +280,8 @@ export default function SalesPage() {
                               : 'border-gray-300 hover:border-gray-400'
                           }`}
                         >
-                          {variant.name} (MT {variant.price.toLocaleString('pt-MZ')})
+                          {/* Exibe apenas o nome da variante */}
+                          {variant.name}
                         </button>
                       ))}
                     </div>
