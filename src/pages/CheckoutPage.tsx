@@ -11,12 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle, CheckCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
+import { initiateMpesaPayment } from "@/utils/mpesa";
 
 interface CheckoutErrors {
   address?: string;
   payment?: string;
+  mpesaPhone?: string;
 }
 
 const deliveryAddresses = [
@@ -46,7 +48,7 @@ const paymentMethods = [
     name: "M-Pesa",
     icon: "💳",
     description: "Pagamento via telemóvel",
-    instructions: "Envie o pagamento para o número +258 82 123 4567 com a referência do pedido.",
+    instructions: "Será enviado um USSD Push para o seu número M-Pesa.",
   },
   {
     id: "emola",
@@ -91,6 +93,7 @@ export default function Checkout() {
   
   const [selectedAddress, setSelectedAddress] = useState(deliveryAddresses[0]);
   const [selectedPayment, setSelectedPayment] = useState("mpesa");
+  const [mpesaPhone, setMpesaPhone] = useState(deliveryAddresses[0].phone);
   const [errors, setErrors] = useState<CheckoutErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderStep, setOrderStep] = useState<"address" | "payment" | "confirm">("address");
@@ -122,18 +125,24 @@ export default function Checkout() {
       newErrors.payment = "Por favor, selecione um método de pagamento";
     }
     
+    if (orderStep === "payment" && selectedPayment === "mpesa" && !mpesaPhone) {
+      newErrors.mpesaPhone = "O número M-Pesa é obrigatório.";
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handlePlaceOrder = async () => {
     if (!validateForm()) {
+      setOrderStep("payment"); // Volta para o passo de pagamento se houver erro de M-Pesa
       return;
     }
 
     setIsSubmitting(true);
     
     try {
+      // 1. Criar o pedido no Supabase (status: pending, payment_status: awaiting_payment)
       const orderData = {
         items: cartItems,
         total,
@@ -144,13 +153,36 @@ export default function Checkout() {
       
       const order = await createOrder(orderData);
       
-      // Limpar carrinho após pedido bem-sucedido
-      clearCart();
+      // 2. Processar Pagamento M-Pesa (se selecionado)
+      if (selectedPayment === "mpesa") {
+        toast.loading("Iniciando pagamento M-Pesa...", { id: 'mpesa-init' });
+        
+        const mpesaResult = await initiateMpesaPayment({
+          msisdn: mpesaPhone,
+          amount: total,
+          orderNumber: order.orderNumber,
+        });
+        
+        toast.dismiss('mpesa-init');
+
+        if (mpesaResult.success) {
+          toast.success("Transação M-Pesa iniciada! Por favor, insira seu PIN no seu telemóvel.");
+          // O status final do pedido será atualizado pelo Webhook (Edge Function)
+        } else {
+          toast.error(mpesaResult.error || "Falha ao iniciar transação M-Pesa.");
+          // Se a transação falhar na inicialização, o pedido permanece 'pending'/'awaiting_payment'
+          // O usuário pode tentar novamente ou mudar o método de pagamento.
+          setIsSubmitting(false);
+          return; 
+        }
+      }
       
-      // Redirecionar para página de confirmação
+      // 3. Limpar carrinho e redirecionar
+      clearCart();
       navigate(`/order-confirmation/${order.id}`);
     } catch (error) {
       console.error("Erro ao criar pedido:", error);
+      toast.error("Falha crítica ao finalizar pedido.");
     } finally {
       setIsSubmitting(false);
     }
@@ -228,16 +260,16 @@ export default function Checkout() {
                 <div className={`flex items-center ${index < 2 ? 'mr-4' : ''}`}>
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     orderStep === step.id || 
-                    (step.id === "address" && orderStep !== "payment") ||
+                    (step.id === "address" && orderStep !== "payment" && orderStep !== "confirm") ||
                     (step.id === "payment" && orderStep === "confirm")
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-600'
                   }`}>
                     <step.icon className="h-5 w-5" />
                   </div>
-                  <span className={`ml-2 font-medium ${
+                  <span className={`ml-2 font-medium hidden sm:inline ${
                     orderStep === step.id || 
-                    (step.id === "address" && orderStep !== "payment") ||
+                    (step.id === "address" && orderStep !== "payment" && orderStep !== "confirm") ||
                     (step.id === "payment" && orderStep === "confirm")
                       ? 'text-blue-600'
                       : 'text-gray-500'
@@ -246,7 +278,7 @@ export default function Checkout() {
                   </span>
                 </div>
                 {index < 2 && (
-                  <div className={`w-16 h-1 mx-4 ${
+                  <div className={`w-16 h-1 mx-4 hidden sm:block ${
                     orderStep === "payment" || orderStep === "confirm"
                       ? 'bg-blue-600'
                       : 'bg-gray-200'
@@ -429,6 +461,30 @@ export default function Checkout() {
                     ))}
                   </div>
                   
+                  {selectedPayment === "mpesa" && (
+                    <div className="space-y-2 border-t pt-4">
+                      <Label htmlFor="mpesa-phone">Número M-Pesa *</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          id="mpesa-phone"
+                          type="tel"
+                          placeholder="25884xxxxxxx"
+                          value={mpesaPhone}
+                          onChange={(e) => setMpesaPhone(e.target.value)}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                      {errors.mpesaPhone && (
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {errors.mpesaPhone}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex justify-between">
                     <Button variant="outline" onClick={handleBackStep}>
                       Voltar
@@ -518,6 +574,11 @@ export default function Checkout() {
                     <p className="text-sm text-gray-700">
                       {paymentMethods.find(m => m.id === selectedPayment)?.instructions}
                     </p>
+                    {selectedPayment === "mpesa" && (
+                      <p className="text-sm text-gray-700 mt-1">
+                        <strong>Número M-Pesa:</strong> {mpesaPhone}
+                      </p>
+                    )}
                   </div>
                   
                   <div className="flex justify-between">
