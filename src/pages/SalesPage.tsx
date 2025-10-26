@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, getSimilarProducts } from "@/api/products";
-import { Product } from "@/types/product";
+import { Product, ProductVariant } from "@/types/product";
 import { 
   Star, 
   Heart, 
@@ -14,7 +14,7 @@ import {
   Minus, 
   ArrowLeft,
   Store as StoreIcon,
-  Share2 // Novo ícone para partilha
+  Share2 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,11 +30,11 @@ export default function SalesPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -45,14 +45,12 @@ export default function SalesPage() {
         const productData = await getProductById(id || "");
         setProduct(productData);
         
-        // Inicializar opções selecionadas
-        const initialOptions: Record<string, string> = {};
-        productData.options.forEach(option => {
-          if (option.values.length > 0) {
-            initialOptions[option.name] = option.values[0];
-          }
-        });
-        setSelectedOptions(initialOptions);
+        // Selecionar a primeira variante por padrão
+        if (productData.variants && productData.variants.length > 0) {
+          setSelectedVariant(productData.variants[0]);
+        } else {
+          setSelectedVariant(null);
+        }
         
         const similarData = await getSimilarProducts(productData.category, productData.id);
         setSimilarProducts(similarData);
@@ -72,27 +70,52 @@ export default function SalesPage() {
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
 
+  // Determinar o preço e estoque exibidos
+  const currentPrice = selectedVariant?.price ?? product?.price ?? 0;
+  const currentStock = selectedVariant?.stock ?? product?.stock ?? 0;
+  
+  // Determinar as imagens a serem exibidas
+  const variantImage = selectedVariant?.image_url;
+  const allImages = useMemo(() => {
+    const baseImages = product?.images || [];
+    if (variantImage && !baseImages.includes(variantImage)) {
+      // Se a variante tem uma imagem única, colocamos ela em primeiro
+      return [variantImage, ...baseImages.filter(img => img !== variantImage)];
+    }
+    return baseImages;
+  }, [product?.images, variantImage]);
+
   const handleAddToCart = () => {
     if (product) {
-      addProductToCart(product, quantity);
-      toast.success(`${product.title} adicionado ao carrinho!`);
+      const itemToAdd = {
+        ...product,
+        // Se houver variante selecionada, ajustamos o título e o preço/estoque
+        title: selectedVariant ? `${product.title} (${selectedVariant.name})` : product.title,
+        price: currentPrice,
+        stock: currentStock,
+        id: selectedVariant?.id || product.id, // Usar ID da variante para o carrinho
+        images: allImages,
+        // Nota: O CartContext precisa ser atualizado para lidar com IDs de variante
+      };
+      
+      addProductToCart(itemToAdd as Product, quantity);
+      toast.success(`${itemToAdd.title} adicionado ao carrinho!`);
     }
   };
 
   const handleBuyNow = () => {
     if (product) {
       // Adicionar ao carrinho primeiro
-      addProductToCart(product, quantity);
+      handleAddToCart();
       // Redirecionar para o checkout
       navigate("/checkout");
     }
   };
 
-  const handleOptionChange = (optionName: string, value: string) => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [optionName]: value
-    }));
+  const handleVariantChange = (variant: ProductVariant) => {
+    setSelectedVariant(variant);
+    setSelectedImageIndex(0); // Resetar a imagem principal para a imagem da variante
+    setQuantity(1); // Resetar quantidade
   };
   
   const handleShare = useCallback(async () => {
@@ -167,14 +190,14 @@ export default function SalesPage() {
           <div className="space-y-4">
             <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-sm">
               <img 
-                src={product.images[selectedImageIndex]} 
+                src={allImages[selectedImageIndex]} 
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
             </div>
             
             <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-              {product.images.map((image, index) => (
+              {allImages.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
@@ -199,6 +222,7 @@ export default function SalesPage() {
                 <div className="flex-1">
                   <h1 className="font-title text-3xl text-gray-900 mb-2">
                     {product.title}
+                    {selectedVariant && <span className="text-xl font-body text-gray-600 ml-2">({selectedVariant.name})</span>}
                   </h1>
                   <Badge variant="secondary" className="font-body">{product.category}</Badge>
                 </div>
@@ -213,19 +237,16 @@ export default function SalesPage() {
               </div>
               
               <div className="mt-4">
-                {product.originalPrice && (
-                  <div className="flex items-baseline space-x-2">
-                    <span className="font-title text-3xl font-bold text-blue-600">
-                      MT {product.price.toLocaleString('pt-MZ')}
-                    </span>
+                <div className="flex items-baseline space-x-2">
+                  <span className="font-title text-3xl font-bold text-blue-600">
+                    MT {currentPrice.toLocaleString('pt-MZ')}
+                  </span>
+                  {product.originalPrice && (
                     <span className="font-body text-lg text-gray-500 line-through">
                       MT {product.originalPrice.toLocaleString('pt-MZ')}
                     </span>
-                    <Badge className="bg-red-500 text-white font-body">
-                      -{Math.round((1 - product.price / product.originalPrice) * 100)}%
-                    </Badge>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center space-x-4 mt-4">
@@ -235,38 +256,34 @@ export default function SalesPage() {
                   <span className="font-body text-gray-500 ml-1">({product.reviewCount})</span>
                 </div>
                 <span className="font-body text-gray-500">•</span>
-                <span className={`font-body-semibold ${product.stock < 5 ? 'text-red-600' : 'text-green-600'}`}>
-                  {product.stock > 0 ? `${product.stock} disponíveis` : 'Esgotado'}
+                <span className={`font-body-semibold ${currentStock < 5 ? 'text-red-600' : 'text-green-600'}`}>
+                  {currentStock > 0 ? `${currentStock} disponíveis` : 'Esgotado'}
                 </span>
               </div>
             </div>
 
-            {/* Product Options Selection */}
-            {product.options.length > 0 && (
+            {/* Product Variants Selection */}
+            {product.variants.length > 0 && (
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="font-title text-lg font-semibold mb-3">Selecione as opções:</h3>
+                  <h3 className="font-title text-lg font-semibold mb-3">Selecione a Variante:</h3>
                   <div className="space-y-4">
-                    {product.options.map((option, index) => (
-                      <div key={index}>
-                        <Label className="font-body-semibold mb-2 block">{option.name}</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {option.values.map((value) => (
-                            <button
-                              key={value}
-                              onClick={() => handleOptionChange(option.name, value)}
-                              className={`px-4 py-2 rounded-lg border transition-colors ${
-                                selectedOptions[option.name] === value
-                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                  : 'border-gray-300 hover:border-gray-400'
-                              }`}
-                            >
-                              {value}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                    {/* Assumindo que todas as variantes são do mesmo tipo (ex: Cor/Modelo) */}
+                    <div className="flex flex-wrap gap-2">
+                      {product.variants.map((variant) => (
+                        <button
+                          key={variant.id}
+                          onClick={() => handleVariantChange(variant)}
+                          className={`px-4 py-2 rounded-lg border transition-colors ${
+                            selectedVariant?.id === variant.id
+                              ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                              : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          {variant.name} (MT {variant.price.toLocaleString('pt-MZ')})
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -312,8 +329,8 @@ export default function SalesPage() {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  disabled={quantity >= product.stock || product.stock === 0}
+                  onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
+                  disabled={quantity >= currentStock || currentStock === 0}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -323,18 +340,18 @@ export default function SalesPage() {
             <div className="space-y-3">
               <Button 
                 onClick={handleBuyNow}
-                disabled={product.stock === 0}
+                disabled={currentStock === 0}
                 className="w-full bg-green-600 hover:bg-green-700 text-lg py-6 font-body-semibold"
               >
-                {product.stock === 0 ? 'Esgotado' : 'Comprar Agora'}
+                {currentStock === 0 ? 'Esgotado' : 'Comprar Agora'}
               </Button>
               <Button 
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
+                disabled={currentStock === 0}
                 variant="outline"
                 className="w-full text-lg py-6 font-body-semibold"
               >
-                {product.stock === 0 ? 'Esgotado' : 'Adicionar ao Carrinho'}
+                {currentStock === 0 ? 'Esgotado' : 'Adicionar ao Carrinho'}
               </Button>
             </div>
           </div>
@@ -388,8 +405,6 @@ export default function SalesPage() {
           </div>
         )}
 
-        {/* Delivery Info (Removed redundant section, info is now in the card above) */}
-        
         {/* Similar Products (Placeholder) */}
         {similarProducts.length > 0 && (
           <div className="mt-12">

@@ -32,6 +32,16 @@ export interface DeliveryInfo {
   eta: string;
 }
 
+// Nova interface para as variantes do produto
+export interface ProductVariant {
+  id: string;
+  name: string; // Ex: "Vermelho - 128GB"
+  price: number;
+  stock: number;
+  image_url?: string; // Imagem única para esta variante
+  options: Record<string, string>; // Ex: { Cor: "Vermelho", Armazenamento: "128GB" }
+}
+
 export interface Option {
   name: string;
   values: string[];
@@ -55,5 +65,6 @@ export interface Product {
   qa?: QA[];
   images: string[];
   options: Option[];
+  variants: ProductVariant[]; // Novo campo para armazenar todas as variantes
   timeDelivery: string;
 }

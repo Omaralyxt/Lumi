@@ -17,9 +17,20 @@ const mockCategories = [
 
 // Função auxiliar para mapear dados do Supabase para o tipo Product
 const mapSupabaseProductToFrontend = (product: any): Product => {
-  const variants = product.product_variants || [];
-  const basePrice = variants.length > 0 ? variants[0].price : 0;
-  const baseStock = variants.length > 0 ? variants[0].stock : 0;
+  const variants = (product.product_variants || []).map((v: any) => ({
+    id: v.id,
+    name: v.name,
+    price: v.price,
+    stock: v.stock,
+    image_url: v.image_url,
+    options: {
+      Variant: v.name, 
+    },
+  }));
+
+  const initialVariant = variants[0];
+  const basePrice = initialVariant ? initialVariant.price : 0;
+  const baseStock = initialVariant ? initialVariant.stock : 0;
   
   // Extrair URLs de imagem da nova relação product_images
   const images = (product.product_images || [])
@@ -31,6 +42,10 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     : (product.image_url ? [product.image_url] : ['/placeholder.svg']);
 
   const storeId = product.stores?.id || 'unknown';
+  
+  const options: { name: string; values: string[] }[] = [
+    { name: "Variante", values: variants.map(v => v.name) }
+  ];
 
   return {
     id: product.id,
@@ -55,7 +70,8 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     reviews: [], // Mocked
     qa: [], // Mocked
     images: finalImages,
-    options: [], // Mocked
+    options: options, // Usando as variantes como opções
+    variants: variants, // Adicionando todas as variantes
     timeDelivery: '2-5 dias úteis', // Mocked
   } as Product;
 };
@@ -110,7 +126,7 @@ export const searchProducts = async (
       image_url, 
       category,
       stores (id, name, active),
-      product_variants (price, stock),
+      product_variants (id, name, price, stock, image_url),
       product_images (image_url, sort_order)
     `);
 

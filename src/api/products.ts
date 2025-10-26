@@ -1,11 +1,25 @@
-import { Product, Review } from "../types/product";
+import { Product, Review, ProductVariant } from "../types/product";
 import { supabase } from '@/integrations/supabase/client';
 
 // Função auxiliar para mapear dados do Supabase para o tipo Product
 const mapSupabaseProductToFrontend = (product: any): Product => {
-  const variants = product.product_variants || [];
-  const basePrice = variants.length > 0 ? variants[0].price : 0;
-  const baseStock = variants.length > 0 ? variants[0].stock : 0;
+  const variants: ProductVariant[] = (product.product_variants || []).map((v: any) => ({
+    id: v.id,
+    name: v.name,
+    price: v.price,
+    stock: v.stock,
+    image_url: v.image_url, // Novo campo
+    options: {
+      // Simulação de extração de opções do nome da variante (ex: "Cor: Vermelho")
+      // Em um sistema real, haveria uma tabela de opções separada.
+      Variant: v.name, 
+    },
+  }));
+
+  // Determinar o preço e estoque inicial (usando a primeira variante ou defaults)
+  const initialVariant = variants[0];
+  const basePrice = initialVariant ? initialVariant.price : 0;
+  const baseStock = initialVariant ? initialVariant.stock : 0;
 
   // Extrair URLs de imagem da nova relação product_images
   const images = (product.product_images || [])
@@ -19,8 +33,11 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
 
   const storeId = product.stores?.id || 'unknown';
 
-  // Nota: Reviews, Q&A, Features, Specifications, Options são mockados/vazios
-  // até que tenhamos as tabelas correspondentes no Supabase.
+  // Nota: Options (para seleção no frontend) são geradas a partir das variantes
+  const options: { name: string; values: string[] }[] = [
+    { name: "Variante", values: variants.map(v => v.name) }
+  ];
+
   return {
     id: product.id,
     title: product.name,
@@ -46,7 +63,8 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     reviews: [], // Mocked
     qa: [], // Mocked
     images: finalImages,
-    options: [], // Mocked
+    options: options, // Usando as variantes como opções
+    variants: variants, // Adicionando todas as variantes
     timeDelivery: '2-5 dias úteis', // Mocked
   } as Product;
 };
@@ -62,7 +80,7 @@ const baseProductQuery = () => supabase
     category,
     created_at,
     stores (id, name, active, created_at),
-    product_variants (price, stock),
+    product_variants (id, name, price, stock, image_url),
     product_images (image_url, sort_order)
   `);
 
