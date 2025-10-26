@@ -20,6 +20,15 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
   const variants = product.product_variants || [];
   const basePrice = variants.length > 0 ? variants[0].price : 0;
   const baseStock = variants.length > 0 ? variants[0].stock : 0;
+  
+  // Extrair URLs de imagem da nova relação product_images
+  const images = (product.product_images || [])
+    .sort((a: any, b: any) => a.sort_order - b.sort_order)
+    .map((img: any) => img.image_url);
+    
+  const finalImages = images.length > 0 
+    ? images 
+    : (product.image_url ? [product.image_url] : ['/placeholder.svg']);
 
   const storeId = product.stores?.id || 'unknown';
 
@@ -45,7 +54,7 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     deliveryInfo: { city: 'Maputo', fee: 150, eta: '1-2 dias' }, // Mocked
     reviews: [], // Mocked
     qa: [], // Mocked
-    images: product.image_url ? [product.image_url] : ['/placeholder.svg'],
+    images: finalImages,
     options: [], // Mocked
     timeDelivery: '2-5 dias úteis', // Mocked
   } as Product;
@@ -65,11 +74,6 @@ export const getCategoryCounts = async (): Promise<Record<string, number>> => {
   // Usamos a função RPC 'count_products_by_category' se ela existisse,
   // mas como não existe, faremos uma consulta simples e agruparemos no cliente
   // ou usaremos a funcionalidade de contagem do Supabase (que é limitada para GROUP BY).
-  
-  // Para simplificar e usar a API REST do Supabase, vamos buscar todos os produtos
-  // e agrupar no cliente, ou usar uma função de banco de dados se necessário.
-  // Como não temos permissão para criar funções SQL, vamos simular a contagem
-  // ou buscar todos os produtos e agrupar no cliente (o que pode ser ineficiente).
   
   // Vamos simular a contagem baseada nos produtos existentes para evitar consultas grandes:
   const { data, error } = await supabase
@@ -106,7 +110,8 @@ export const searchProducts = async (
       image_url, 
       category,
       stores (id, name, active),
-      product_variants (price, stock)
+      product_variants (price, stock),
+      product_images (image_url, sort_order)
     `);
 
   // Filtrar por query

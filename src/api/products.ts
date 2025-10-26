@@ -7,6 +7,16 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
   const basePrice = variants.length > 0 ? variants[0].price : 0;
   const baseStock = variants.length > 0 ? variants[0].stock : 0;
 
+  // Extrair URLs de imagem da nova relação product_images
+  const images = (product.product_images || [])
+    .sort((a: any, b: any) => a.sort_order - b.sort_order)
+    .map((img: any) => img.image_url);
+    
+  // Se não houver imagens na tabela, usar a imagem principal (image_url) se existir, ou placeholder
+  const finalImages = images.length > 0 
+    ? images 
+    : (product.image_url ? [product.image_url] : ['/placeholder.svg']);
+
   const storeId = product.stores?.id || 'unknown';
 
   // Nota: Reviews, Q&A, Features, Specifications, Options são mockados/vazios
@@ -35,7 +45,7 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     deliveryInfo: { city: 'Maputo', fee: 150, eta: '1-2 dias' }, // Mocked
     reviews: [], // Mocked
     qa: [], // Mocked
-    images: product.image_url ? [product.image_url] : ['/placeholder.svg'],
+    images: finalImages,
     options: [], // Mocked
     timeDelivery: '2-5 dias úteis', // Mocked
   } as Product;
@@ -52,7 +62,8 @@ const baseProductQuery = () => supabase
     category,
     created_at,
     stores (id, name, active, created_at),
-    product_variants (price, stock)
+    product_variants (price, stock),
+    product_images (image_url, sort_order)
   `);
 
 // Função para buscar produto por ID
