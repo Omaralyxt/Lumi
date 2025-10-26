@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle, CheckCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { initiateMpesaPayment } from "@/utils/mpesa";
+import MpesaStatusModal from "@/components/MpesaStatusModal";
 
 interface CheckoutErrors {
   address?: string;
@@ -105,6 +106,12 @@ export default function Checkout() {
     district: "",
   });
 
+  // Mpesa Modal State
+  const [isMpesaModalOpen, setIsMpesaModalOpen] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+  const [currentOrderNumber, setCurrentOrderNumber] = useState<string | null>(null);
+
+
   useEffect(() => {
     if (cartItems.length === 0) {
       navigate('/cart');
@@ -155,7 +162,7 @@ export default function Checkout() {
       
       // 2. Processar Pagamento M-Pesa (se selecionado)
       if (selectedPayment === "mpesa") {
-        toast.loading("Iniciando pagamento M-Pesa...", { id: 'mpesa-init' });
+        toast.loading("Iniciando USSD Push M-Pesa...", { id: 'mpesa-init' });
         
         const mpesaResult = await initiateMpesaPayment({
           msisdn: mpesaPhone,
@@ -166,25 +173,32 @@ export default function Checkout() {
         toast.dismiss('mpesa-init');
 
         if (mpesaResult.success) {
-          toast.success("Transação M-Pesa iniciada! Por favor, insira seu PIN no seu telemóvel.");
-          // O status final do pedido será atualizado pelo Webhook (Edge Function)
+          // Abre o modal de espera
+          setCurrentOrderId(order.id);
+          setCurrentOrderNumber(order.orderNumber);
+          setIsMpesaModalOpen(true);
+          
+          // Não limpa o carrinho nem navega aqui, o modal fará isso após a confirmação (simulada)
+          setIsSubmitting(false);
+          return; 
         } else {
           toast.error(mpesaResult.error || "Falha ao iniciar transação M-Pesa.");
-          // Se a transação falhar na inicialização, o pedido permanece 'pending'/'awaiting_payment'
-          // O usuário pode tentar novamente ou mudar o método de pagamento.
           setIsSubmitting(false);
           return; 
         }
       }
       
-      // 3. Limpar carrinho e redirecionar
+      // 3. Se não for M-Pesa, limpar carrinho e redirecionar imediatamente (simulação de pagamento instantâneo)
       clearCart();
       navigate(`/order-confirmation/${order.id}`);
     } catch (error) {
       console.error("Erro ao criar pedido:", error);
       toast.error("Falha crítica ao finalizar pedido.");
     } finally {
-      setIsSubmitting(false);
+      // Se o pagamento for M-Pesa, o isSubmitting é resetado dentro do bloco M-Pesa
+      if (selectedPayment !== "mpesa") {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -655,6 +669,20 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+      
+      {/* M-Pesa Status Modal */}
+      {currentOrderId && currentOrderNumber && (
+        <MpesaStatusModal
+          isOpen={isMpesaModalOpen}
+          onClose={() => {
+            setIsMpesaModalOpen(false);
+            // Se o usuário fechar o modal antes de pagar, ele pode tentar novamente
+            // ou mudar o método de pagamento.
+          }}
+          orderId={currentOrderId}
+          orderNumber={currentOrderNumber}
+        />
+      )}
     </div>
   );
 }
