@@ -10,7 +10,7 @@ interface ReviewPayload {
 
 // Função auxiliar para mapear dados do Supabase para o tipo Review
 const mapSupabaseReviewToFrontend = (review: any): Review => {
-  // O perfil pode ser null se o RLS do perfil for muito restritivo ou se o usuário for deletado.
+  // Simulação de nome do autor, pois o nome completo não está diretamente no review
   const authorName = review.profiles?.first_name 
     ? `${review.profiles.first_name} ${review.profiles.last_name || ''}`.trim()
     : 'Usuário Anônimo';
@@ -30,9 +30,6 @@ const mapSupabaseReviewToFrontend = (review: any): Review => {
  * Busca todas as avaliações para um produto específico.
  */
 export async function fetchReviewsByProductId(productId: string): Promise<Review[]> {
-  // Garantir que o productId é um UUID válido (string)
-  if (!productId) return [];
-  
   const { data, error } = await supabase
     .from('product_reviews')
     .select(`
@@ -44,8 +41,7 @@ export async function fetchReviewsByProductId(productId: string): Promise<Review
 
   if (error) {
     console.error("Error fetching reviews:", error);
-    // Lançar erro para ser capturado pelo contexto
-    throw new Error("Falha ao carregar avaliações: " + error.message);
+    throw new Error("Falha ao carregar avaliações.");
   }
 
   return data.map(mapSupabaseReviewToFrontend);
@@ -82,7 +78,7 @@ export async function submitReview(payload: ReviewPayload): Promise<Review> {
     if (error.code === '23505') {
       throw new Error("Você já avaliou este produto.");
     }
-    throw new Error("Falha ao enviar avaliação: " + error.message);
+    throw new Error("Falha ao enviar avaliação.");
   }
 
   return mapSupabaseReviewToFrontend(data);
