@@ -1,5 +1,5 @@
 import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
-import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
+import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
 
 export interface BiometricRegistrationOptions {
   userId: string;

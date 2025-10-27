@@ -7,9 +7,9 @@ import { toast } from "sonner";
 interface FavoritesContextType {
   favorites: Product[];
   addToFavorites: (product: Product) => void;
-  removeFromFavorites: (productId: number) => void;
+  removeFromFavorites: (productId: string | number) => void;
   toggleFavorite: (product: Product) => void;
-  isFavorite: (productId: number) => boolean;
+  isFavorite: (productId: string | number) => boolean;
   clearFavorites: () => void;
 }
 
@@ -40,7 +40,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromFavorites = (productId: number) => {
+  const removeFromFavorites = (productId: string | number) => {
     setFavorites(prev => {
       const product = prev.find(item => item.id === productId);
       if (product) {
@@ -60,7 +60,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const isFavorite = (productId: number) => {
+  const isFavorite = (productId: string | number) => {
     return favorites.some(item => item.id === productId);
   };
 

@@ -20,7 +20,7 @@ const initialFavorites: Product[] = [
     price: 12500,
     originalPrice: 15000,
     rating: 4.5,
-    shop: { id: 1, name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
+    shop: { id: "store-1", name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
     images: ["/placeholder.svg"],
     stock: 10,
     category: "Eletrónicos",
@@ -39,7 +39,7 @@ const initialFavorites: Product[] = [
     price: 2500,
     originalPrice: 3500,
     rating: 4.2,
-    shop: { id: 2, name: "ModaExpress", rating: 4.5, reviewCount: 234, isVerified: true },
+    shop: { id: "store-2", name: "ModaExpress", rating: 4.5, reviewCount: 234, isVerified: true },
     images: ["/placeholder.svg"],
     stock: 15,
     category: "Moda",
@@ -58,7 +58,7 @@ const initialFavorites: Product[] = [
     price: 1800,
     originalPrice: 2200,
     rating: 4.8,
-    shop: { id: 3, name: "CozinhaFeliz", rating: 4.9, reviewCount: 412, isVerified: true },
+    shop: { id: "store-3", name: "CozinhaFeliz", rating: 4.9, reviewCount: 412, isVerified: true },
     images: ["/placeholder.svg"],
     stock: 5,
     category: "Casa & Cozinha",
@@ -78,7 +78,7 @@ export default function FavoritesPage() {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  const handleRemoveFavorite = (id: number) => {
+  const handleRemoveFavorite = (id: string | number) => {
     removeFromFavorites(id);
   };
 

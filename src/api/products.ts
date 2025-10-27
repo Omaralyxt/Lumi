@@ -98,7 +98,7 @@ export const getProductById = async (id: string): Promise<Product> => {
 };
 
 // Função para buscar produtos similares (por categoria)
-export const getSimilarProducts = async (category: string, excludeId?: number): Promise<Product[]> => {
+export const getSimilarProducts = async (category: string, excludeId?: string | number): Promise<Product[]> => {
   const { data, error } = await baseProductQuery()
     .eq('category', category)
     .neq('id', excludeId)
@@ -153,7 +153,7 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
 
 // Função para submeter uma nova avaliação (mantida mockada, pois não temos tabela de reviews)
 export const submitReview = async (
-  productId: number, 
+  productId: string | number, 
   reviewData: Omit<Review, 'id' | 'author' | 'date'>
 ): Promise<Product> => {
   await new Promise(resolve => setTimeout(resolve, 700));
