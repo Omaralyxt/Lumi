@@ -150,27 +150,3 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
   
   return data.map(mapSupabaseProductToFrontend);
 };
-
-// Função para submeter uma nova avaliação (mantida mockada, pois não temos tabela de reviews)
-export const submitReview = async (
-  productId: string | number, 
-  reviewData: Omit<Review, 'id' | 'author' | 'date'>
-): Promise<Product> => {
-  await new Promise(resolve => setTimeout(resolve, 700));
-  
-  // Simulação de retorno de produto atualizado
-  const mockProduct = await getProductById(productId.toString());
-  
-  const newReview: Review = {
-    ...reviewData,
-    id: Date.now(),
-    author: "Utilizador Anónimo", // Simulado
-    date: "agora mesmo",
-  };
-
-  // Simular atualização de reviews
-  mockProduct.reviews.unshift(newReview);
-  mockProduct.reviewCount++;
-  
-  return mockProduct;
-};

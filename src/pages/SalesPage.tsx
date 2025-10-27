@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, getSimilarProducts } from "@/api/products";
-import { Product, ProductVariant, Review } from "@/types/product";
+import { Product, ProductVariant } from "@/types/product";
 import { 
   Star, 
   Heart, 
@@ -23,7 +23,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
-import { useReviews } from "@/context/ReviewsContext";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -46,7 +45,6 @@ export default function SalesPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart: addProductToCart } = useCart();
-  const { reviews, fetchReviews, getProductRating, submitReview } = useReviews();
   
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -58,10 +56,15 @@ export default function SalesPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("description");
   
-  // Review form states (simplificado, pois o formulário completo está em ReviewForm.tsx)
-  const [newReviewRating, setNewReviewRating] = useState(0);
-  const [newReviewComment, setNewReviewComment] = useState("");
-  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+  // Mocked review data since context is removed
+  const averageRating = 4.5;
+  const reviewCount = 128;
+  const productReviews: any[] = []; // Mocked empty array
+  
+  const getRatingDistribution = () => {
+    // Mocked distribution
+    return [20, 20, 20, 20, 20];
+  };
 
 
   useEffect(() => {
@@ -78,10 +81,7 @@ export default function SalesPage() {
         const productData = await getProductById(id);
         setProduct(productData);
         
-        // 1. Carregar Reviews APENAS se o produto for carregado com sucesso
-        await fetchReviews(id);
-        
-        // 2. Selecionar a primeira variante por padrão
+        // 1. Selecionar a primeira variante por padrão
         if (productData.variants && productData.variants.length > 0) {
           setSelectedVariant(productData.variants[0]);
         } else {
@@ -100,13 +100,9 @@ export default function SalesPage() {
     };
 
     fetchProductData();
-  }, [id, fetchReviews]); // Dependência fetchReviews é importante
+  }, [id]);
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
-
-  // Dados de Reviews do Contexto
-  const productReviews = reviews[id || ''] || [];
-  const { average: averageRating, count: reviewCount } = getProductRating(id || '');
 
   // Determinar o preço e estoque exibidos
   const currentPrice = selectedVariant?.price ?? product?.price ?? 0;
@@ -174,46 +170,7 @@ export default function SalesPage() {
     }
   }, [product]);
   
-  const handleReviewSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!id) return;
-    if (newReviewRating === 0) {
-      toast.error("Por favor, selecione uma nota de 1 a 5 estrelas.");
-      return;
-    }
-    if (newReviewComment.trim().length < 10) {
-      toast.error("Seu comentário deve ter pelo menos 10 caracteres.");
-      return;
-    }
-    
-    setIsReviewSubmitting(true);
-    try {
-      // Nota: A lógica de upload de imagens é complexa e deve ser tratada separadamente.
-      // Aqui, passamos um array vazio para simplificar.
-      await submitReview(id, {
-        rating: newReviewRating,
-        comment: newReviewComment,
-        images: [],
-        verifiedPurchase: true,
-      });
-      setNewReviewRating(0);
-      setNewReviewComment("");
-    } catch (err) {
-      // Erro tratado no contexto
-    } finally {
-      setIsReviewSubmitting(false);
-    }
-  };
-  
-  const getRatingDistribution = () => {
-    if (reviewCount === 0) return [0, 0, 0, 0, 0];
-    const distribution = [0, 0, 0, 0, 0];
-    productReviews.forEach(review => {
-      distribution[review.rating - 1]++;
-    });
-    return distribution.map(count => (count / reviewCount) * 100).reverse();
-  };
-
+  // Removido handleReviewSubmit e estados de review form
 
   if (loading) {
     return (
@@ -525,13 +482,13 @@ export default function SalesPage() {
                       
                       <div>
                         <h3 className="font-title text-xl font-body-semibold mb-4">Deixe sua avaliação</h3>
-                        <form onSubmit={handleReviewSubmit} className="space-y-4">
+                        <form className="space-y-4">
                           <div>
                             <Label>Sua nota</Label>
                             <div className="flex space-x-1 mt-1">
                               {[...Array(5)].map((_, i) => (
-                                <button type="button" key={i} onClick={() => setNewReviewRating(i + 1)}>
-                                  <Star className={`h-6 w-6 transition-colors ${i < newReviewRating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                                <button type="button" key={i} onClick={() => console.log('Rating clicked')}>
+                                  <Star className={`h-6 w-6 transition-colors ${i < 0 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
                                 </button>
                               ))}
                             </div>
@@ -541,13 +498,10 @@ export default function SalesPage() {
                             <Textarea 
                               id="review-comment" 
                               placeholder="Conte-nos sobre sua experiência..." 
-                              value={newReviewComment}
-                              onChange={(e) => setNewReviewComment(e.target.value)}
                             />
                           </div>
-                          {/* Removido input de imagem para simplificar o formulário inline */}
-                          <Button type="submit" disabled={isReviewSubmitting}>
-                            {isReviewSubmitting ? "Enviando..." : "Enviar Avaliação"}
+                          <Button type="submit" disabled={true}>
+                            Enviar Avaliação (Desativado)
                           </Button>
                         </form>
                       </div>

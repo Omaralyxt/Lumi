@@ -4,13 +4,10 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getBuyerOrders } from "@/api/orders";
 import { Order, OrderStatus } from "@/types/order";
-import { Product, Review } from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Package, Truck, CheckCircle, XCircle, ArrowLeft, Star } from "lucide-react";
-import ReviewForm from "@/components/ReviewForm";
-import { useReviews } from "@/context/ReviewsContext";
 
 const statusMap: Record<OrderStatus, { text: string; icon: React.ElementType; color: string }> = {
   pending: { text: "Pendente", icon: Package, color: "bg-yellow-100 text-yellow-800" },
@@ -20,20 +17,10 @@ const statusMap: Record<OrderStatus, { text: string; icon: React.ElementType; co
   cancelled: { text: "Cancelado", icon: XCircle, color: "bg-red-100 text-red-800" },
 };
 
-// Definindo um tipo para o item que será avaliado
-interface ReviewableItem {
-  id: string; // UUID do produto
-  title: string;
-}
-
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviewingProduct, setReviewingProduct] = useState<ReviewableItem | null>(null);
-  
-  const { submitReview } = useReviews(); // Usando a função do contexto
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -51,19 +38,7 @@ export default function OrderHistoryPage() {
     fetchOrders();
   }, []);
 
-  const handleOpenReviewModal = (item: ReviewableItem) => {
-    setReviewingProduct(item);
-    setIsReviewModalOpen(true);
-  };
-
-  const handleCloseReviewModal = () => {
-    setReviewingProduct(null);
-    setIsReviewModalOpen(false);
-  };
-
-  const handleReviewSubmit = async (productId: string, reviewData: Omit<Review, 'id' | 'author' | 'date'>) => {
-    await submitReview(productId, reviewData);
-  };
+  // Removido handleOpenReviewModal, handleCloseReviewModal, handleReviewSubmit
 
   return (
     <>
@@ -134,10 +109,10 @@ export default function OrderHistoryPage() {
                                   variant="link" 
                                   size="sm" 
                                   className="h-auto p-0 mt-1"
-                                  onClick={() => handleOpenReviewModal({ id: item.id.toString(), title: item.title })}
+                                  onClick={() => console.log('Review button clicked')}
                                 >
                                   <Star className="h-3 w-3 mr-1" />
-                                  Deixar Avaliação
+                                  Deixar Avaliação (Desativado)
                                 </Button>
                               )}
                             </div>
@@ -156,16 +131,6 @@ export default function OrderHistoryPage() {
           )}
         </div>
       </div>
-      
-      {reviewingProduct && (
-        <ReviewForm
-          productId={reviewingProduct.id}
-          productTitle={reviewingProduct.title}
-          isOpen={isReviewModalOpen}
-          onClose={handleCloseReviewModal}
-          onSubmit={handleReviewSubmit}
-        />
-      )}
     </>
   );
 }

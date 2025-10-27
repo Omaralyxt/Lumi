@@ -1,21 +1,3 @@
-export interface Review {
-  id: number;
-  rating: number;
-  comment: string;
-  author: string;
-  date: string;
-  verifiedPurchase?: boolean;
-  images?: string[];
-}
-
-export interface QA {
-  id: number;
-  question: string;
-  answer: string | null;
-  author: string;
-  date: string;
-}
-
 export interface Shop {
   id: string; // Alterado para string para corresponder ao UUID do Supabase
   name: string;
@@ -61,8 +43,6 @@ export interface Product {
   features: string[];
   specifications: Record<string, string>;
   deliveryInfo: DeliveryInfo;
-  reviews: Review[];
-  qa?: QA[];
   images: string[];
   options: Option[];
   variants: ProductVariant[]; // Novo campo para armazenar todas as variantes
