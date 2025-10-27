@@ -18,13 +18,14 @@ import { Star, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 interface ReviewFormProps {
-  product: Product;
+  productId: string; // Usando string (UUID)
+  productTitle: string;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (review: Omit<Review, 'id' | 'author' | 'date'>) => Promise<void>;
+  onSubmit: (productId: string, review: Omit<Review, 'id' | 'author' | 'date'>) => Promise<void>;
 }
 
-export default function ReviewForm({ product, isOpen, onClose, onSubmit }: ReviewFormProps) {
+export default function ReviewForm({ productId, productTitle, isOpen, onClose, onSubmit }: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [images, setImages] = useState<File[]>([]);
@@ -32,7 +33,8 @@ export default function ReviewForm({ product, isOpen, onClose, onSubmit }: Revie
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setImages(Array.from(e.target.files));
+      // Limitar a 3 imagens
+      setImages(Array.from(e.target.files).slice(0, 3));
     }
   };
 
@@ -48,24 +50,29 @@ export default function ReviewForm({ product, isOpen, onClose, onSubmit }: Revie
 
     setLoading(true);
     try {
-      // Simular upload de imagem
-      const imageUrls = images.map(file => URL.createObjectURL(file));
+      // Simular upload de imagem e obter URLs (em um app real, usaria o Supabase Storage)
+      const imageUrls: string[] = []; // Placeholder para URLs reais
       
-      await onSubmit({
+      // Aqui você faria o upload das 'images' para o Supabase Storage e obteria as URLs
+      // Por enquanto, usamos um mock de URL para as imagens selecionadas
+      images.forEach((file, index) => {
+        imageUrls.push(`/mock-review-image-${index}.jpg`);
+      });
+      
+      await onSubmit(productId, {
         rating,
         comment,
         images: imageUrls,
         verifiedPurchase: true,
       });
       
-      toast.success("Avaliação enviada com sucesso!");
       onClose();
       // Reset form
       setRating(0);
       setComment("");
       setImages([]);
     } catch (error) {
-      toast.error("Falha ao enviar avaliação. Tente novamente.");
+      // O toast de erro já é tratado no contexto/API, mas garantimos o reset do loading
     } finally {
       setLoading(false);
     }
@@ -77,7 +84,7 @@ export default function ReviewForm({ product, isOpen, onClose, onSubmit }: Revie
         <DialogHeader>
           <DialogTitle>Avaliar Produto</DialogTitle>
           <DialogDescription>
-            Deixe sua opinião sobre "{product.title}"
+            Deixe sua opinião sobre "{productTitle}"
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -85,7 +92,7 @@ export default function ReviewForm({ product, isOpen, onClose, onSubmit }: Revie
             <Label>Sua nota *</Label>
             <div className="flex space-x-1">
               {[...Array(5)].map((_, i) => (
-                <button key={i} onClick={() => setRating(i + 1)}>
+                <button key={i} type="button" onClick={() => setRating(i + 1)}>
                   <Star className={`h-8 w-8 transition-colors ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
                 </button>
               ))}
@@ -102,12 +109,22 @@ export default function ReviewForm({ product, isOpen, onClose, onSubmit }: Revie
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="images">Adicionar fotos (opcional)</Label>
+            <Label htmlFor="images">Adicionar fotos (opcional) - {images.length} selecionada(s)</Label>
             <Input id="images" type="file" multiple accept="image/*" onChange={handleImageChange} />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {images.map((file, index) => (
+                <img 
+                  key={index} 
+                  src={URL.createObjectURL(file)} 
+                  alt={`Preview ${index}`} 
+                  className="w-16 h-16 object-cover rounded-md border"
+                />
+              ))}
+            </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose} disabled={loading}>Cancelar</Button>
           <Button onClick={handleSubmit} disabled={loading}>
             {loading ? "Enviando..." : "Enviar Avaliação"}
           </Button>

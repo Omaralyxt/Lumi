@@ -3,72 +3,40 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { Review } from '@/types/product';
 import { toast } from "sonner";
+import { fetchReviewsByProductId, submitReview as submitReviewApi } from '@/api/reviews';
 
 interface ReviewsContextType {
-  reviews: Record<number, Review[]>; // productId -> reviews
+  reviews: Record<string, Review[]>; // productId (string UUID) -> reviews
   loading: boolean;
   error: string | null;
-  fetchReviews: (productId: number) => Promise<void>;
-  submitReview: (productId: number, review: Omit<Review, 'id' | 'author' | 'date'>) => Promise<void>;
-  getProductRating: (productId: number) => { average: number; count: number };
+  fetchReviews: (productId: string) => Promise<void>;
+  submitReview: (productId: string, review: Omit<Review, 'id' | 'author' | 'date'>) => Promise<void>;
+  getProductRating: (productId: string) => { average: number; count: number };
 }
 
 const ReviewsContext = createContext<ReviewsContextType | undefined>(undefined);
 
 export const ReviewsProvider = ({ children }: { children: ReactNode }) => {
-  const [reviews, setReviews] = useState<Record<number, Review[]>>({});
+  const [reviews, setReviews] = useState<Record<string, Review[]>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carregar avaliações do localStorage (em um app real, viria da API)
-  useEffect(() => {
-    const storedReviews = localStorage.getItem('reviews');
-    if (storedReviews) {
-      setReviews(JSON.parse(storedReviews));
+  // Não usamos mais localStorage para reviews, dependemos da API
+
+  const fetchReviews = async (productId: string) => {
+    if (reviews[productId]) {
+      // Já carregado, evita requisições repetidas
+      return;
     }
-  }, []);
-
-  // Salvar avaliações no localStorage
-  useEffect(() => {
-    localStorage.setItem('reviews', JSON.stringify(reviews));
-  }, [reviews]);
-
-  const fetchReviews = async (productId: number) => {
+    
     setLoading(true);
     setError(null);
     try {
-      // Em um app real, isso faria uma chamada à API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Se as avaliações já estiverem no estado, não buscar novamente
-      if (reviews[productId]) {
-        return;
-      }
-      
-      // Simular dados de avaliações
-      const mockReviews: Review[] = [
-        {
-          id: 1,
-          rating: 5,
-          comment: "Excelente produto, entrega rápida e em perfeito estado!",
-          author: "João Silva",
-          date: "2 dias atrás",
-          verifiedPurchase: true,
-          images: ["/placeholder.svg"]
-        },
-        {
-          id: 2,
-          rating: 4,
-          comment: "Bom produto, só a bateria poderia durar um pouco mais.",
-          author: "Maria Santos",
-          date: "1 semana atrás",
-          verifiedPurchase: true,
-        }
-      ];
+      const fetchedReviews = await fetchReviewsByProductId(productId);
       
       setReviews(prev => ({
         ...prev,
-        [productId]: mockReviews
+        [productId]: fetchedReviews
       }));
     } catch (err) {
       setError("Falha ao carregar avaliações");
@@ -78,18 +46,15 @@ export const ReviewsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const submitReview = async (productId: number, reviewData: Omit<Review, 'id' | 'author' | 'date'>) => {
+  const submitReview = async (productId: string, reviewData: Omit<Review, 'id' | 'author' | 'date'>) => {
     setLoading(true);
     try {
-      // Em um app real, isso enviaria a avaliação para a API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newReview: Review = {
-        ...reviewData,
-        id: Date.now(),
-        author: "Usuário Anônimo", // Em um app real, viria do perfil do usuário
-        date: "agora mesmo",
-      };
+      const newReview = await submitReviewApi({
+        product_id: productId,
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        images: reviewData.images,
+      });
       
       setReviews(prev => ({
         ...prev,
@@ -97,15 +62,15 @@ export const ReviewsProvider = ({ children }: { children: ReactNode }) => {
       }));
       
       toast.success("Avaliação enviada com sucesso!");
-    } catch (err) {
-      toast.error("Falha ao enviar avaliação");
+    } catch (err: any) {
+      toast.error(err.message || "Falha ao enviar avaliação");
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const getProductRating = (productId: number) => {
+  const getProductRating = (productId: string) => {
     const productReviews = reviews[productId] || [];
     if (productReviews.length === 0) {
       return { average: 0, count: 0 };
