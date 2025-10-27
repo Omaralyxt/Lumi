@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductById, getSimilarProducts } from "@/api/products";
-import { Product, ProductVariant } from "@/types/product";
+import { Product, ProductVariant, Review } from "@/types/product";
 import { 
   Star, 
   Heart, 
@@ -14,19 +14,40 @@ import {
   Minus, 
   ArrowLeft,
   Store as StoreIcon,
-  Share2 
+  Share2,
+  HelpCircle,
+  Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
+import { useReviews } from "@/context/ReviewsContext";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+
+// Componente auxiliar para renderizar estrelas
+const RatingStars = ({ rating }: { rating: number }) => (
+  <div className="flex">
+    {[...Array(5)].map((_, i) => (
+      <Star 
+        key={i} 
+        className={`h-4 w-4 ${i < Math.round(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+      />
+    ))}
+  </div>
+);
 
 export default function SalesPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart: addProductToCart } = useCart();
+  const { reviews, fetchReviews, getProductRating, submitReview } = useReviews();
+  
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -35,17 +56,28 @@ export default function SalesPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("description");
+  
+  // Review form states (simplificado, pois o formulário completo está em ReviewForm.tsx)
+  const [newReviewRating, setNewReviewRating] = useState(0);
+  const [newReviewComment, setNewReviewComment] = useState("");
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+
 
   useEffect(() => {
     const fetchProductData = async () => {
+      if (!id) return;
       try {
         setLoading(true);
         setError(null);
         
-        const productData = await getProductById(id || "");
+        const productData = await getProductById(id);
         setProduct(productData);
         
-        // Selecionar a primeira variante por padrão
+        // 1. Carregar Reviews
+        await fetchReviews(id);
+        
+        // 2. Selecionar a primeira variante por padrão
         if (productData.variants && productData.variants.length > 0) {
           setSelectedVariant(productData.variants[0]);
         } else {
@@ -63,12 +95,14 @@ export default function SalesPage() {
       }
     };
 
-    if (id) {
-      fetchProductData();
-    }
-  }, [id]);
+    fetchProductData();
+  }, [id, fetchReviews]);
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
+
+  // Dados de Reviews do Contexto
+  const productReviews = reviews[id || ''] || [];
+  const { average: averageRating, count: reviewCount } = getProductRating(id || '');
 
   // Determinar o preço e estoque exibidos
   const currentPrice = selectedVariant?.price ?? product?.price ?? 0;
@@ -89,13 +123,11 @@ export default function SalesPage() {
     if (product) {
       const itemToAdd = {
         ...product,
-        // Se houver variante selecionada, ajustamos o título e o preço/estoque
         title: selectedVariant ? `${product.title} (${selectedVariant.name})` : product.title,
         price: currentPrice,
         stock: currentStock,
-        id: selectedVariant?.id || product.id, // Usar ID da variante para o carrinho
+        id: selectedVariant?.id || product.id,
         images: allImages,
-        // Nota: O CartContext precisa ser atualizado para lidar com IDs de variante
       };
       
       addProductToCart(itemToAdd as Product, quantity);
@@ -105,17 +137,15 @@ export default function SalesPage() {
 
   const handleBuyNow = () => {
     if (product) {
-      // Adicionar ao carrinho primeiro
       handleAddToCart();
-      // Redirecionar para o checkout
       navigate("/checkout");
     }
   };
 
   const handleVariantChange = (variant: ProductVariant) => {
     setSelectedVariant(variant);
-    setSelectedImageIndex(0); // Resetar a imagem principal para a imagem da variante
-    setQuantity(1); // Resetar quantidade
+    setSelectedImageIndex(0);
+    setQuantity(1);
   };
   
   const handleShare = useCallback(async () => {
@@ -131,7 +161,6 @@ export default function SalesPage() {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // Fallback: Copy link to clipboard
         await navigator.clipboard.writeText(shareData.url);
         toast.success("Link do produto copiado para a área de transferência!");
       }
@@ -140,6 +169,47 @@ export default function SalesPage() {
       toast.error("Não foi possível partilhar o link.");
     }
   }, [product]);
+  
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    if (newReviewRating === 0) {
+      toast.error("Por favor, selecione uma nota de 1 a 5 estrelas.");
+      return;
+    }
+    if (newReviewComment.trim().length < 10) {
+      toast.error("Seu comentário deve ter pelo menos 10 caracteres.");
+      return;
+    }
+    
+    setIsReviewSubmitting(true);
+    try {
+      // Nota: A lógica de upload de imagens é complexa e deve ser tratada separadamente.
+      // Aqui, passamos um array vazio para simplificar.
+      await submitReview(id, {
+        rating: newReviewRating,
+        comment: newReviewComment,
+        images: [],
+        verifiedPurchase: true,
+      });
+      setNewReviewRating(0);
+      setNewReviewComment("");
+    } catch (err) {
+      // Erro tratado no contexto
+    } finally {
+      setIsReviewSubmitting(false);
+    }
+  };
+  
+  const getRatingDistribution = () => {
+    if (reviewCount === 0) return [0, 0, 0, 0, 0];
+    const distribution = [0, 0, 0, 0, 0];
+    productReviews.forEach(review => {
+      distribution[review.rating - 1]++;
+    });
+    return distribution.map(count => (count / reviewCount) * 100).reverse();
+  };
+
 
   if (loading) {
     return (
@@ -252,8 +322,8 @@ export default function SalesPage() {
               <div className="flex items-center space-x-4 mt-4">
                 <div className="flex items-center">
                   <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="ml-1 font-body-semibold">{product.rating.toFixed(1)}</span>
-                  <span className="font-body text-gray-500 ml-1">({product.reviewCount})</span>
+                  <span className="ml-1 font-body-semibold">{averageRating.toFixed(1)}</span>
+                  <span className="font-body text-gray-500 ml-1">({reviewCount})</span>
                 </div>
                 <span className="font-body text-gray-500">•</span>
                 <span className={`font-body-semibold ${currentStock < 5 ? 'text-red-600' : 'text-green-600'}`}>
@@ -268,7 +338,6 @@ export default function SalesPage() {
                 <CardContent className="p-4">
                   <h3 className="font-title text-lg font-semibold mb-3">Selecione a Variante:</h3>
                   <div className="space-y-4">
-                    {/* Assumindo que todas as variantes são do mesmo tipo (ex: Cor/Modelo) */}
                     <div className="flex flex-wrap gap-2">
                       {product.variants.map((variant) => (
                         <button
@@ -280,7 +349,6 @@ export default function SalesPage() {
                               : 'border-gray-300 hover:border-gray-400'
                           }`}
                         >
-                          {/* Exibe apenas o nome da variante */}
                           {variant.name}
                         </button>
                       ))}
@@ -358,53 +426,176 @@ export default function SalesPage() {
           </div>
         </div>
 
-        {/* Product Description */}
         <div className="mt-12">
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="font-title text-xl font-body-semibold mb-4">Descrição do Produto</h3>
-              <p className="font-body text-gray-700 leading-relaxed">
-                {product.description}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Product Specifications */}
-        <div className="mt-8">
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="font-title text-xl font-body-semibold mb-4">Especificações Técnicas</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-2 border-b">
-                    <span className="font-body-semibold text-gray-700">{key}:</span>
-                    <span className="font-body text-gray-600">{value}</span>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-4">
+              <TabsTrigger value="description" className="font-body-semibold">Descrição</TabsTrigger>
+              <TabsTrigger value="specifications" className="font-body-semibold">Especificações</TabsTrigger>
+              <TabsTrigger value="reviews" className="font-body-semibold">Avaliações ({reviewCount})</TabsTrigger>
+              <TabsTrigger value="qa" className="font-body-semibold">Q&A ({product.qa?.length || 0})</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="description" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-title text-xl font-body-semibold mb-4">Descrição do Produto</h3>
+                  <p className="font-body text-gray-700 leading-relaxed">
+                    {product.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="specifications" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-title text-xl font-body-semibold mb-4">Especificações Técnicas</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(product.specifications).map(([key, value]) => (
+                      <div key={key} className="flex justify-between py-2 border-b">
+                        <span className="font-body-semibold text-gray-700">{key}:</span>
+                        <span className="font-body text-gray-600">{value}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="reviews" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1 border-b md:border-b-0 md:border-r pb-8 md:pb-0 md:pr-8">
+                      <h3 className="font-title text-xl font-body-semibold mb-4">Avaliação Geral</h3>
+                      {reviewCount > 0 ? (
+                        <>
+                          <div className="flex items-center space-x-2 mb-4">
+                            <p className="text-4xl font-bold">{averageRating.toFixed(1)}</p>
+                            <div>
+                              <RatingStars rating={averageRating} />
+                              <p className="text-sm text-gray-600">Baseado em {reviewCount} avaliações</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            {getRatingDistribution().map((percentage, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <span className="text-sm font-medium">{5 - index} estrelas</span>
+                                <Progress value={percentage} className="w-full h-2" />
+                                <span className="text-sm text-gray-500 w-10 text-right">{percentage.toFixed(0)}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-gray-500">Ainda não há avaliações para este produto.</p>
+                        </div>
+                      )}
+                    </div>
 
-        {/* Product Features */}
-        {product.features.length > 0 && (
-          <div className="mt-8">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-title text-xl font-body-semibold mb-4">Características</h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                      <span className="font-body text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                    <div className="md:col-span-2">
+                      <h3 className="font-title text-xl font-body-semibold mb-4">Avaliações dos Clientes</h3>
+                      
+                      {reviewCount > 0 ? (
+                        <div className="space-y-6 mb-8">
+                          {productReviews.map(review => (
+                            <div key={review.id} className="border-b pb-6 last:border-b-0">
+                              <div className="flex items-center mb-2">
+                                <RatingStars rating={review.rating} />
+                                {review.verifiedPurchase && <Badge variant="secondary" className="ml-3 text-green-700 bg-green-100"><CheckCircle className="h-3 w-3 mr-1" /> Compra Verificada</Badge>}
+                              </div>
+                              <p className="text-gray-700 mb-2">{review.comment}</p>
+                              <div className="flex space-x-2">
+                                {review.images?.map((img, i) => <img key={i} src={img} alt="review image" className="w-16 h-16 rounded-md object-cover" />)}
+                              </div>
+                              <p className="text-sm text-gray-500 mt-2">por <span className="font-semibold">{review.author}</span> • {review.date}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          Seja o primeiro a avaliar este produto!
+                        </div>
+                      )}
+                      
+                      <div>
+                        <h3 className="font-title text-xl font-body-semibold mb-4">Deixe sua avaliação</h3>
+                        <form onSubmit={handleReviewSubmit} className="space-y-4">
+                          <div>
+                            <Label>Sua nota</Label>
+                            <div className="flex space-x-1 mt-1">
+                              {[...Array(5)].map((_, i) => (
+                                <button type="button" key={i} onClick={() => setNewReviewRating(i + 1)}>
+                                  <Star className={`h-6 w-6 transition-colors ${i < newReviewRating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="review-comment">Seu comentário</Label>
+                            <Textarea 
+                              id="review-comment" 
+                              placeholder="Conte-nos sobre sua experiência..." 
+                              value={newReviewComment}
+                              onChange={(e) => setNewReviewComment(e.target.value)}
+                            />
+                          </div>
+                          {/* Removido input de imagem para simplificar o formulário inline */}
+                          <Button type="submit" disabled={isReviewSubmitting}>
+                            {isReviewSubmitting ? "Enviando..." : "Enviar Avaliação"}
+                          </Button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="qa" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-title text-xl font-body-semibold mb-6">Perguntas e Respostas</h3>
+                  <div className="space-y-6 mb-8">
+                    {product.qa?.map((item) => (
+                      <div key={item.id} className="border-b pb-6 last:border-b-0">
+                        <div className="flex items-start space-x-3">
+                          <HelpCircle className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                          <div>
+                            <p className="font-body-semibold">{item.question}</p>
+                            <p className="text-sm text-gray-500">por {item.author} • {item.date}</p>
+                          </div>
+                        </div>
+                        {item.answer && (
+                          <div className="flex items-start space-x-3 mt-4 pl-8">
+                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-gray-600 font-bold text-sm">{product.shop.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <p className="font-body text-gray-800">{item.answer}</p>
+                              <p className="text-sm text-gray-500">respondido por {product.shop.name} • {item.date}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="question" className="font-body-semibold">Faça uma pergunta</Label>
+                    <div className="relative mt-2">
+                      <Textarea id="question" placeholder="Escreva sua pergunta aqui..." className="pr-12" />
+                      <Button size="sm" className="absolute right-2 top-2">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
 
         {/* Similar Products (Placeholder) */}
         {similarProducts.length > 0 && (
