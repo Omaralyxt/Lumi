@@ -30,6 +30,12 @@ const mapSupabaseReviewToFrontend = (review: any): Review => {
  * Busca todas as avaliações para um produto específico.
  */
 export async function fetchReviewsByProductId(productId: string): Promise<Review[]> {
+  // Garantir que o productId é uma string válida (UUID)
+  if (!productId || typeof productId !== 'string') {
+    console.error("Invalid productId provided:", productId);
+    return [];
+  }
+  
   const { data, error } = await supabase
     .from('product_reviews')
     .select(`
@@ -40,7 +46,7 @@ export async function fetchReviewsByProductId(productId: string): Promise<Review
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error fetching reviews:", error);
+    console.error("Error fetching reviews for product ID", productId, ":", error);
     throw new Error("Falha ao carregar avaliações.");
   }
 

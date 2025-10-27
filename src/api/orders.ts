@@ -8,7 +8,7 @@ const mockOrders: Order[] = [
     status: 'shipped',
     items: [
       {
-        id: 1,
+        id: 'mock-prod-1', // Alterado para string
         title: "Smartphone Samsung Galaxy A54 5G",
         price: 12500,
         images: ["/placeholder.svg"],
@@ -44,7 +44,7 @@ const mockOrders: Order[] = [
     status: 'delivered',
     items: [
       {
-        id: 2,
+        id: 'mock-prod-2', // Alterado para string
         title: "Tênis Esportivo Nike Air Max",
         price: 2500,
         images: ["/placeholder.svg"],
@@ -63,7 +63,7 @@ const mockOrders: Order[] = [
         timeDelivery: "2-3 dias úteis",
       },
       {
-        id: 3,
+        id: 'mock-prod-3', // Alterado para string
         title: "Panela de Pressão Inox",
         price: 1800,
         images: ["/placeholder.svg"],
@@ -99,7 +99,7 @@ const mockOrders: Order[] = [
     status: 'pending',
     items: [
       {
-        id: 4,
+        id: 'mock-prod-4', // Alterado para string
         title: "Fone de Ouvido Bluetooth",
         price: 1999,
         images: ["/placeholder.svg"],
