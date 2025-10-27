@@ -24,8 +24,8 @@ export const ReviewsProvider = ({ children }: { children: ReactNode }) => {
   // Não usamos mais localStorage para reviews, dependemos da API
 
   const fetchReviews = async (productId: string) => {
-    if (reviews[productId]) {
-      // Já carregado, evita requisições repetidas
+    // Se já temos reviews para este produto, evitamos requisições repetidas
+    if (reviews[productId] && reviews[productId].length > 0) {
       return;
     }
     

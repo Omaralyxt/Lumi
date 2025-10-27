@@ -66,15 +66,19 @@ export default function SalesPage() {
 
   useEffect(() => {
     const fetchProductData = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      setError(null);
+      
       try {
-        setLoading(true);
-        setError(null);
-        
         const productData = await getProductById(id);
         setProduct(productData);
         
-        // 1. Carregar Reviews
+        // 1. Carregar Reviews APENAS se o produto for carregado com sucesso
         await fetchReviews(id);
         
         // 2. Selecionar a primeira variante por padrão
@@ -96,7 +100,7 @@ export default function SalesPage() {
     };
 
     fetchProductData();
-  }, [id, fetchReviews]);
+  }, [id, fetchReviews]); // Dependência fetchReviews é importante
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
 
