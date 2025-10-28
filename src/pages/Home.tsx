@@ -99,24 +99,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      {/* Header Fixo */}
-      <header className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 z-40 shadow-sm">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-title font-bold text-blue-600">Lumi</h1>
-          <div className="flex space-x-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/search")}>
-              <Search className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/cart")}>
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
-              <Bell className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-md mx-auto p-4">
         {/* Banner */}
         <Banner />
