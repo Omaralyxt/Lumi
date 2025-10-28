@@ -11,7 +11,6 @@ import FavoritesPage from "./pages/FavoritesPage";
 import AccountPage from "./pages/AccountPage";
 import BuyerLogin from "./components/BuyerLogin";
 import BuyerRegister from "./components/BuyerRegister";
-import ProductDetail from "./pages/ProductDetail";
 import SalesPage from "./pages/SalesPage";
 import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
@@ -26,7 +25,7 @@ import { OrdersProvider } from "./context/OrdersContext";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import RootRedirect from "./components/RootRedirect";
-import TrackOrderPage from "./pages/TrackOrderPage"; // Importação adicionada
+import TrackOrderPage from "./pages/TrackOrderPage";
 
 const queryClient = new QueryClient();
 
@@ -59,9 +58,11 @@ const App = () => (
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/category/:slug" element={<CategoryProductsPage />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
+                    
+                    {/* Redireciona a rota antiga para a nova rota de vendas */}
+                    <Route path="/product/:id" element={<Navigate to="/sales/:id" replace />} />
                     <Route path="/sales/:id" element={<SalesPage />} />
-                    <Route path="/track-order" element={<TrackOrderPage />} /> {/* Rota adicionada */}
+                    <Route path="/track-order" element={<TrackOrderPage />} />
                     
                     {/* Rotas de Autenticação (Apenas Comprador) */}
                     <Route path="/login" element={<BuyerLogin />} />
@@ -84,8 +85,7 @@ const App = () => (
           </CartProvider>
         </FavoritesProvider>
       </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
 );
 
 export default App;
