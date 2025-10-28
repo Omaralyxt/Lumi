@@ -2,7 +2,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Home, ShoppingCart, User, Grid3X3, Bell } from "lucide-react"; // Importando Grid3X3 e Bell
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/context/CartContext"; // Corrigido o caminho de importação
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 
