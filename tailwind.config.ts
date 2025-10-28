@@ -18,10 +18,6 @@ export default {
       },
     },
     extend: {
-      fontFamily: {
-        title: ['Bebas Neue', 'sans-serif'], // Para títulos (Bebas Neue)
-        body: ['Montserrat', 'sans-serif'],   // Para textos gerais (Montserrat)
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -29,11 +25,11 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#1E3A8A",   // Cor principal para destaques (ex: botões, links)
+          DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "#F3F4F6", // Fundo cinza claro minimalista
+          DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
@@ -66,10 +62,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Nova cor neon
-        neon: {
-          blue: '#00aaff',
-        }
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -98,11 +90,6 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
-      boxShadow: {
-        // Sombra neon personalizada
-        'neon-blue': '0 0 10px rgba(0, 170, 255, 0.5), 0 0 20px rgba(0, 170, 255, 0.3)',
-        'neon-blue-lg': '0 0 15px rgba(0, 170, 255, 0.7), 0 0 30px rgba(0, 170, 255, 0.5)',
-      }
     },
   },
   plugins: [require("tailwindcss-animate")],
