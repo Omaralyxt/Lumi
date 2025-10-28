@@ -70,8 +70,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     >
       {/* Navbar Minimalista (Visível em todas as páginas, exceto auth) */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center h-16">
-        <Link to="/">
-          <img src={LOGO_URL} alt="Lumi Logo" className="h-8 w-auto" />
+        <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
+          Lumi
         </Link>
 
         <div className="flex items-center space-x-3">
