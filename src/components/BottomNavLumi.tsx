@@ -7,10 +7,8 @@ import {
   Clock, 
   Heart 
 } from "lucide-react";
-
-// Mock missing contexts to resolve compile errors
-const useCart = () => ({ cartCount: 0 });
-const useFavorites = () => ({ favorites: [] });
+import { useCart } from "@/context/CartContext";
+import { useFavorites } from "@/context/FavoritesContext";
 
 const navItems = [
   { path: "/home", icon: Home, label: "Início" },

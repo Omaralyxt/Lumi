@@ -86,14 +86,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
     >
       {/* Navbar com Menu Hambúrguer, Logo e Busca Centralizada */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3">
-        <div className="flex items-center justify-between h-16 max-w-7xl mx-auto">
-          
-          {/* Lado Esquerdo: Menu Hambúrguer e Logo */}
+        <div className="flex items-center justify-between h-16">
+          {/* Menu Hambúrguer e Logo */}
           <div className="flex items-center space-x-3">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                {/* O botão do menu só deve aparecer em telas pequenas (md:hidden) */}
-                <Button variant="ghost" size="sm" className="md:hidden p-2">
+                <Button variant="ghost" size="sm" className="md:hidden">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -135,21 +133,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </SheetContent>
             </Sheet>
 
-            {/* Logo: Visível em todas as telas, mas ajustado para mobile */}
+            {/* Logo ao lado do menu hambúrguer */}
             <Link to="/home" className="flex items-center space-x-2">
               <img src={LOGO_URL} alt="Lumi Logo" className="h-8 w-auto" />
             </Link>
           </div>
 
-          {/* Busca Centralizada (Oculta em telas muito pequenas para dar espaço ao menu/logo) */}
-          <div className="hidden sm:flex flex-1 max-w-2xl mx-4">
+          {/* Busca Centralizada */}
+          <div className="flex-1 max-w-2xl mx-4">
             <form onSubmit={(e) => {
               e.preventDefault();
               const searchInput = e.currentTarget.querySelector('input');
               if (searchInput?.value.trim()) {
                 navigate(`/search?q=${encodeURIComponent(searchInput.value)}`);
               }
-            }} className="w-full">
+            }}>
               <div className="relative">
                 <input
                   type="text"
