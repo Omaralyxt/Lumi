@@ -7,7 +7,7 @@ import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
 import HeaderCart from "./HeaderCart";
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck, Bell, Percent, Grid3X3 } from "lucide-react";
+import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck, Bell, Percent, Grid3X3, Home, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
