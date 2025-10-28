@@ -84,76 +84,85 @@ export default function AppLayout({ children }: AppLayoutProps) {
           : "bg-[#fafafa] text-gray-900"
       }`}
     >
-      {/* Navbar com Menu Hambúrguer e Busca Centralizada */}
-      <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex items-center justify-between h-16">
-        {/* Menu Hambúrguer */}
-        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-80">
-            <SheetHeader>
-              <SheetTitle>Menu</SheetTitle>
-            </SheetHeader>
-            <nav className="mt-6 space-y-2">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-              {user ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
-                >
-                  <X className="h-5 w-5" />
-                  <span>Sair</span>
-                </button>
-              ) : (
-                <Link
-                  to="/login"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <User className="h-5 w-5" />
-                  <span>Entrar</span>
-                </Link>
-              )}
-            </nav>
-          </SheetContent>
-        </Sheet>
+      {/* Navbar com Menu Hambúrguer, Logo e Busca Centralizada */}
+      <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3">
+        <div className="flex items-center justify-between h-16">
+          {/* Menu Hambúrguer e Logo */}
+          <div className="flex items-center space-x-3">
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-6 space-y-2">
+                  {menuItems.map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.href}
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                  {user ? (
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+                    >
+                      <X className="h-5 w-5" />
+                      <span>Sair</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <User className="h-5 w-5" />
+                      <span>Entrar</span>
+                    </Link>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
 
-        {/* Busca Centralizada */}
-        <div className="flex-1 max-w-2xl mx-4">
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const searchInput = e.currentTarget.querySelector('input');
-            if (searchInput?.value.trim()) {
-              navigate(`/search?q=${encodeURIComponent(searchInput.value)}`);
-            }
-          }}>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar produtos, lojas ou marcas..."
-                className="w-full pl-4 pr-4 py-2 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
-              />
-            </div>
-          </form>
-        </div>
+            {/* Logo ao lado do menu hambúrguer */}
+            <Link to="/home" className="flex items-center space-x-2">
+              <img src={LOGO_URL} alt="Lumi Logo" className="h-8 w-auto" />
+            </Link>
+          </div>
 
-        {/* Botões à direita */}
-        <div className="flex items-center space-x-3">
-          <HeaderCart />
-          <ThemeToggle />
+          {/* Busca Centralizada */}
+          <div className="flex-1 max-w-2xl mx-4">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const searchInput = e.currentTarget.querySelector('input');
+              if (searchInput?.value.trim()) {
+                navigate(`/search?q=${encodeURIComponent(searchInput.value)}`);
+              }
+            }}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar produtos, lojas ou marcas..."
+                  className="w-full pl-4 pr-4 py-2 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
+                />
+              </div>
+            </form>
+          </div>
+
+          {/* Botões à direita */}
+          <div className="flex items-center space-x-3">
+            <HeaderCart />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

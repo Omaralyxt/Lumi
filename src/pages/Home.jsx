@@ -90,27 +90,11 @@ const categories = [
   { id: 8, name: "Automóvel", icon: Car, color: "bg-gray-100 text-gray-600", count: 0, slug: "automovel" },
 ];
 
-// Componente para o Header Focado (Logo + Busca)
-const HomeHeader = ({ searchQuery, setSearchQuery, handleSearch }) => (
+// Componente para o Header Focado (apenas espaço para o layout)
+const HomeHeader = () => (
   <div className="sticky top-16 md:top-0 z-40 bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 pt-4 pb-3 px-4 md:px-8">
     <div className="max-w-7xl mx-auto">
-      {/* Logo Centralizado (Apenas em Mobile, no Desktop o AppLayout já tem) */}
-      <div className="flex justify-center md:hidden mb-3">
-        <img src={LOGO_URL} alt="Lumi Logo" className="h-10 w-auto" />
-      </div>
-
-      {/* Search Bar - REMOVIDO */}
-      {/* <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Buscar produtos, lojas ou marcas..."
-            className="w-full pl-4 pr-4 py-3 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </form> */}
+      {/* Logo e busca agora estão no AppLayout */}
     </div>
   </div>
 );
@@ -271,12 +255,8 @@ export default function Home() {
     <SwipeablePage currentPage="home">
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 md:pt-0">
         
-        {/* Novo Header Focado (Logo + Busca) */}
-        <HomeHeader 
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery} 
-          handleSearch={handleSearch} 
-        />
+        {/* Header Focado (agora apenas espaço para o layout) */}
+        <HomeHeader />
 
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           
