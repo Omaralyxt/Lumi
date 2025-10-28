@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
@@ -40,6 +40,7 @@ import SwipeablePage from "@/components/SwipeablePage";
 import { getFeaturedProducts } from "@/api/products";
 import { searchProducts, getCategoryCounts } from "@/api/search";
 import ProductGrid from "@/components/ProductGrid";
+import { Product } from "@/types/product"; // Importar tipo Product
 
 const LOGO_URL = "https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/logo/Logo%20Lumi.png";
 
@@ -100,7 +101,7 @@ const HomeHeader = () => (
 );
 
 // Componente para Banners Secundários
-const SecondaryBanners = ({ banners }) => (
+const SecondaryBanners = ({ banners }: { banners: typeof secondaryBanners }) => (
   <div className="grid grid-cols-3 gap-4 overflow-x-auto scrollbar-hide py-4">
     {banners.map((banner) => (
       <motion.div
@@ -128,7 +129,7 @@ const SecondaryBanners = ({ banners }) => (
 );
 
 // Componente para a seção de Categorias (Horizontal Scroll)
-const CategorySection = ({ categories, navigate }) => (
+const CategorySection = ({ categories, navigate }: { categories: typeof categories, navigate: (path: string) => void }) => (
   <div className="py-8">
     <h2 className="font-title text-3xl font-bold mb-6 tracking-wide text-gray-900 dark:text-white">
       Explorar Categorias
@@ -153,7 +154,7 @@ const CategorySection = ({ categories, navigate }) => (
 );
 
 // Componente para a seção de Produtos (com título Bebas Neue)
-const ProductSection = ({ title, products, loading, navigate, sectionId, showStoreInfo = false }) => (
+const ProductSection = ({ title, products, loading, navigate, sectionId, showStoreInfo = false }: { title: string, products: Product[], loading: boolean, navigate: (path: string) => void, sectionId: string, showStoreInfo?: boolean }) => (
   <div id={sectionId} className="py-8">
     <div className="flex items-center justify-between mb-6">
       <h2 className="font-title text-3xl font-bold tracking-wide text-gray-900 dark:text-white">
@@ -187,8 +188,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   
   // States for data fetching
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [offers, setOffers] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [offers, setOffers] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [categoryData, setCategoryData] = useState(categories);
@@ -232,7 +233,7 @@ export default function Home() {
           discount: 20,
           timeDelivery: "24h restantes"
         }));
-        setOffers(simulatedOffers);
+        setOffers(simulatedOffers as Product[]);
       } catch (e) {
         console.error("Failed to fetch offers:", e);
         setOffers([]);
@@ -244,7 +245,7 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
