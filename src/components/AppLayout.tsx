@@ -42,7 +42,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     checkUser();
 
     // Escutar mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } = {} } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
       
       // Redirecionar após login/logout
@@ -54,7 +54,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
     });
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [navigate, isAuthPage]);
 
@@ -91,6 +93,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="flex items-center space-x-3">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
+                {/* Removendo md:hidden para garantir que o botão seja visível em telas pequenas */}
                 <Button variant="ghost" size="sm" className="md:hidden">
                   <Menu className="h-5 w-5" />
                 </Button>
@@ -140,7 +143,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Busca Centralizada */}
-          <div className="flex-1 max-w-2xl mx-4">
+          <div className="flex-1 max-w-2xl mx-4 hidden md:block">
             <form onSubmit={(e) => {
               e.preventDefault();
               const searchInput = e.currentTarget.querySelector('input');
