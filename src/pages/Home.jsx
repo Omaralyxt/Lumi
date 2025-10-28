@@ -47,11 +47,12 @@ import {
   ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/images/logo.svg";
 import BannerCarousel from "@/components/BannerCarousel";
 import SwipeablePage from "@/components/SwipeablePage";
 import { getFeaturedProducts } from "@/api/products";
 import { searchProducts, getCategoryCounts } from "@/api/search"; // Importando getCategoryCounts
+
+const LOGO_URL = "https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/logo/Logo%20Lumi.png";
 
 // Mock data for banners (mantido, pois não temos tabela de banners no Supabase)
 const banners = [
@@ -316,13 +317,13 @@ export default function Home() {
                 transition={{ duration: 0.5 }}
                 className="flex justify-center mb-6"
               >
-                <img src={logo} alt="Lumi Logo" className="h-24 w-auto" />
+                <img src={LOGO_URL} alt="Lumi Logo" className="h-24 w-auto" />
               </motion.div>
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="text-4xl md:text-5xl font-bold mb-4"
+                className="text-4xl md:text-5xl font-bold"
               >
                 Encontre o Melhor Preço em Moçambique
               </motion.h1>
@@ -330,7 +331,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-xl text-blue-100 max-w-2xl mx-auto"
+                className="text-xl text-blue-100 max-w-2xl mx-auto mt-4"
               >
                 Compre com segurança, receba rápido e economize mais com milhares de produtos
               </motion.p>
