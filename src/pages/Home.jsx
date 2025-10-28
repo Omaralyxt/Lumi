@@ -102,11 +102,11 @@ const HomeHeader = ({ searchQuery, setSearchQuery, handleSearch }) => (
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          {/* <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" /> */}
           <input
             type="text"
             placeholder="Buscar produtos, lojas ou marcas..."
-            className="w-full pl-12 pr-4 py-3 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
+            className="w-full pl-4 pr-4 py-3 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
