@@ -30,63 +30,66 @@ import TrackOrderPage from "./pages/TrackOrderPage";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="lumi-theme">
-      <TooltipProvider>
-        <FavoritesProvider>
-          <CartProvider>
-            <OrdersProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppLayout>
-                  <Routes>
-                    <Route path="/" element={<RootRedirect />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/categories" element={<CategoriesPage />} />
-                    <Route path="/offers" element={<OffersPage />} />
-                    <Route path="/favorites" element={<FavoritesPage />} />
-                    
-                    {/* Rotas que exigem login ou redirecionam para login */}
-                    <Route path="/account" element={<AccountPage />} />
-                    <Route path="/orders" element={<OrderHistoryPage />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
-                    
-                    {/* Rotas Públicas */}
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/category/:slug" element={<CategoryProductsPage />} />
-                    
-                    {/* Redireciona a rota antiga para a nova rota de vendas */}
-                    <Route path="/product/:id" element={<Navigate to="/sales/:id" replace />} />
-                    <Route path="/sales/:id" element={<SalesPage />} />
-                    <Route path="/track-order" element={<TrackOrderPage />} />
-                    
-                    {/* Rotas de Autenticação (Apenas Comprador) */}
-                    <Route path="/login" element={<BuyerLogin />} />
-                    <Route path="/register" element={<BuyerRegister />} />
-                    
-                    {/* Redirecionar rotas antigas de comprador para as novas rotas simplificadas */}
-                    <Route path="/buyer/login" element={<Navigate to="/login" replace />} />
-                    <Route path="/buyer/register" element={<Navigate to="/register" replace />} />
-                    
-                    {/* Rotas de Loja (Redirecionadas ou Removidas) */}
-                    <Route path="/stores" element={<Navigate to="/home" replace />} />
-                    <Route path="/store/:id" element={<Navigate to="/home" replace />} />
-                    
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </AppLayout>
-              </BrowserRouter>
-            </OrdersProvider>
-          </CartProvider>
-        </FavoritesProvider>
-      </TooltipProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="lumi-theme">
+        <TooltipProvider>
+          <FavoritesProvider>
+            <CartProvider>
+              <OrdersProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppLayout>
+                    <Routes>
+                      <Route path="/" element={<RootRedirect />} />
+                      <Route path="/home" element={<Home />} />
+                      <Route path="/categories" element={<CategoriesPage />} />
+                      <Route path="/offers" element={<OffersPage />} />
+                      <Route path="/favorites" element={<FavoritesPage />} />
+                      
+                      {/* Rotas que exigem login ou redirecionam para login */}
+                      <Route path="/account" element={<AccountPage />} />
+                      <Route path="/orders" element={<OrderHistoryPage />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
+                      
+                      {/* Rotas Públicas */}
+                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/search" element={<SearchPage />} />
+                      <Route path="/category/:slug" element={<CategoryProductsPage />} />
+                      
+                      {/* Redireciona a rota antiga para a nova rota de vendas */}
+                      <Route path="/product/:id" element={<Navigate to="/sales/:id" replace />} />
+                      <Route path="/sales/:id" element={<SalesPage />} />
+                      <Route path="/track-order" element={<TrackOrderPage />} />
+                      
+                      {/* Rotas de Autenticação (Apenas Comprador) */}
+                      <Route path="/login" element={<BuyerLogin />} />
+                      <Route path="/register" element={<BuyerRegister />} />
+                      
+                      {/* Redirecionar rotas antigas de comprador para as novas rotas simplificadas */}
+                      <Route path="/buyer/login" element={<Navigate to="/login" replace />} />
+                      <Route path="/buyer/register" element={<Navigate to="/register" replace />} />
+                      
+                      {/* Rotas de Loja (Redirecionadas ou Removidas) */}
+                      <Route path="/stores" element={<Navigate to="/home" replace />} />
+                      <Route path="/store/:id" element={<Navigate to="/home" replace />} />
+                      
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </AppLayout>
+                </BrowserRouter>
+              </OrdersProvider>
+            </CartProvider>
+          </FavoritesProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
-);
+  );
+}
 
 export default App;
