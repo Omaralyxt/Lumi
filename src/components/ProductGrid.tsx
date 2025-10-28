@@ -7,6 +7,7 @@ import { Product } from "@/types/product";
 import FavoriteButton from "./FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
+import { motion } from "framer-motion"; // Importação adicionada
 
 interface ProductGridProps {
   products: Product[];
