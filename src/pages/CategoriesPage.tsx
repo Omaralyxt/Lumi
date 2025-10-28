@@ -2,7 +2,21 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Package, Search, ArrowLeft, Grid3X3 } from "lucide-react";
+import { 
+  Package, 
+  Search, 
+  ArrowLeft, 
+  Grid3X3, 
+  Shirt, // Adicionado
+  Smartphone, // Adicionado
+  Home, // Adicionado
+  Heart, // Adicionado
+  Baby, // Adicionado
+  Car, // Adicionado
+  Book, // Adicionado
+  Dumbbell, // Adicionado
+  ShoppingCart // Adicionado
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
