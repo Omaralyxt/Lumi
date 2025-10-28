@@ -26,6 +26,7 @@ import { OrdersProvider } from "./context/OrdersContext";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import RootRedirect from "./components/RootRedirect";
+import TrackOrderPage from "./pages/TrackOrderPage"; // Importação adicionada
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
                     <Route path="/category/:slug" element={<CategoryProductsPage />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/sales/:id" element={<SalesPage />} />
+                    <Route path="/track-order" element={<TrackOrderPage />} /> {/* Rota adicionada */}
                     
                     {/* Rotas de Autenticação (Apenas Comprador) */}
                     <Route path="/login" element={<BuyerLogin />} />
