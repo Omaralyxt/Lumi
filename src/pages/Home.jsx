@@ -99,10 +99,9 @@ const HomeHeader = ({ searchQuery, setSearchQuery, handleSearch }) => (
         <img src={LOGO_URL} alt="Lumi Logo" className="h-10 w-auto" />
       </div>
 
-      {/* Search Bar */}
-      <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
+      {/* Search Bar - REMOVIDO */}
+      {/* <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
         <div className="relative">
-          {/* <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" /> */}
           <input
             type="text"
             placeholder="Buscar produtos, lojas ou marcas..."
@@ -111,7 +110,7 @@ const HomeHeader = ({ searchQuery, setSearchQuery, handleSearch }) => (
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-      </form>
+      </form> */}
     </div>
   </div>
 );
