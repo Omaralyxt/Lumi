@@ -70,9 +70,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     >
       {/* Navbar Minimalista (Visível em todas as páginas, exceto auth) */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center h-16">
-        <Link to="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
-          Lumi
-        </Link>
+        {/* Espaço vazio para manter o alinhamento, ou você pode adicionar um ícone de menu aqui se necessário */}
+        <div className="w-8 md:w-10"></div> 
 
         <div className="flex items-center space-x-3">
           {/* Se não for a Home, mostramos a busca aqui */}
