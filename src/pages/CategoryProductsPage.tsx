@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductsByCategory } from "@/api/products";
 import { Product } from "@/types/product";
@@ -8,18 +8,15 @@ import ProductGrid from "@/components/ProductGrid";
 import Loading from "@/components/Loading";
 import { ArrowLeft, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getAllCategoryNames } from "@/constants/categories";
 
-// Mapeamento de slug para nome de categoria (para exibição)
-const categoryMap: Record<string, string> = {
-  "eletronicos": "Eletrónicos",
-  "moda": "Moda",
-  "casa-cozinha": "Casa & Cozinha",
-  "saude-beleza": "Saúde & Beleza",
-  "desporto": "Desporto",
-  "livros": "Livros",
-  "bebes-criancas": "Bebés & Crianças",
-  "automovel": "Automóvel",
-};
+// Mapeamento de slug para nome de categoria (para exibição e busca)
+const slugToNameMap: Record<string, string> = getAllCategoryNames().reduce((acc, name) => {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  acc[slug] = name;
+  return acc;
+}, {} as Record<string, string>);
+
 
 export default function CategoryProductsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -27,17 +24,21 @@ export default function CategoryProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const categoryName = slug ? categoryMap[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : "Categoria";
+  // Obtém o nome da categoria a partir do slug
+  const categoryName = slug ? slugToNameMap[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : "Categoria";
 
   useEffect(() => {
     const fetchProducts = async () => {
       if (!slug) return;
+      
+      // Usamos o nome completo da categoria para buscar no Supabase
+      const nameToSearch = slugToNameMap[slug] || categoryName;
+      
       try {
         setLoading(true);
         setError(null);
         
-        // Usamos o nome da categoria para buscar na API refatorada
-        const fetchedProducts = await getProductsByCategory(categoryName);
+        const fetchedProducts = await getProductsByCategory(nameToSearch);
         setProducts(fetchedProducts);
         
       } catch (err) {

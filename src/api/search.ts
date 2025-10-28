@@ -1,19 +1,6 @@
 import { Product } from "../types/product";
 import { supabase } from '@/integrations/supabase/client';
-
-// Mock data para categorias (mantido, pois não temos uma tabela de categorias no Supabase)
-const mockCategories = [
-  { id: 1, nome: "Eletrónicos" },
-  { id: 2, nome: "Moda" },
-  { id: 3, nome: "Casa & Cozinha" },
-  { id: 4, nome: "Saúde & Beleza" },
-  { id: 5, nome: "Desporto" },
-  { id: 6, nome: "Livros" },
-  { id: 7, nome: "Bebés & Crianças" },
-  { id: 8, nome: "Automóvel" },
-  { id: 9, nome: "Serviços" },
-  { id: 10, nome: "Outros" },
-];
+import { getFlatCategories, getAllCategoryNames } from '@/constants/categories';
 
 // Função auxiliar para mapear dados do Supabase para o tipo Product
 const mapSupabaseProductToFrontend = (product: any): Product => {
@@ -79,22 +66,18 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
 // Exportar mockProducts vazio, pois não será mais usado
 export const mockProducts: Product[] = [];
 
-// Função para buscar categorias (mantida mockada)
+// Função para buscar categorias (agora usa a lista fixa)
 export const getCategories = async (): Promise<any[]> => {
-  await new Promise(resolve => setTimeout(resolve, 200));
-  return mockCategories;
+  // Retorna a lista plana de categorias para selects
+  return getFlatCategories();
 };
 
 // NOVA FUNÇÃO: Buscar contagem de produtos por categoria
 export const getCategoryCounts = async (): Promise<Record<string, number>> => {
-  // Usamos a função RPC 'count_products_by_category' se ela existisse,
-  // mas como não existe, faremos uma consulta simples e agruparemos no cliente
-  // ou usaremos a funcionalidade de contagem do Supabase (que é limitada para GROUP BY).
-  
-  // Vamos simular a contagem baseada nos produtos existentes para evitar consultas grandes:
+  // Busca a contagem de produtos agrupados por categoria
   const { data, error } = await supabase
     .from('products')
-    .select('category');
+    .select('category', { count: 'exact' });
     
   if (error) {
     console.error("Erro ao buscar categorias para contagem:", error);
@@ -137,16 +120,13 @@ export const searchProducts = async (
   
   // Filtrar por categoria (usando o nome da categoria)
   if (categoryId) {
-    const categoryName = mockCategories.find(c => c.id === parseInt(categoryId))?.nome;
+    // Busca o nome da categoria pelo ID (se o ID for usado)
+    const categoryName = getFlatCategories().find(c => c.id === parseInt(categoryId))?.nome;
     if (categoryName) {
       queryBuilder = queryBuilder.eq('category', categoryName);
     }
   }
   
-  // Nota: Filtragem por preço e rating é complexa no Supabase sem views/funções
-  // Vamos buscar e filtrar no cliente por enquanto, ou ignorar filtros complexos.
-  // Por enquanto, apenas a busca por nome e categoria será feita no servidor.
-
   const { data, error } = await queryBuilder;
 
   if (error) {
@@ -156,7 +136,7 @@ export const searchProducts = async (
   
   let filteredProducts = data.map(mapSupabaseProductToFrontend);
 
-  // Filtragem por preço e rating (feita no cliente, pois o Supabase não suporta filtros complexos em joins aninhados facilmente)
+  // Filtragem por preço e rating (feita no cliente)
   if (priceRange && priceRange[1] > 0) {
     filteredProducts = filteredProducts.filter(product =>
       product.price >= priceRange[0] && product.price <= priceRange[1]

@@ -1,82 +1,121 @@
 "use client";
 
-import { useState } from "react";
-import { Package, Smartphone, Shirt, Home, Heart, Dumbbell, Book, Baby, Car, Search, ArrowLeft } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { Package, Search, ArrowLeft, Grid3X3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
 import SwipeablePage from "@/components/SwipeablePage";
+import { PRODUCT_CATEGORIES, CategoryItem, getAllCategoryNames } from "@/constants/categories";
+import { getCategoryCounts } from "@/api/search";
+import Loading from "@/components/Loading";
 
-const categories = [
-  {
-    id: 1,
-    name: "Eletrónicos",
-    icon: Smartphone,
-    description: "Smartphones, tablets, acessórios",
-    count: 1245,
-    slug: "eletronicos",
-  },
-  {
-    id: 2,
-    name: "Moda",
-    icon: Shirt,
-    description: "Roupas, calçados, acessórios",
-    count: 892,
-    slug: "moda",
-  },
-  {
-    id: 3,
-    name: "Casa & Cozinha",
-    icon: Home,
-    description: "Móveis, eletrodomésticos, decoração",
-    count: 567,
-    slug: "casa-cozinha",
-  },
-  {
-    id: 4,
-    name: "Saúde & Beleza",
-    icon: Heart,
-    description: "Produtos de saúde e beleza",
-    count: 423,
-    slug: "saude-beleza",
-  },
-  {
-    id: 5,
-    name: "Desporto",
-    icon: Dumbbell,
-    description: "Equipamentos desportivos, roupas",
-    count: 334,
-    slug: "desporto",
-  },
-  {
-    id: 6,
-    name: "Livros",
-    icon: Book,
-    description: "Livros, e-books, materiais",
-    count: 298,
-    slug: "livros",
-  },
-  {
-    id: 7,
-    name: "Bebés & Crianças",
-    icon: Baby,
-    description: "Produtos para bebês e crianças",
-    count: 267,
-    slug: "bebes-criancas",
-  },
-  {
-    id: 8,
-    name: "Automóvel",
-    icon: Car,
-    description: "Peças, acessórios, serviços",
-    count: 189,
-    slug: "automovel",
-  },
-];
+// Mapeamento de ícones para grupos (usando ícones genéricos se não houver correspondência)
+const groupIconMap: Record<string, React.ElementType> = {
+  "Moda e Estilo": Shirt,
+  "Tecnologia e Eletrônicos": Smartphone,
+  "Casa e Decoração": Home,
+  "Eletrodomésticos": Package,
+  "Beleza e Cuidados Pessoais": Heart,
+  "Bebés e Crianças": Baby,
+  "Ferramentas e Construção": Package,
+  "Automóveis e Motos": Car,
+  "Papelaria e Escritório": Book,
+  "Esportes e Lazer": Dumbbell,
+  "Supermercado e Alimentos": ShoppingCart,
+  "Saúde e Bem-estar": Heart,
+  "Animais de Estimação": Package,
+  "Entretenimento e Cultura": Book,
+};
+
+interface CategoryWithCount {
+  name: string;
+  count: number;
+  slug: string;
+}
+
+interface GroupWithCounts extends CategoryItem {
+  totalCount: number;
+  subCategories: CategoryWithCount[];
+}
 
 export default function CategoriesPage() {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const counts = await getCategoryCounts();
+        setCategoryCounts(counts);
+      } catch (e) {
+        console.error("Failed to fetch category counts:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCounts();
+  }, []);
+
+  // Processar e ordenar as categorias
+  const sortedGroups = useMemo(() => {
+    const groupsWithCounts: GroupWithCounts[] = PRODUCT_CATEGORIES.map(group => {
+      let totalCount = 0;
+      const subCategories: CategoryWithCount[] = group.categories.map(catName => {
+        const count = categoryCounts[catName] || 0;
+        totalCount += count;
+        return {
+          name: catName,
+          count: count,
+          slug: catName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        };
+      });
+      
+      // Ordenar subcategorias por contagem
+      subCategories.sort((a, b) => b.count - a.count);
+
+      return {
+        ...group,
+        totalCount,
+        subCategories,
+      };
+    });
+
+    // Ordenar grupos principais pela contagem total de produtos
+    groupsWithCounts.sort((a, b) => b.totalCount - a.totalCount);
+    
+    return groupsWithCounts;
+  }, [categoryCounts]);
+  
+  // Filtrar categorias com base no termo de busca
+  const filteredGroups = useMemo(() => {
+    if (!searchTerm) return sortedGroups;
+    const lowerCaseSearch = searchTerm.toLowerCase();
+    
+    return sortedGroups
+      .map(group => {
+        const filteredSubCategories = group.subCategories.filter(cat => 
+          cat.name.toLowerCase().includes(lowerCaseSearch)
+        );
+        
+        // Incluir o grupo se o nome do grupo ou alguma subcategoria corresponder
+        if (group.group.toLowerCase().includes(lowerCaseSearch) || filteredSubCategories.length > 0) {
+          return {
+            ...group,
+            subCategories: filteredSubCategories,
+          };
+        }
+        return null;
+      })
+      .filter((group): group is GroupWithCounts => group !== null);
+  }, [sortedGroups, searchTerm]);
+
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <SwipeablePage currentPage="categories">
@@ -95,41 +134,67 @@ export default function CategoriesPage() {
           </div>
 
           {/* Search Bar */}
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="relative">
               <Search className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar categorias..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
             </div>
           </div>
 
-          {/* Categories Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {categories.map((category) => {
-              const Icon = category.icon;
+          {/* Categories List (Grouped and Sorted) */}
+          <div className="space-y-8">
+            {filteredGroups.map((group) => {
+              const GroupIcon = groupIconMap[group.group] || Grid3X3;
               
+              if (group.subCategories.length === 0 && searchTerm) return null; // Não mostra grupos vazios na busca
+
               return (
-                <Link key={category.id} to={`/category/${category.slug}`}>
-                  <Card
-                    className="product-card-style cursor-pointer transition-all hover:shadow-md dark:bg-gray-900/60"
-                  >
-                    <CardContent className="p-4 text-center">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 bg-blue-100 dark:bg-blue-900/50">
-                        <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <h3 className="font-body font-semibold text-sm mb-1">{category.name}</h3>
-                      <p className="text-xs text-gray-500 mb-2 dark:text-gray-400">{category.description}</p>
-                      <Badge variant="secondary" className="text-xs">
-                        {category.count} produtos
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <div key={group.group}>
+                  <div className="flex items-center mb-4 border-b pb-2">
+                    <GroupIcon className="h-6 w-6 mr-3 text-blue-600 dark:text-blue-400" />
+                    <h2 className="font-title text-2xl font-bold text-gray-900 dark:text-white">
+                      {group.group}
+                    </h2>
+                    <Badge variant="secondary" className="ml-3 text-sm">
+                      {group.totalCount} produtos
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {group.subCategories.map((category) => (
+                      <Link 
+                        key={category.slug} 
+                        to={`/category/${category.slug}`}
+                        className="block"
+                      >
+                        <Card
+                          className="product-card-style cursor-pointer transition-all hover:shadow-md dark:bg-gray-900/60"
+                        >
+                          <CardContent className="p-4">
+                            <h3 className="font-body font-semibold text-sm mb-1 line-clamp-1">{category.name}</h3>
+                            <Badge variant="secondary" className="text-xs">
+                              {category.count} produtos
+                            </Badge>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               );
             })}
+            
+            {filteredGroups.length === 0 && searchTerm && (
+              <div className="text-center py-12 text-gray-500">
+                Nenhuma categoria ou subcategoria encontrada para "{searchTerm}".
+              </div>
+            )}
           </div>
         </div>
       </div>

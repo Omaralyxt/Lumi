@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { ProductVariant } from "@/types/product";
+import { getFlatCategories } from "@/constants/categories"; // Importar a nova função
 
 // Tipos de entrada para a função RPC
 interface VariantInput {
@@ -41,18 +42,8 @@ interface ImageInput {
   is_deleted: boolean;
 }
 
-const categories = [
-  { id: 1, name: "Eletrónicos" },
-  { id: 2, name: "Moda" },
-  { id: 3, name: "Casa & Cozinha" },
-  { id: 4, name: "Saúde & Beleza" },
-  { id: 5, name: "Desporto" },
-  { id: 6, name: "Livros" },
-  { id: 7, name: "Bebés & Crianças" },
-  { id: 8, name: "Automóvel" },
-  { id: 9, name: "Serviços" },
-  { id: 10, name: "Outros" },
-];
+// Obter a lista plana de categorias
+const flatCategories = getFlatCategories();
 
 // Estado inicial para uma variante
 const initialVariant: VariantInput = {
@@ -334,9 +325,9 @@ export default function CreateProduct() {
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((c) => (
-                        <SelectItem key={c.id} value={c.name}>
-                          {c.name}
+                      {flatCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.nome}>
+                          {c.nome}
                         </SelectItem>
                       ))}
                     </SelectContent>
