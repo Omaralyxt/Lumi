@@ -39,7 +39,8 @@ export default function BottomNavLumi() {
   const { isAuthenticated } = useAuth();
   // const { unreadCount } = useNotifications(); // Removido o uso direto, mas mantido o hook
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  // O cartCount não é mais necessário aqui, mas mantemos a importação do useCart por segurança
+  // const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const isSeller = useAuth().user?.role === 'seller';
   
@@ -67,14 +68,7 @@ export default function BottomNavLumi() {
           label="Ofertas"
           isActive={location.pathname === "/offers"}
         />
-        <NavItem
-          to="/cart"
-          icon={ShoppingCart}
-          label="Cesto"
-          isActive={location.pathname === "/cart"}
-          badgeCount={cartCount}
-        />
-        {/* Notificações removidas da barra inferior para manter 5 itens principais */}
+        {/* Removido o item Cesto/Carrinho */}
         <NavItem
           to={profilePath}
           icon={User}
