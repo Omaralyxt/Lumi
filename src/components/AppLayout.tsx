@@ -7,8 +7,9 @@ import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
 import HeaderCart from "./HeaderCart";
 import { supabase } from '@/integrations/supabase/client';
-import { Search } from "lucide-react";
+import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck } from "lucide-react";
 import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [user, setUser] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isAuthPage = excludedPaths.some(path => location.pathname.startsWith(path));
   const isHomePage = location.pathname === "/home" || location.pathname === "/";
@@ -56,6 +58,20 @@ export default function AppLayout({ children }: AppLayoutProps) {
     };
   }, [navigate, isAuthPage]);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/home');
+  };
+
+  const menuItems = [
+    { icon: Package, label: "Meus Pedidos", href: "/orders" },
+    { icon: Store, label: "Categorias", href: "/categories" },
+    { icon: User, label: "Minha Conta", href: "/account" },
+    { icon: Heart, label: "Favoritos", href: "/favorites" },
+    { icon: Truck, label: "Acompanhar Pedido", href: "/track-order" },
+    { icon: Store, label: "Lojas Parceiras", href: "/stores" },
+  ];
+
   if (isAuthPage) {
     return <>{children}</>;
   }
@@ -68,18 +84,74 @@ export default function AppLayout({ children }: AppLayoutProps) {
           : "bg-[#fafafa] text-gray-900"
       }`}
     >
-      {/* Navbar Minimalista (Visível em todas as páginas, exceto auth) */}
-      <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center h-16">
-        {/* Espaço vazio para manter o alinhamento, ou você pode adicionar um ícone de menu aqui se necessário */}
-        <div className="w-8 md:w-10"></div> 
-
-        <div className="flex items-center space-x-3">
-          {/* Se não for a Home, mostramos a busca aqui */}
-          {!isHomePage && (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/search')}>
-              <Search className="h-5 w-5" />
+      {/* Navbar com Menu Hambúrguer e Busca Centralizada */}
+      <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex items-center justify-between h-16">
+        {/* Menu Hambúrguer */}
+        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" className="md:hidden">
+              <Menu className="h-5 w-5" />
             </Button>
-          )}
+          </SheetTrigger>
+          <SheetContent side="left" className="w-80">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <nav className="mt-6 space-y-2">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+              {user ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+                >
+                  <X className="h-5 w-5" />
+                  <span>Sair</span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <User className="h-5 w-5" />
+                  <span>Entrar</span>
+                </Link>
+              )}
+            </nav>
+          </SheetContent>
+        </Sheet>
+
+        {/* Busca Centralizada */}
+        <div className="flex-1 max-w-2xl mx-4">
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const searchInput = e.currentTarget.querySelector('input');
+            if (searchInput?.value.trim()) {
+              navigate(`/search?q=${encodeURIComponent(searchInput.value)}`);
+            }
+          }}>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar produtos, lojas ou marcas..."
+                className="w-full pl-4 pr-4 py-2 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
+              />
+            </div>
+          </form>
+        </div>
+
+        {/* Botões à direita */}
+        <div className="flex items-center space-x-3">
           <HeaderCart />
           <ThemeToggle />
         </div>

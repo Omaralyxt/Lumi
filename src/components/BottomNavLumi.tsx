@@ -5,7 +5,6 @@ import {
   Home, 
   Grid3X3, 
   Clock, // Importando Clock
-  User, 
   Heart 
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -16,7 +15,7 @@ const navItems = [
   { path: "/categories", icon: Grid3X3, label: "Categorias" },
   { path: "/offers", icon: Clock, label: "Ofertas" }, // Usando Clock para Ofertas
   { path: "/favorites", icon: Heart, label: "Favoritos" },
-  { path: "/account", icon: User, label: "Conta" },
+  // Removido o item de conta
 ];
 
 export default function BottomNavLumi() {

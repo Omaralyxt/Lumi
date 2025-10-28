@@ -14,7 +14,9 @@ import {
   Shield,
   Moon,
   Sun,
-  Palette
+  Palette,
+  Menu,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +32,7 @@ export default function AccountPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userType, setUserType] = useState<'buyer' | 'seller' | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -105,10 +108,63 @@ export default function AccountPage() {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Minha Conta</h1>
-            <ThemeToggle />
+            <div className="flex items-center space-x-3">
+              <ThemeToggle />
+              <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Menu Lateral */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMenuOpen(false)}>
+          <div className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-gray-800 shadow-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">Menu</h2>
+              <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <nav className="space-y-2">
+              <Link to="/orders" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <ShoppingBag className="h-5 w-5" />
+                <span>Meus Pedidos</span>
+              </Link>
+              <Link to="/categories" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <Grid3X3 className="h-5 w-5" />
+                <span>Categorias</span>
+              </Link>
+              <Link to="/favorites" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <Heart className="h-5 w-5" />
+                <span>Favoritos</span>
+              </Link>
+              <Link to="/track-order" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <Truck className="h-5 w-5" />
+                <span>Acompanhar Pedido</span>
+              </Link>
+              <Link to="/stores" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <Store className="h-5 w-5" />
+                <span>Lojas Parceiras</span>
+              </Link>
+              <Link to="/profile" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <User className="h-5 w-5" />
+                <span>Perfil</span>
+              </Link>
+              <Button 
+                variant="ghost" 
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg w-full justify-start"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Sair</span>
+              </Button>
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-6">
