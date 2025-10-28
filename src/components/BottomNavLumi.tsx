@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Home, 
   Grid3X3, 
-  Clock, // Importando Clock
+  Clock, 
   Heart 
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -13,14 +13,13 @@ import { useFavorites } from "@/context/FavoritesContext";
 const navItems = [
   { path: "/home", icon: Home, label: "Início" },
   { path: "/categories", icon: Grid3X3, label: "Categorias" },
-  { path: "/offers", icon: Clock, label: "Ofertas" }, // Usando Clock para Ofertas
+  { path: "/offers", icon: Clock, label: "Ofertas" },
   { path: "/favorites", icon: Heart, label: "Favoritos" },
-  // Removido o item de conta
 ];
 
 export default function BottomNavLumi() {
   const location = useLocation();
-  const { cartCount } = useCart(); // Usar cartCount do contexto
+  const { cartCount } = useCart();
   const { favorites } = useFavorites();
 
   return (
@@ -30,7 +29,6 @@ export default function BottomNavLumi() {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
           
-          // Contagem de itens para carrinho e favoritos
           let badgeCount = 0;
           if (item.path === "/cart") {
             badgeCount = cartCount;

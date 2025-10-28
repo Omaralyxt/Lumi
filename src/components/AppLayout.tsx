@@ -95,16 +95,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80">
+              <SheetContent side="left" className="w-80 bg-white dark:bg-gray-900">
                 <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
+                  <SheetTitle className="text-gray-900 dark:text-white">Menu</SheetTitle>
                 </SheetHeader>
                 <nav className="mt-6 space-y-2">
                   {menuItems.map((item) => (
                     <Link
                       key={item.label}
                       to={item.href}
-                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <item.icon className="h-5 w-5" />
@@ -114,7 +114,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   {user ? (
                     <button
                       onClick={handleLogout}
-                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-gray-900 dark:text-white"
                     >
                       <X className="h-5 w-5" />
                       <span>Sair</span>
@@ -122,7 +122,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   ) : (
                     <Link
                       to="/login"
-                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-gray-900 dark:text-white"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <User className="h-5 w-5" />
