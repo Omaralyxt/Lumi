@@ -1,10 +1,8 @@
 "use client";
 
-import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingCart, User, Grid3X3, Bell } from "lucide-react"; // Importando Grid3X3 e Bell
-import { useCart } from "@/context/CartContext"; // Corrigido o caminho de importação
-import { useAuth } from "@/hooks/useAuth";
-import { useNotifications } from "@/hooks/useNotifications";
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, ShoppingCart, User, Bell, Grid3X3 } from 'lucide-react';
 
 interface NavItemProps {
   to: string;
@@ -17,71 +15,49 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, isActive, badgeCount = 0 }) => (
   <Link
     to={to}
-    className={`flex flex-col items-center justify-center p-1 transition-colors ${
+    className={`flex flex-col items-center justify-center p-1 transition-colors relative ${
       isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-300"
     }`}
   >
-    <div className="relative">
-      <Icon className="h-5 w-5" />
-      {badgeCount > 0 && (
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-          {badgeCount > 99 ? "99+" : badgeCount}
-        </span>
-      )}
-    </div>
-    <span className="text-xs mt-0.5">{label}</span>
+    <Icon className="h-6 w-6" />
+    <span className="text-xs mt-1 truncate max-w-[60px]">{label}</span>
+    {badgeCount > 0 && (
+      <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+        {badgeCount}
+      </span>
+    )}
   </Link>
 );
 
-export default function BottomNavLumi() {
+const BottomNavLumi: React.FC = () => {
   const location = useLocation();
-  const { cartItems } = useCart();
-  const { isAuthenticated } = useAuth();
-  const { unreadCount } = useNotifications();
+  const currentPath = location.pathname;
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  const isSeller = useAuth().user?.role === 'seller';
-  
-  // Define o caminho para a página de perfil/dashboard
-  const profilePath = isAuthenticated ? (isSeller ? "/seller/dashboard" : "/profile") : "/login";
+  // Definição dos itens de navegação
+  const navItems = [
+    { to: "/", icon: Home, label: "Início" },
+    // O item de navegação para /fixed-pages (Grid3X3) foi removido
+    { to: "/cart", icon: ShoppingCart, label: "Carrinho", badgeCount: 0 },
+    { to: "/notifications", icon: Bell, label: "Notificações", badgeCount: 0 },
+    { to: "/profile", icon: User, label: "Perfil" },
+  ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50">
-      <div className="max-w-md mx-auto flex justify-around h-14">
-        <NavItem
-          to="/"
-          icon={Home}
-          label="Início"
-          isActive={location.pathname === "/"}
-        />
-        <NavItem
-          to="/categories"
-          icon={Grid3X3} // Ícone alterado para Grid3X3
-          label="Categorias"
-          isActive={location.pathname.startsWith("/categories") || location.pathname.startsWith("/category/")}
-        />
-        <NavItem
-          to="/cart"
-          icon={ShoppingCart}
-          label="Cesto"
-          isActive={location.pathname === "/cart"}
-          badgeCount={cartCount}
-        />
-        <NavItem
-          to="/notifications"
-          icon={Bell}
-          label="Notificações"
-          isActive={location.pathname === "/notifications"}
-          badgeCount={unreadCount}
-        />
-        <NavItem
-          to={profilePath}
-          icon={User}
-          label={isSeller ? "Vendedor" : "Perfil"}
-          isActive={location.pathname.startsWith("/profile") || location.pathname.startsWith("/seller")}
-        />
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50">
+      <div className="max-w-md mx-auto h-16 flex justify-around items-center">
+        {navItems.map((item) => (
+          <NavItem
+            key={item.to}
+            to={item.to}
+            icon={item.icon}
+            label={item.label}
+            isActive={currentPath === item.to}
+            badgeCount={item.badgeCount}
+          />
+        ))}
       </div>
-    </div>
+    </nav>
   );
-}
+};
+
+export default BottomNavLumi;
