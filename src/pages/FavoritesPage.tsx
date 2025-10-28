@@ -28,8 +28,10 @@ const initialFavorites: Product[] = [
     features: [],
     specifications: {},
     deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-    reviews: [],
+    reviews: [], // Adicionado
+    qa: [], // Adicionado
     options: [],
+    variants: [], // Adicionado
     reviewCount: 128,
     timeDelivery: "2-5 dias úteis",
   },
@@ -47,8 +49,10 @@ const initialFavorites: Product[] = [
     features: [],
     specifications: {},
     deliveryInfo: { city: "Maputo", fee: 100, eta: "1-2 dias" },
-    reviews: [],
+    reviews: [], // Adicionado
+    qa: [], // Adicionado
     options: [],
+    variants: [], // Adicionado
     reviewCount: 89,
     timeDelivery: "2-3 dias úteis",
   },
@@ -66,8 +70,10 @@ const initialFavorites: Product[] = [
     features: [],
     specifications: {},
     deliveryInfo: { city: "Maputo", fee: 80, eta: "2-3 dias" },
-    reviews: [],
+    reviews: [], // Adicionado
+    qa: [], // Adicionado
     options: [],
+    variants: [], // Adicionado
     reviewCount: 156,
     timeDelivery: "3-5 dias úteis",
   },

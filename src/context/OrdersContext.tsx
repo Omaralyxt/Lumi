@@ -87,8 +87,10 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
               features: [],
               specifications: {},
               deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-              reviews: [],
+              reviews: [], // Adicionado
+              qa: [], // Adicionado
               options: [],
+              variants: [], // Adicionado
               rating: 4.5,
               reviewCount: 128,
               timeDelivery: "2-5 dias úteis",

@@ -1,14 +1,21 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Product } from '@/types/product';
+import { Product, ProductVariant } from '@/types/product';
 
 // Função auxiliar para mapear dados do Supabase para o tipo Product
 const mapSupabaseProductToFrontend = (product: any, storeId: string): Product => {
-  const variants = product.product_variants || [];
+  const variants: ProductVariant[] = (product.product_variants || []).map((v: any) => ({
+    id: v.id || 'mock-variant-' + Math.random(),
+    name: v.name || 'Padrão',
+    price: v.price || 0,
+    stock: v.stock || 0,
+    image_url: v.image_url,
+    options: { Variant: v.name || 'Padrão' },
+  }));
+  
   const basePrice = variants.length > 0 ? variants[0].price : 0;
   const baseStock = variants.length > 0 ? variants[0].stock : 0;
 
   // Campos complexos (reviews, options, deliveryInfo) serão mockados ou definidos como vazios
-  // pois não temos a estrutura completa no Supabase para eles ainda.
   return {
     id: product.id, // product.id é string (UUID)
     title: product.name,
@@ -33,6 +40,7 @@ const mapSupabaseProductToFrontend = (product: any, storeId: string): Product =>
     qa: [], // Mocked
     images: product.image_url ? [product.image_url] : ['/placeholder.svg'],
     options: [], // Mocked
+    variants: variants, // Adicionando variantes
     timeDelivery: '2-5 dias úteis', // Mocked
   } as Product;
 };
@@ -62,7 +70,7 @@ export const getProductsByStoreId = async (storeId: string): Promise<Product[]> 
       image_url, 
       category,
       stores (name, active),
-      product_variants (price, stock)
+      product_variants (id, name, price, stock, image_url)
     `)
     .eq('store_id', storeId);
 

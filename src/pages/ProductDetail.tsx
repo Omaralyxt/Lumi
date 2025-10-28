@@ -83,9 +83,10 @@ export default function ProductDetail() {
   };
 
   const getRatingDistribution = () => {
-    if (!product) return [];
+    if (!product || product.reviewCount === 0) return [0, 0, 0, 0, 0];
     const distribution = [0, 0, 0, 0, 0];
     product.reviews.forEach(review => {
+      // review.rating é 1-5
       distribution[review.rating - 1]++;
     });
     return distribution.map(count => (count / product.reviewCount) * 100).reverse();
@@ -330,7 +331,7 @@ export default function ProductDetail() {
               <TabsTrigger value="description" className="font-body-semibold">Descrição</TabsTrigger>
               <TabsTrigger value="specifications" className="font-body-semibold">Especificações</TabsTrigger>
               <TabsTrigger value="reviews" className="font-body-semibold">Avaliações ({product.reviewCount})</TabsTrigger>
-              <TabsTrigger value="qa" className="font-body-semibold">Q&A ({product.qa?.length || 0})</TabsTrigger>
+              <TabsTrigger value="qa" className="font-body-semibold">Q&A ({product.qa.length || 0})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="description" className="mt-6">
@@ -441,7 +442,7 @@ export default function ProductDetail() {
                 <CardContent className="p-6">
                   <h3 className="font-title text-xl font-body-semibold mb-6">Perguntas e Respostas</h3>
                   <div className="space-y-6 mb-8">
-                    {product.qa?.map((item) => (
+                    {product.qa.map((item) => (
                       <div key={item.id} className="border-b pb-6 last:border-b-0">
                         <div className="flex items-start space-x-3">
                           <HelpCircle className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />

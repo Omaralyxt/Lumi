@@ -57,13 +57,17 @@ export default function SalesPage() {
   const [activeTab, setActiveTab] = useState("description");
   
   // Mocked review data since context is removed
-  const averageRating = 4.5;
-  const reviewCount = 128;
-  const productReviews: any[] = []; // Mocked empty array
+  const averageRating = product?.rating ?? 4.5;
+  const reviewCount = product?.reviewCount ?? 0;
+  const productReviews = product?.reviews ?? [];
   
   const getRatingDistribution = () => {
-    // Mocked distribution
-    return [20, 20, 20, 20, 20];
+    if (!product || product.reviewCount === 0) return [0, 0, 0, 0, 0];
+    const distribution = [0, 0, 0, 0, 0];
+    product.reviews.forEach(review => {
+      distribution[review.rating - 1]++;
+    });
+    return distribution.map(count => (count / product.reviewCount) * 100).reverse();
   };
 
 
@@ -393,7 +397,7 @@ export default function SalesPage() {
               <TabsTrigger value="description" className="font-body-semibold">Descrição</TabsTrigger>
               <TabsTrigger value="specifications" className="font-body-semibold">Especificações</TabsTrigger>
               <TabsTrigger value="reviews" className="font-body-semibold">Avaliações ({reviewCount})</TabsTrigger>
-              <TabsTrigger value="qa" className="font-body-semibold">Q&A ({product.qa?.length || 0})</TabsTrigger>
+              <TabsTrigger value="qa" className="font-body-semibold">Q&A ({product.qa.length || 0})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="description" className="mt-6">
@@ -516,7 +520,7 @@ export default function SalesPage() {
                 <CardContent className="p-6">
                   <h3 className="font-title text-xl font-body-semibold mb-6">Perguntas e Respostas</h3>
                   <div className="space-y-6 mb-8">
-                    {product.qa?.map((item) => (
+                    {product.qa.map((item) => (
                       <div key={item.id} className="border-b pb-6 last:border-b-0">
                         <div className="flex items-start space-x-3">
                           <HelpCircle className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />

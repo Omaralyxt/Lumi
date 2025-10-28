@@ -21,7 +21,9 @@ const mockOrders: Order[] = [
         specifications: {},
         deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
         reviews: [],
+        qa: [], // Adicionado
         options: [],
+        variants: [], // Adicionado
         rating: 4.5,
         reviewCount: 128,
         timeDelivery: "2-5 dias úteis",
@@ -57,7 +59,9 @@ const mockOrders: Order[] = [
         specifications: {},
         deliveryInfo: { city: "Maputo", fee: 100, eta: "1-2 dias" },
         reviews: [],
+        qa: [], // Adicionado
         options: [],
+        variants: [], // Adicionado
         rating: 4.2,
         reviewCount: 89,
         timeDelivery: "2-3 dias úteis",
@@ -76,7 +80,9 @@ const mockOrders: Order[] = [
         specifications: {},
         deliveryInfo: { city: "Maputo", fee: 80, eta: "2-3 dias" },
         reviews: [],
+        qa: [], // Adicionado
         options: [],
+        variants: [], // Adicionado
         rating: 4.8,
         reviewCount: 156,
         timeDelivery: "3-5 dias úteis",
@@ -112,7 +118,9 @@ const mockOrders: Order[] = [
         specifications: {},
         deliveryInfo: { city: "Maputo", fee: 120, eta: "1-2 dias" },
         reviews: [],
+        qa: [], // Adicionado
         options: [],
+        variants: [], // Adicionado
         rating: 4.3,
         reviewCount: 67,
         timeDelivery: "2-4 dias úteis",

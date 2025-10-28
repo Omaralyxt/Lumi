@@ -1,4 +1,4 @@
-import { Product, Review, ProductVariant } from "../types/product";
+import { Product, ProductVariant } from "../types/product";
 import { supabase } from '@/integrations/supabase/client';
 
 // Função auxiliar para mapear dados do Supabase para o tipo Product

@@ -29,6 +29,26 @@ export interface Option {
   values: string[];
 }
 
+// Novas interfaces para Reviews e Q&A
+export interface Review {
+  id: string | number;
+  author: string;
+  rating: number;
+  comment: string;
+  date: string;
+  verifiedPurchase: boolean;
+  images?: string[];
+}
+
+export interface QA {
+  id: string | number;
+  author: string;
+  question: string;
+  date: string;
+  answer?: string;
+  answerDate?: string;
+}
+
 export interface Product {
   id: string | number; // Mantendo number para compatibilidade com mocks, mas permitindo string (UUID)
   title: string;
@@ -47,4 +67,6 @@ export interface Product {
   options: Option[];
   variants: ProductVariant[]; // Novo campo para armazenar todas as variantes
   timeDelivery: string;
+  reviews: Review[]; // Adicionado
+  qa: QA[]; // Adicionado
 }
