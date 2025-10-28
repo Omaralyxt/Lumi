@@ -1,6 +1,16 @@
 import { Product, ProductVariant } from "../types/product";
 import { supabase } from '@/integrations/supabase/client';
 
+// Tipagem para o Banner (baseado no componente BannerCarousel)
+interface Banner {
+  id: number;
+  title: string;
+  description: string;
+  image_url: string;
+  link: string;
+  active: boolean;
+}
+
 // Função auxiliar para mapear dados do Supabase para o tipo Product
 const mapSupabaseProductToFrontend = (product: any): Product => {
   const variants: ProductVariant[] = (product.product_variants || []).map((v: any) => ({
@@ -83,6 +93,30 @@ const baseProductQuery = () => supabase
     product_variants (id, name, price, stock, image_url),
     product_images (image_url, sort_order)
   `);
+
+// Função para buscar banners ativos
+export const getBanners = async (): Promise<Banner[]> => {
+  const { data, error } = await supabase
+    .from('banner & Fotos')
+    .select('id, title, description, image_url, link, active')
+    .eq('active', true)
+    .order('id', { ascending: true });
+    
+  if (error) {
+    console.error("Erro ao buscar banners:", error);
+    return [];
+  }
+  
+  // Mapear para o tipo Banner (o ID é bigint, mas o componente espera number ou string)
+  return data.map(item => ({
+    id: Number(item.id), // Convertendo bigint para number
+    title: item.title || '',
+    description: item.description || '',
+    image_url: item.image_url || '/placeholder.svg',
+    link: item.link || '#',
+    active: item.active || false,
+  }));
+};
 
 // Função para buscar produto por ID
 export const getProductById = async (id: string): Promise<Product> => {

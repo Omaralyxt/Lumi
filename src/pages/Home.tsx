@@ -1,13 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, User, Bell, Grid3X3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { useCategories } from "@/hooks/useCategories";
+import { Grid3X3, AlertCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCategories } from "@/hooks/useCategories";
+import BannerCarousel from "@/components/BannerCarousel";
+import ProductSection from "@/components/ProductSection";
+import { getBanners, getFeaturedProducts } from "@/api/products";
+
+// Tipagem para o Banner (importada da API)
+interface Banner {
+  id: number;
+  title: string;
+  description: string;
+  image_url: string;
+  link: string;
+  active: boolean;
+}
 
 // Componente de Item de Categoria
 const CategoryItem = ({ name, navigate }: { name: string, navigate: (path: string) => void }) => (
@@ -44,7 +55,7 @@ const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => 
   }
 
   if (categories.length === 0) {
-    return null; // Não renderiza se não houver categorias
+    return null;
   }
 
   return (
@@ -65,58 +76,60 @@ const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => 
   );
 };
 
-// Componente de Produto (Placeholder)
-const ProductCard = ({ product }: { product: { id: number, name: string, price: number, imageUrl: string } }) => (
-  <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-    <img src={product.imageUrl} alt={product.name} className="w-full h-40 object-cover" />
-    <CardContent className="p-3">
-      <h3 className="text-sm font-semibold truncate">{product.name}</h3>
-      <p className="text-lg font-bold text-blue-600 mt-1">MZN {product.price.toFixed(2)}</p>
-    </CardContent>
-  </Card>
-);
-
-// Componente de Banner (Placeholder)
-const Banner = () => (
-  <div className="bg-blue-100 dark:bg-blue-900 p-6 rounded-lg shadow-md mb-8">
-    <h1 className="text-4xl font-title font-extrabold text-blue-800 dark:text-blue-200 mb-2">Lumi Market</h1>
-    <p className="text-blue-600 dark:text-blue-300">Descubra produtos incríveis de vendedores locais.</p>
-    <Button className="mt-4 bg-blue-600 hover:bg-blue-700">Compre Agora</Button>
-  </div>
-);
-
-// Dados de produtos de exemplo (Placeholder)
-const featuredProducts = [
-  { id: 1, name: "T-shirt Algodão Premium", price: 450.00, imageUrl: "https://via.placeholder.com/300x200?text=Produto+1" },
-  { id: 2, name: "Calças Jeans Slim Fit", price: 1200.00, imageUrl: "https://via.placeholder.com/300x200?text=Produto+2" },
-  { id: 3, name: "Sapatilhas Desportivas", price: 1800.00, imageUrl: "https://via.placeholder.com/300x200?text=Produto+3" },
-  { id: 4, name: "Relógio Inteligente", price: 3500.00, imageUrl: "https://via.placeholder.com/300x200?text=Produto+4" },
-];
-
 // Componente Principal da Página
 export default function Home() {
   const navigate = useNavigate();
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [bannerLoading, setBannerLoading] = useState(true);
+  const [bannerError, setBannerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      setBannerLoading(true);
+      try {
+        const data = await getBanners();
+        setBanners(data);
+      } catch (err) {
+        setBannerError("Falha ao carregar banners.");
+        console.error(err);
+      } finally {
+        setBannerLoading(false);
+      }
+    };
+    fetchBanners();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <main className="max-w-md mx-auto p-4">
-        {/* Banner */}
-        <Banner />
+        {/* Banner Carousel */}
+        <div className="mb-8">
+          {bannerLoading ? (
+            <Skeleton className="w-full h-64 md:h-80 rounded-xl" />
+          ) : bannerError ? (
+            <div className="p-6 bg-red-100 text-red-700 rounded-lg flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              {bannerError}
+            </div>
+          ) : banners.length > 0 ? (
+            <BannerCarousel banners={banners} />
+          ) : (
+            <div className="bg-blue-100 dark:bg-blue-900 p-6 rounded-lg shadow-md">
+              <h1 className="text-4xl font-title font-extrabold text-blue-800 dark:text-blue-200 mb-2">Lumi Market</h1>
+              <p className="text-blue-600 dark:text-blue-300">Descubra produtos incríveis de vendedores locais.</p>
+            </div>
+          )}
+        </div>
 
         {/* Seção de Categorias */}
         <CategorySection navigate={navigate} />
 
-        {/* Seção de Produtos em Destaque */}
-        <div className="py-8">
-          <h2 className="font-title text-3xl font-bold mb-6 tracking-wide text-gray-900 dark:text-white">
-            Produtos em Destaque
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            {featuredProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
+        {/* Seção de Produtos em Destaque (Dynamic) */}
+        <ProductSection 
+          title="Produtos em Destaque" 
+          fetchFunction={getFeaturedProducts} 
+          showStoreInfo={true}
+        />
       </main>
     </div>
   );
