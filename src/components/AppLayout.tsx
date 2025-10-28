@@ -7,7 +7,7 @@ import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
 import HeaderCart from "./HeaderCart";
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck } from "lucide-react";
+import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck, Bell, Percent, Grid3X3 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
@@ -63,11 +63,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     navigate('/home');
   };
 
+  // Menu simplificado para utilidades e rotas secundárias
   const menuItems = [
     { icon: Package, label: "Meus Pedidos", href: "/orders" },
-    { icon: Store, label: "Categorias", href: "/categories" },
-    { icon: User, label: "Minha Conta", href: "/account" },
     { icon: Heart, label: "Favoritos", href: "/favorites" },
+    { icon: Bell, label: "Notificações", href: "/notifications" },
     { icon: Truck, label: "Acompanhar Pedido", href: "/track-order" },
     { icon: Store, label: "Lojas Parceiras", href: "/stores" },
   ];
@@ -100,6 +100,35 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   <SheetTitle className="text-gray-900 dark:text-white">Menu</SheetTitle>
                 </SheetHeader>
                 <nav className="mt-6 space-y-2">
+                  {/* Itens principais (já na barra inferior, mas úteis no menu) */}
+                  <Link
+                    to="/home"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Home className="h-5 w-5" />
+                    <span>Início</span>
+                  </Link>
+                  <Link
+                    to="/categories"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Grid3X3 className="h-5 w-5" />
+                    <span>Categorias</span>
+                  </Link>
+                  <Link
+                    to="/offers"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Percent className="h-5 w-5" />
+                    <span>Ofertas</span>
+                  </Link>
+                  
+                  {/* Itens Secundários */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+                  
                   {menuItems.map((item) => (
                     <Link
                       key={item.label}
@@ -111,12 +140,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       <span>{item.label}</span>
                     </Link>
                   ))}
+                  
+                  {/* Autenticação */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
                   {user ? (
                     <button
                       onClick={handleLogout}
                       className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-gray-900 dark:text-white"
                     >
-                      <X className="h-5 w-5" />
+                      <LogOut className="h-5 w-5" />
                       <span>Sair</span>
                     </button>
                   ) : (

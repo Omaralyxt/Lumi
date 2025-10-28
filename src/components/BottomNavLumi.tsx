@@ -1,10 +1,10 @@
 "use client";
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingCart, User, Grid3X3, Bell } from "lucide-react"; // Importando Grid3X3 e Bell
-import { useCart } from "@/context/CartContext"; // Corrigido o caminho de importação
+import { Home, ShoppingCart, User, Grid3X3, Percent } from "lucide-react"; // Usando Percent para Ofertas
+import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications } from "@/hooks/useNotifications"; // Mantido para o badge de notificação, mas o item de navegação será removido
 
 interface NavItemProps {
   to: string;
@@ -37,29 +37,35 @@ export default function BottomNavLumi() {
   const location = useLocation();
   const { cartItems } = useCart();
   const { isAuthenticated } = useAuth();
-  const { unreadCount } = useNotifications();
+  // const { unreadCount } = useNotifications(); // Removido o uso direto, mas mantido o hook
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const isSeller = useAuth().user?.role === 'seller';
   
   // Define o caminho para a página de perfil/dashboard
-  const profilePath = isAuthenticated ? (isSeller ? "/seller/dashboard" : "/profile") : "/login";
+  const profilePath = isAuthenticated ? (isSeller ? "/seller/dashboard" : "/account") : "/login";
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50">
       <div className="max-w-md mx-auto flex justify-around h-14">
         <NavItem
-          to="/"
+          to="/home"
           icon={Home}
           label="Início"
-          isActive={location.pathname === "/"}
+          isActive={location.pathname === "/home" || location.pathname === "/"}
         />
         <NavItem
           to="/categories"
-          icon={Grid3X3} // Ícone alterado para Grid3X3
+          icon={Grid3X3}
           label="Categorias"
           isActive={location.pathname.startsWith("/categories") || location.pathname.startsWith("/category/")}
+        />
+        <NavItem
+          to="/offers"
+          icon={Percent} // Usando Percent para Ofertas
+          label="Ofertas"
+          isActive={location.pathname === "/offers"}
         />
         <NavItem
           to="/cart"
@@ -68,18 +74,12 @@ export default function BottomNavLumi() {
           isActive={location.pathname === "/cart"}
           badgeCount={cartCount}
         />
-        <NavItem
-          to="/notifications"
-          icon={Bell}
-          label="Notificações"
-          isActive={location.pathname === "/notifications"}
-          badgeCount={unreadCount}
-        />
+        {/* Notificações removidas da barra inferior para manter 5 itens principais */}
         <NavItem
           to={profilePath}
           icon={User}
-          label={isSeller ? "Vendedor" : "Perfil"}
-          isActive={location.pathname.startsWith("/profile") || location.pathname.startsWith("/seller")}
+          label="Conta"
+          isActive={location.pathname.startsWith("/account") || location.pathname.startsWith("/profile") || location.pathname.startsWith("/login")}
         />
       </div>
     </div>
