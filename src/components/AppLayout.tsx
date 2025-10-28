@@ -7,6 +7,8 @@ import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
 import HeaderCart from "./HeaderCart";
 import { supabase } from '@/integrations/supabase/client';
+import { Search } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -22,6 +24,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [user, setUser] = useState<any>(null);
 
   const isAuthPage = excludedPaths.some(path => location.pathname.startsWith(path));
+  const isHomePage = location.pathname === "/home" || location.pathname === "/";
 
   useEffect(() => {
     const checkUser = async () => {
@@ -65,13 +68,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
           : "bg-[#fafafa] text-gray-900"
       }`}
     >
-      {/* Navbar com tema switch e carrinho */}
-      <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center">
+      {/* Navbar Minimalista (Visível em todas as páginas, exceto auth) */}
+      <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3 flex justify-between items-center h-16">
         <Link to="/">
-          <img src={LOGO_URL} alt="Lumi Logo" className="h-10 w-auto" />
+          <img src={LOGO_URL} alt="Lumi Logo" className="h-8 w-auto" />
         </Link>
 
         <div className="flex items-center space-x-3">
+          {/* Se não for a Home, mostramos a busca aqui */}
+          {!isHomePage && (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/search')}>
+              <Search className="h-5 w-5" />
+            </Button>
+          )}
           <HeaderCart />
           <ThemeToggle />
         </div>

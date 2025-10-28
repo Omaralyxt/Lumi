@@ -20,15 +20,20 @@ export default function ProductGrid({ products, title, showStoreInfo = false }: 
 
   // Memoize the handleBuy function to prevent unnecessary re-renders
   const handleBuy = useCallback((product: Product) => {
+    // Usamos o ID do produto principal, mas o addToCart precisa de um objeto Product completo
     addToCart(product, 1);
   }, [addToCart]);
 
   // Memoize the product cards to prevent unnecessary re-renders
   const productCards = useMemo(() => {
     return products.map((product) => (
-      <div
+      <motion.div
         key={product.id}
-        className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent shadow-[0_0_15px_rgba(0,170,255,0.1)] hover:shadow-neon-blue-lg transition-all duration-300 hover:scale-[1.02] dark:border-neon-blue/30 dark:hover:border-neon-blue"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        whileHover={{ y: -3, boxShadow: '0 0 15px rgba(0, 170, 255, 0.4)' }}
+        className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent shadow-[0_0_15px_rgba(0,170,255,0.1)] hover:shadow-neon-blue-lg transition-all duration-300 dark:border-neon-blue/30 dark:hover:border-neon-blue"
       >
         {/* Imagem - Clicável para página de vendas */}
         <Link to={`/sales/${product.id}`}>
@@ -79,19 +84,14 @@ export default function ProductGrid({ products, title, showStoreInfo = false }: 
             />
           </div>
         </div>
-      </div>
+      </motion.div>
     ));
   }, [products, handleBuy, showStoreInfo]);
 
   return (
     <div className="font-body">
-      {title && (
-        <h2 className="font-title text-3xl mb-8 text-center tracking-wide text-gray-900 dark:text-gray-100">
-          {title}
-        </h2>
-      )}
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+      {/* Removido o título aqui, pois ele será gerenciado pelo componente ProductSection na Home */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
         {productCards}
       </div>
     </div>
