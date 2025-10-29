@@ -165,8 +165,9 @@ const ProductCard = ({ product }: { product: Product }) => {
 const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
   const navigate = useNavigate();
   const handleCategoryClick = () => {
+    // Cria um slug a partir do nome do grupo para a URL (usando a rota CategoriesPage para listar subcategorias)
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    navigate(`/category/${slug}`);
+    navigate(`/categories`); // Redireciona para a página de categorias para ver o grupo
   };
 
   return (
@@ -212,7 +213,7 @@ export default function Home() {
     staleTime: 1000 * 60 * 1, // 1 minute
   });
 
-  // Quick Categories (Top 5 groups + "Todas")
+  // Quick Categories (Agora inclui TODOS os grupos)
   const quickCategories = useMemo(() => {
     const icons: Record<string, string> = {
       "Moda e Estilo": '👗',
@@ -220,19 +221,22 @@ export default function Home() {
       "Casa e Decoração": '🏠',
       "Eletrodomésticos": '🧺',
       "Beleza e Cuidados Pessoais": '💄',
+      "Bebés e Crianças": '🧸',
+      "Ferramentas e Construção": '🔨',
+      "Automóveis e Motos": '🚗',
+      "Papelaria e Escritório": '📚',
+      "Esportes e Lazer": '⚽',
+      "Supermercado e Alimentos": '🛒',
+      "Saúde e Bem-estar": '💊',
+      "Animais de Estimação": '🐾',
+      "Entretenimento e Cultura": '🎬',
     };
-    const categories = PRODUCT_CATEGORIES.slice(0, 5).map(group => ({
+    
+    // Mapeia todos os grupos de categorias
+    return PRODUCT_CATEGORIES.map(group => ({
       name: group.group,
       icon: icons[group.group] || '📦',
     }));
-
-    // Adicionar a categoria "Todas"
-    categories.push({
-      name: 'Todas',
-      icon: <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />,
-    } as any); // Usamos 'any' temporariamente para o ícone ser um componente React
-
-    return categories;
   }, []);
 
   return (
@@ -261,20 +265,12 @@ export default function Home() {
           >
             <CarouselContent className="-ml-2">
               {quickCategories.map((category, index) => (
-                <CarouselItem key={category.name} className="basis-1/4 sm:basis-1/6 md:basis-1/8 lg:basis-1/10 pl-2">
-                  {category.name === 'Todas' ? (
-                    <div 
-                      className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity w-full"
-                      onClick={() => navigate('/categories')}
-                    >
-                      <div className="text-2xl p-3 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1">
-                        {category.icon}
-                      </div>
-                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-2">{category.name}</p>
-                    </div>
-                  ) : (
-                    <QuickCategory name={category.name} icon={category.icon as string} />
-                  )}
+                <CarouselItem 
+                  key={category.name} 
+                  // Ajuste para mostrar 5 ou 6 itens em telas pequenas/médias
+                  className="basis-1/5 sm:basis-1/6 pl-2"
+                >
+                  <QuickCategory name={category.name} icon={category.icon as string} />
                 </CarouselItem>
               ))}
             </CarouselContent>
