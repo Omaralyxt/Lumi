@@ -98,6 +98,8 @@ const baseProductQuery = () => supabase
 export const syncBannersWithStorage = async () => {
   const BUCKET_NAME = 'Banners and logos';
   const FOLDER_NAME = 'Banners'; 
+  // Usando o nome da tabela com aspas duplas
+  const TABLE_NAME = 'banner&Fotos'; 
 
   try {
     // 1. Listar arquivos no storage
@@ -116,9 +118,9 @@ export const syncBannersWithStorage = async () => {
       return;
     }
 
-    // 2. Buscar URLs existentes no banco de dados (usando a nova tabela 'banners')
+    // 2. Buscar URLs existentes no banco de dados
     const { data: existingBanners, error: fetchError } = await supabase
-      .from('banners')
+      .from(TABLE_NAME)
       .select('image_url');
 
     if (fetchError) throw fetchError;
@@ -148,7 +150,7 @@ export const syncBannersWithStorage = async () => {
     // 4. Inserir novos banners
     if (newBannersToInsert.length > 0) {
       const { error: insertError } = await supabase
-        .from('banners') // Usando a nova tabela 'banners'
+        .from(TABLE_NAME)
         .insert(newBannersToInsert);
 
       if (insertError) throw insertError;
@@ -163,8 +165,10 @@ export const syncBannersWithStorage = async () => {
 
 // Função para buscar banners ativos
 export const getBanners = async (): Promise<Banner[]> => {
+  const TABLE_NAME = 'banner&Fotos';
+  
   const { data, error } = await supabase
-    .from('banners') // Usando a nova tabela 'banners'
+    .from(TABLE_NAME)
     .select('id, title, description, image_url, link, active, sort_order')
     .eq('active', true)
     .order('sort_order', { ascending: true, nullsFirst: false }) 
