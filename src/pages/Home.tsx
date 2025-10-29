@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
-import { getBanners, getFeaturedProducts } from '@/api/products'; // Importação corrigida
+import { getBanners, getFeaturedProducts } from '@/api/products';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
-import { useCart } from '@/context/CartContext'; // Corrigido o import do useCart
+import { useCart } from '@/context/CartContext';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -55,14 +55,15 @@ interface Product {
   image_url: string;
   price: number;
   store_name: string;
+  store_id: string;
 }
 
 const ProductCard = ({ product }: { product: Product }) => {
   const navigate = useNavigate();
-  const { addToCart } = useCart(); // Usando useCart do contexto
+  const { addToCart } = useCart();
 
   const handleViewProduct = () => {
-    navigate(`/sales/${product.id}`); // Corrigido para /sales/:id
+    navigate(`/sales/${product.id}`);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -144,8 +145,8 @@ const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user: session, loading: authLoading } = useAuth(); // Usando 'user' do useAuth
-  const { cartCount: totalItems } = useCart(); // Usando cartCount do useCart
+  const { user: session, loading: authLoading } = useAuth();
+  const { cartCount: totalItems } = useCart();
 
   // Fetch Banners
   const { data: banners, isLoading: isLoadingBanners } = useQuery({
@@ -157,7 +158,6 @@ export default function Home() {
   // Fetch Products
   const { data: products, isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: ['products', 'featured'],
-    // Usando getFeaturedProducts que já existe em src/api/products.ts
     queryFn: async () => {
       const featured = await getFeaturedProducts();
       // Mapear para o formato simplificado esperado pelo ProductCard
@@ -191,7 +191,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       
-      {/* Banner Carousel (Full Width) - Moved outside the main container structure */}
+      {/* Banner Carousel (Full Width) */}
       <div className="mb-8">
         {isLoadingBanners ? (
           <div className="w-full aspect-video bg-gray-200 dark:bg-gray-800 animate-pulse rounded-lg" />
@@ -202,8 +202,8 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Top Header & Search */}
-        <header className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-950 pt-4 pb-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+        {/* Top Navigation & Search (Previously Sticky Header) */}
+        <div className="pt-0 pb-4">
           <div className="flex items-center justify-between mb-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/menu')}>
               <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
@@ -214,7 +214,6 @@ export default function Home() {
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
                 <Avatar className="h-8 w-8">
-                  {/* Removido profile?.avatar_url pois não temos o profile no useAuth */}
                   <AvatarFallback className="bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300">
                     <User className="h-5 w-5" />
                   </AvatarFallback>
@@ -242,7 +241,7 @@ export default function Home() {
             />
           </div>
           <Separator className="mt-4 dark:bg-gray-700" />
-        </header>
+        </div>
 
         {/* Quick Categories */}
         <section className="py-6">
