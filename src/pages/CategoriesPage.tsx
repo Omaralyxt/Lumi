@@ -51,7 +51,7 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({ group, categories, icon, 
           <div className="text-2xl">{icon}</div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{group}</h2>
         </div>
-        <ChevronLeft className={`h-5 w-5 text-gray-500 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-0'}`} />
+        {/* ChevronLeft icon removed here */}
       </div>
       
       {isExpanded && (
