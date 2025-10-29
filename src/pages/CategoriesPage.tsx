@@ -113,19 +113,6 @@ export default function CategoriesPage() {
           </h1>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input 
-              placeholder="Pesquisar categorias..." 
-              className="pl-10 w-full dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-              onClick={() => navigate('/search')}
-              readOnly
-            />
-          </div>
-        </div>
-
         {/* Category Groups */}
         <div className="space-y-4">
           {PRODUCT_CATEGORIES.map((groupData) => (
