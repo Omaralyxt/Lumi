@@ -1,87 +1,271 @@
-import React from 'react';
-import BannerCarousel from '@/components/BannerCarousel';
-import ProductCard from '@/components/ProductCard';
-import { getAllProducts } from '@/api/products';
+"use client";
+
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, ShoppingCart, User, Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
-import { Product } from '@/types/product';
+import { getBanners } from '@/api/banners';
+import { getProducts } from '@/api/products';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingBag, Store, Truck } from 'lucide-react';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { PRODUCT_CATEGORIES } from '@/constants/categories';
+import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; description: string }> = ({ icon, title, description }) => (
-  <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-sm">
-    <div className="text-primary mb-3">{icon}</div>
-    <h3 className="font-semibold text-lg mb-1">{title}</h3>
-    <p className="text-sm text-gray-600">{description}</p>
-  </div>
-);
-
-const Home: React.FC = () => {
-  const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ['allProducts'],
-    queryFn: getAllProducts,
-  });
+// Componente de Banner
+const BannerCarousel = ({ banners }: { banners: { id: string; image_url: string; link: string }[] }) => {
+  if (!banners || banners.length === 0) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      
-      {/* Banner Carousel (Full Width) - Moved outside the main container structure */}
-      <div className="mb-8">
-        <BannerCarousel />
+    <Carousel className="w-full">
+      <CarouselContent>
+        {banners.map((banner) => (
+          <CarouselItem key={banner.id}>
+            <div className="p-1">
+              <Card className="border-none shadow-none">
+                <CardContent className="flex aspect-video items-center justify-center p-0">
+                  <a href={banner.link} className="w-full h-full">
+                    <img
+                      src={banner.image_url}
+                      alt={`Banner ${banner.id}`}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  </a>
+                </CardContent>
+              </Card>
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious className="hidden sm:flex" />
+      <CarouselNext className="hidden sm:flex" />
+    </Carousel>
+  );
+};
+
+// Componente de Produto
+interface Product {
+  id: string;
+  name: string;
+  image_url: string;
+  price: number;
+  store_name: string;
+}
+
+const ProductCard = ({ product }: { product: Product }) => {
+  const navigate = useNavigate();
+  const { addItem } = useCart();
+
+  const handleViewProduct = () => {
+    navigate(`/product/${product.id}`);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Simplificado: Adiciona o produto principal (assumindo que o preço é o da variante padrão)
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image_url: product.image_url,
+      variant: 'Padrão', // Placeholder
+      variant_id: 'default', // Placeholder
+      store_id: 'default', // Placeholder
+    });
+  };
+
+  return (
+    <Card 
+      className="w-full cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800"
+      onClick={handleViewProduct}
+    >
+      <CardContent className="p-0">
+        <div className="relative w-full aspect-square overflow-hidden rounded-t-lg">
+          <img
+            src={product.image_url || 'placeholder.jpg'}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          />
+        </div>
+        <div className="p-3">
+          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-1">{product.store_name}</p>
+          <h3 className="font-body font-medium text-sm line-clamp-2 mb-2 dark:text-white">{product.name}</h3>
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+              {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(product.price)}
+            </span>
+            <Button 
+              size="sm" 
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+              onClick={handleAddToCart}
+            >
+              +
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Componente de Categoria Rápida
+const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
+  const navigate = useNavigate();
+  const handleCategoryClick = () => {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    navigate(`/category/${slug}`);
+  };
+
+  return (
+    <div 
+      className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={handleCategoryClick}
+    >
+      <div className="text-2xl p-3 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1">
+        {icon}
       </div>
-
-      {/* Main Content Container */}
-      <div className="container mx-auto px-4 md:px-8">
-        {/* Features Section */}
-        <div className="mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard 
-              icon={<Truck size={32} />} 
-              title="Entrega Rápida" 
-              description="Receba seus produtos em 24-48 horas em Maputo." 
-            />
-            <FeatureCard 
-              icon={<Store size={32} />} 
-              title="Lojas Locais" 
-              description="Apoie vendedores e artesãos moçambicanos." 
-            />
-            <FeatureCard 
-              icon={<ShoppingBag size={32} />} 
-              title="Compra Segura" 
-              description="Transações protegidas e garantia de devolução." 
-            />
-          </div>
-        </div>
-
-        {/* Featured Products Section */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Produtos em Destaque</h2>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-            {isLoading ? (
-              Array.from({ length: 10 }).map((_, index) => (
-                <Skeleton key={index} className="h-80 w-full rounded-lg" />
-              ))
-            ) : (
-              products?.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Placeholder for Categories or other sections */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Categorias Populares</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="h-24 w-full rounded-lg" />
-          </div>
-        </div>
-      </div>
+      <p className="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-2">{name}</p>
     </div>
   );
 };
 
-export default Home;
+export default function Home() {
+  const navigate = useNavigate();
+  const { session, profile } = useAuth();
+  const { totalItems } = useCart();
+
+  // Fetch Banners
+  const { data: banners, isLoading: isLoadingBanners } = useQuery({
+    queryKey: ['banners'],
+    queryFn: getBanners,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Fetch Products
+  const { data: products, isLoading: isLoadingProducts } = useQuery<Product[]>({
+    queryKey: ['products', 'featured'],
+    queryFn: () => getProducts({ limit: 10 }),
+    staleTime: 1000 * 60 * 1, // 1 minute
+  });
+
+  // Quick Categories (Top 5 groups)
+  const quickCategories = useMemo(() => {
+    const icons: Record<string, string> = {
+      "Moda e Estilo": '👗',
+      "Tecnologia e Eletrônicos": '📱',
+      "Casa e Decoração": '🏠',
+      "Eletrodomésticos": '🧺',
+      "Beleza e Cuidados Pessoais": '💄',
+    };
+    return PRODUCT_CATEGORIES.slice(0, 5).map(group => ({
+      name: group.group,
+      icon: icons[group.group] || '📦',
+    }));
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      
+      {/* Banner Carousel (Full Width) - Moved outside the main container structure */}
+      <div className="mb-8">
+        {isLoadingBanners ? (
+          <div className="w-full aspect-video bg-gray-200 dark:bg-gray-800 animate-pulse rounded-lg" />
+        ) : (
+          <BannerCarousel banners={banners || []} />
+        )}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Top Header & Search */}
+        <header className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-950 pt-4 pb-4 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/menu')}>
+              <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            </Button>
+            
+            <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">Lumi</h1>
+
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.first_name || "User"} />
+                  <AvatarFallback className="bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300">
+                    <User className="h-5 w-5" />
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => navigate('/cart')} className="relative">
+                <ShoppingCart className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                {totalItems > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-red-500 text-white">
+                    {totalItems}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Buscar produtos, lojas ou categorias..."
+              className="pl-10 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:ring-blue-500"
+              onClick={() => navigate('/search')}
+              readOnly
+            />
+          </div>
+          <Separator className="mt-4 dark:bg-gray-700" />
+        </header>
+
+        {/* Quick Categories */}
+        <section className="py-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Categorias Populares</h2>
+          <div className="flex justify-between space-x-2 overflow-x-auto pb-2">
+            {quickCategories.map((category) => (
+              <QuickCategory key={category.name} name={category.name} icon={category.icon} />
+            ))}
+            <div 
+              className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity min-w-[60px]"
+              onClick={() => navigate('/categories')}
+            >
+              <div className="text-2xl p-3 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1">
+                <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              </div>
+              <p className="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-2">Todas</p>
+            </div>
+          </div>
+        </section>
+
+        <Separator className="dark:bg-gray-700" />
+
+        {/* Featured Products */}
+        <section className="py-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Produtos em Destaque</h2>
+          
+          {isLoadingProducts ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-64 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {products?.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
