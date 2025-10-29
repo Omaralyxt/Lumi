@@ -15,7 +15,7 @@ import { getFeaturedProducts, getBanners as getActiveBanners } from '@/api/produ
 import { Skeleton } from '@/components/ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useAuth } from '@/hooks/useAuth';
-import { useCart } from '@/context/CartContext'; // Corrigido o import do useCart
+import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/lib/utils';
 
 // Mock data for features (since we don't have a dedicated API for this yet)
@@ -34,7 +34,6 @@ const mockStores = [
 
 export default function Home() {
   const navigate = useNavigate();
-  // Nota: useAuth retorna { user, isAuthenticated, loading }, não { session }
   const { isAuthenticated } = useAuth(); 
   const { cartItems } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,112 +65,79 @@ export default function Home() {
   };
 
   const handleProductClick = (productId: string) => {
-    navigate(`/sales/${productId}`); // Corrigido para usar a rota /sales/:id
+    navigate(`/sales/${productId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden">
-                    <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] sm:w-[400px] dark:bg-gray-900">
-                  <SheetHeader>
-                    <SheetTitle className="text-2xl font-bold dark:text-white">Menu</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6 space-y-4">
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start text-lg dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => navigate('/categories')}
-                    >
-                      Todas as Categorias
-                    </Button>
-                    <Separator className="dark:bg-gray-700" />
-                    {PRODUCT_CATEGORIES.map(group => (
-                      <div key={group.group}>
-                        <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">{group.group}</h3>
-                        <ul className="space-y-1 ml-2">
-                          {group.categories.slice(0, 5).map(category => (
-                            <li key={category}>
-                              <Button 
-                                variant="link" 
-                                className="p-0 h-auto text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                                onClick={() => handleCategoryClick(category)}
-                              >
-                                {category}
-                              </Button>
-                            </li>
-                          ))}
-                          {group.categories.length > 5 && (
-                            <li>
-                              <Button 
-                                variant="link" 
-                                className="p-0 h-auto text-sm text-blue-600 dark:text-blue-400"
-                                onClick={() => navigate('/categories')}
-                              >
-                                Ver mais...
-                              </Button>
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    ))}
-                    <Separator className="dark:bg-gray-700" />
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start text-lg dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => navigate(isAuthenticated ? '/profile' : '/login')}
-                    >
-                      {isAuthenticated ? 'Meu Perfil' : 'Entrar / Cadastrar'}
-                    </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
-              <h1 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">Lumi</h1>
-            </div>
-
-            {/* Search Bar (Desktop/Tablet) */}
-            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
-              <div className="relative w-full">
-                <Input
-                  type="search"
-                  placeholder="Buscar produtos, lojas, categorias..."
-                  className="w-full pr-12 bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-500 dark:text-white"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Button type="submit" size="icon" className="absolute right-0 top-0 h-full rounded-l-none bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
-                  <Search className="h-5 w-5" />
+      <header className="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-20 max-w-7xl mx-auto px-4 md:px-8 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden">
+                  <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                 </Button>
-              </div>
-            </form>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate(isAuthenticated ? '/account' : '/login')}>
-                <User className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => navigate('/cart')} className="relative">
-                <ShoppingCart className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-                {totalCartItems > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500 text-white">
-                    {totalCartItems}
-                  </Badge>
-                )}
-              </Button>
-            </div>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] sm:w-[400px] dark:bg-gray-900">
+                <SheetHeader>
+                  <SheetTitle className="text-2xl font-bold dark:text-white">Menu</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-lg dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => navigate('/categories')}
+                  >
+                    Todas as Categorias
+                  </Button>
+                  <Separator className="dark:bg-gray-700" />
+                  {PRODUCT_CATEGORIES.map(group => (
+                    <div key={group.group}>
+                      <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">{group.group}</h3>
+                      <ul className="space-y-1 ml-2">
+                        {group.categories.slice(0, 5).map(category => (
+                          <li key={category}>
+                            <Button 
+                              variant="link" 
+                              className="p-0 h-auto text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                              onClick={() => handleCategoryClick(category)}
+                            >
+                              {category}
+                            </Button>
+                          </li>
+                        ))}
+                        {group.categories.length > 5 && (
+                          <li>
+                            <Button 
+                              variant="link" 
+                              className="p-0 h-auto text-sm text-blue-600 dark:text-blue-400"
+                              onClick={() => navigate('/categories')}
+                            >
+                              Ver mais...
+                            </Button>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  ))}
+                  <Separator className="dark:bg-gray-700" />
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-lg dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => navigate(isAuthenticated ? '/profile' : '/login')}
+                  >
+                    {isAuthenticated ? 'Meu Perfil' : 'Entrar / Cadastrar'}
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+            <h1 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">Lumi</h1>
           </div>
-          
-          {/* Search Bar (Mobile) */}
-          <form onSubmit={handleSearch} className="md:hidden mt-3">
+
+          {/* Search Bar (Desktop/Tablet) */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
             <div className="relative w-full">
               <Input
                 type="search"
@@ -185,7 +151,38 @@ export default function Home() {
               </Button>
             </div>
           </form>
+
+          {/* Actions */}
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(isAuthenticated ? '/account' : '/login')}>
+              <User className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/cart')} className="relative">
+              <ShoppingCart className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              {totalCartItems > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500 text-white">
+                  {totalCartItems}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
+        
+        {/* Search Bar (Mobile) */}
+        <form onSubmit={handleSearch} className="md:hidden mt-3">
+          <div className="relative w-full">
+            <Input
+              type="search"
+              placeholder="Buscar produtos, lojas, categorias..."
+              className="w-full pr-12 bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button type="submit" size="icon" className="absolute right-0 top-0 h-full rounded-l-none bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
+              <Search className="h-5 w-5" />
+            </Button>
+          </div>
+        </form>
       </header>
 
       {/* Main Content Container */}
