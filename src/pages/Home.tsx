@@ -8,13 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
-import { getBanners } from '@/api/banners';
-import { getProducts } from '@/api/products';
+import { getBanners, getFeaturedProducts } from '@/api/products'; // Importação corrigida
 import { Skeleton } from '@/components/ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/context/CartContext'; // Corrigido o import do useCart
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -60,25 +59,32 @@ interface Product {
 
 const ProductCard = ({ product }: { product: Product }) => {
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addToCart } = useCart(); // Usando useCart do contexto
 
   const handleViewProduct = () => {
-    navigate(`/product/${product.id}`);
+    navigate(`/sales/${product.id}`); // Corrigido para /sales/:id
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     // Simplificado: Adiciona o produto principal (assumindo que o preço é o da variante padrão)
-    addItem({
+    addToCart({
       id: product.id,
-      name: product.name,
+      title: product.name,
       price: product.price,
-      quantity: 1,
-      image_url: product.image_url,
-      variant: 'Padrão', // Placeholder
-      variant_id: 'default', // Placeholder
-      store_id: 'default', // Placeholder
-    });
+      images: [product.image_url],
+      shop: { id: product.store_id, name: product.store_name, rating: 4.5, reviewCount: 0, isVerified: true },
+      stock: 10, // Mocked
+      category: 'Outros', // Mocked
+      features: [],
+      specifications: {},
+      deliveryInfo: { city: 'Maputo', fee: 150, eta: '1-2 dias' },
+      options: [],
+      variants: [],
+      rating: 4.5,
+      reviewCount: 0,
+      timeDelivery: '2-5 dias úteis',
+    }, 1);
   };
 
   return (
@@ -89,7 +95,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       <CardContent className="p-0">
         <div className="relative w-full aspect-square overflow-hidden rounded-t-lg">
           <img
-            src={product.image_url || 'placeholder.jpg'}
+            src={product.image_url || '/placeholder.svg'}
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />
@@ -99,7 +105,7 @@ const ProductCard = ({ product }: { product: Product }) => {
           <h3 className="font-body font-medium text-sm line-clamp-2 mb-2 dark:text-white">{product.name}</h3>
           <div className="flex items-center justify-between">
             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(product.price)}
+              MT {product.price.toLocaleString('pt-MZ')}
             </span>
             <Button 
               size="sm" 
@@ -138,8 +144,8 @@ const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { session, profile } = useAuth();
-  const { totalItems } = useCart();
+  const { user: session, loading: authLoading } = useAuth(); // Usando 'user' do useAuth
+  const { cartCount: totalItems } = useCart(); // Usando cartCount do useCart
 
   // Fetch Banners
   const { data: banners, isLoading: isLoadingBanners } = useQuery({
@@ -151,7 +157,19 @@ export default function Home() {
   // Fetch Products
   const { data: products, isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: ['products', 'featured'],
-    queryFn: () => getProducts({ limit: 10 }),
+    // Usando getFeaturedProducts que já existe em src/api/products.ts
+    queryFn: async () => {
+      const featured = await getFeaturedProducts();
+      // Mapear para o formato simplificado esperado pelo ProductCard
+      return featured.map(p => ({
+        id: p.id as string,
+        name: p.title,
+        image_url: p.images[0],
+        price: p.price,
+        store_name: p.shop.name,
+        store_id: p.shop.id,
+      }));
+    },
     staleTime: 1000 * 60 * 1, // 1 minute
   });
 
@@ -196,7 +214,7 @@ export default function Home() {
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.first_name || "User"} />
+                  {/* Removido profile?.avatar_url pois não temos o profile no useAuth */}
                   <AvatarFallback className="bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300">
                     <User className="h-5 w-5" />
                   </AvatarFallback>
