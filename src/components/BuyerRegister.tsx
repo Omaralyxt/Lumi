@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
+import { upsertCustomerProfile } from "@/api/customer"; // Importar a função de upsert
 
 export default function BuyerRegister() {
   const [formData, setFormData] = useState({
@@ -36,7 +37,7 @@ export default function BuyerRegister() {
     }
 
     try {
-      // Registrar usuário no Supabase Auth
+      // 1. Registrar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -51,8 +52,23 @@ export default function BuyerRegister() {
 
       if (error) throw error;
 
-      // Se o registro for bem-sucedido, redirecionar para login
+      // 2. Se o registro Auth for bem-sucedido, criar o perfil detalhado do cliente
       if (data.user) {
+        // Nota: O perfil de Auth (handle_new_user) cria o registro na tabela 'profiles'.
+        // Precisamos criar o registro na tabela 'customers' para os dados de endereço/telefone.
+        await upsertCustomerProfile({
+          user_id: data.user.id,
+          full_name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          // Definir um endereço padrão mínimo para evitar N/A na primeira visita ao perfil
+          shipping_address: "Endereço Padrão (Preencha no Perfil)",
+          city: "Maputo",
+          district: "Centro",
+          state: "Maputo",
+          zip_code: "1100",
+        });
+        
         toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
         navigate("/login");
       }
