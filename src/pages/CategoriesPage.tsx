@@ -1,214 +1,100 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { 
-  Package, 
-  Search, 
-  ArrowLeft, 
-  Grid3X3, 
-  Shirt, // Adicionado
-  Smartphone, // Adicionado
-  Home, // Adicionado
-  Heart, // Adicionado
-  Baby, // Adicionado
-  Car, // Adicionado
-  Book, // Adicionado
-  Dumbbell, // Adicionado
-  ShoppingCart // Adicionado
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { PRODUCT_CATEGORIES, CategoryItem, getAllCategoryNames } from "@/constants/categories";
-import { getCategoryCounts } from "@/api/search";
-import Loading from "@/components/Loading";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Search, ShoppingCart, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
-// Mapeamento de ícones para grupos (usando ícones genéricos se não houver correspondência)
-const groupIconMap: Record<string, React.ElementType> = {
-  "Moda e Estilo": Shirt,
-  "Tecnologia e Eletrônicos": Smartphone,
-  "Casa e Decoração": Home,
-  "Eletrodomésticos": Package,
-  "Beleza e Cuidados Pessoais": Heart,
-  "Bebés e Crianças": Baby,
-  "Ferramentas e Construção": Package,
-  "Automóveis e Motos": Car,
-  "Papelaria e Escritório": Book,
-  "Esportes e Lazer": Dumbbell,
-  "Supermercado e Alimentos": ShoppingCart,
-  "Saúde e Bem-estar": Heart,
-  "Animais de Estimação": Package,
-  "Entretenimento e Cultura": Book,
-};
-
-interface CategoryWithCount {
-  name: string;
-  count: number;
-  slug: string;
-}
-
-interface GroupWithCounts extends CategoryItem {
-  totalCount: number;
-  subCategories: CategoryWithCount[];
-}
+// Mock Data for Categories
+const mockCategories = [
+  { id: '1', name: 'Eletrônicos', count: 120, icon: '📱' },
+  { id: '2', name: 'Moda Feminina', count: 85, icon: '👗' },
+  { id: '3', name: 'Casa & Cozinha', count: 210, icon: '🏠' },
+  { id: '4', name: 'Esportes', count: 55, icon: '⚽' },
+  { id: '5', name: 'Beleza', count: 90, icon: '💄' },
+  { id: '6', name: 'Livros', count: 45, icon: '📚' },
+  { id: '7', name: 'Automotivo', count: 30, icon: '🚗' },
+  { id: '8', name: 'Brinquedos', count: 75, icon: '🧸' },
+];
 
 export default function CategoriesPage() {
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState(mockCategories);
 
   useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const counts = await getCategoryCounts();
-        setCategoryCounts(counts);
-      } catch (e) {
-        console.error("Failed to fetch category counts:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCounts();
-  }, []);
+    const filtered = mockCategories.filter(category =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setCategories(filtered);
+  }, [searchTerm]);
 
-  // Processar e ordenar as categorias
-  const sortedGroups = useMemo(() => {
-    const groupsWithCounts: GroupWithCounts[] = PRODUCT_CATEGORIES.map(group => {
-      let totalCount = 0;
-      const subCategories: CategoryWithCount[] = group.categories.map(catName => {
-        const count = categoryCounts[catName] || 0;
-        totalCount += count;
-        return {
-          name: catName,
-          count: count,
-          slug: catName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-        };
-      });
-      
-      // Ordenar subcategorias por contagem
-      subCategories.sort((a, b) => b.count - a.count);
-
-      return {
-        ...group,
-        totalCount,
-        subCategories,
-      };
-    });
-
-    // Ordenar grupos principais pela contagem total de produtos
-    groupsWithCounts.sort((a, b) => b.totalCount - a.totalCount);
-    
-    return groupsWithCounts;
-  }, [categoryCounts]);
-  
-  // Filtrar categorias com base no termo de busca
-  const filteredGroups = useMemo(() => {
-    if (!searchTerm) return sortedGroups;
-    const lowerCaseSearch = searchTerm.toLowerCase();
-    
-    return sortedGroups
-      .map(group => {
-        const filteredSubCategories = group.subCategories.filter(cat => 
-          cat.name.toLowerCase().includes(lowerCaseSearch)
-        );
-        
-        // Incluir o grupo se o nome do grupo ou alguma subcategoria corresponder
-        if (group.group.toLowerCase().includes(lowerCaseSearch) || filteredSubCategories.length > 0) {
-          return {
-            ...group,
-            subCategories: filteredSubCategories,
-          };
-        }
-        return null;
-      })
-      .filter((group): group is GroupWithCounts => group !== null);
-  }, [sortedGroups, searchTerm]);
-
-
-  if (loading) {
-    return <Loading />;
-  }
+  const handleCategoryClick = (categoryId: string) => {
+    // Navegar para a página de produtos filtrada pela categoria
+    navigate(`/products?category=${categoryId}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 font-body text-gray-900 dark:text-gray-100 transition-colors duration-500">
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-title text-4xl text-gray-900 dark:text-gray-100 tracking-wide">
-            Categorias
-          </h1>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative">
-            <Search className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar categorias..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            </Button>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Categorias</h1>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/cart')}>
+              <ShoppingCart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            </Button>
+          </div>
+          <div className="mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Buscar categorias..."
+                className="pl-10 w-full bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Categories List (Grouped and Sorted) */}
-        <div className="space-y-8">
-          {filteredGroups.map((group) => {
-            const GroupIcon = groupIconMap[group.group] || Grid3X3;
-            
-            if (group.subCategories.length === 0 && searchTerm) return null; // Não mostra grupos vazios na busca
-
-            return (
-              <div key={group.group}>
-                <div className="flex items-center mb-4 border-b pb-2">
-                  <GroupIcon className="h-6 w-6 mr-3 text-blue-600 dark:text-blue-400" />
-                  <h2 className="font-title text-2xl font-bold text-gray-900 dark:text-white">
-                    {group.group}
-                  </h2>
-                  <Badge variant="secondary" className="ml-3 text-sm">
-                    {group.totalCount} produtos
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {group.subCategories.map((category) => (
-                    <Link 
-                      key={category.slug} 
-                      to={`/category/${category.slug}`}
-                      className="block"
-                    >
-                      <Card
-                        className="product-card-style cursor-pointer transition-all hover:shadow-md dark:bg-gray-900/60"
-                      >
-                        <CardContent className="p-4">
-                          <h3 className="font-body font-semibold text-sm mb-1 line-clamp-1">{category.name}</h3>
-                          <Badge variant="secondary" className="text-xs">
-                            {category.count} produtos
-                          </Badge>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          
-          {filteredGroups.length === 0 && searchTerm && (
-            <div className="text-center py-12 text-gray-500">
-              Nenhuma categoria ou subcategoria encontrada para "{searchTerm}".
-            </div>
-          )}
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {categories.map((category) => (
+            <Card 
+              key={category.id} 
+              className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800"
+              onClick={() => handleCategoryClick(category.id)}
+            >
+              <CardContent className="p-4 flex flex-col items-center text-center">
+                <div className="text-4xl mb-3">{category.icon}</div>
+                <h3 className="font-body font-semibold text-sm mb-1 line-clamp-1 dark:text-white">{category.name}</h3>
+                <Badge 
+                  variant="secondary" 
+                  className="text-xs bg-gray-200 text-gray-700 dark:bg-blue-700 dark:text-white"
+                >
+                  {category.count} produtos
+                </Badge>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </div>
+        
+        {categories.length === 0 && (
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            Nenhuma categoria encontrada para "{searchTerm}".
+          </div>
+        )}
+      </main>
     </div>
   );
 }
