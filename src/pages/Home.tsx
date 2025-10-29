@@ -202,8 +202,8 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Top Navigation & Search (Previously Sticky Header) */}
-        <div className="pt-0 pb-4">
+        {/* Top Navigation & Search */}
+        <div className="pb-4"> {/* Mantendo o padding bottom para separação */}
           <div className="flex items-center justify-between mb-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/menu')}>
               <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
