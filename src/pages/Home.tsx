@@ -24,57 +24,60 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       
-      {/* Banner Carousel (Full Width) */}
+      {/* Banner Carousel (Full Width) - Moved outside the main container structure */}
       <div className="mb-8">
         <BannerCarousel />
       </div>
 
-      {/* Features Section */}
-      <div className="container mx-auto px-4 md:px-8 mb-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FeatureCard 
-            icon={<Truck size={32} />} 
-            title="Entrega Rápida" 
-            description="Receba seus produtos em 24-48 horas em Maputo." 
-          />
-          <FeatureCard 
-            icon={<Store size={32} />} 
-            title="Lojas Locais" 
-            description="Apoie vendedores e artesãos moçambicanos." 
-          />
-          <FeatureCard 
-            icon={<ShoppingBag size={32} />} 
-            title="Compra Segura" 
-            description="Transações protegidas e garantia de devolução." 
-          />
+      {/* Main Content Container */}
+      <div className="container mx-auto px-4 md:px-8">
+        {/* Features Section */}
+        <div className="mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FeatureCard 
+              icon={<Truck size={32} />} 
+              title="Entrega Rápida" 
+              description="Receba seus produtos em 24-48 horas em Maputo." 
+            />
+            <FeatureCard 
+              icon={<Store size={32} />} 
+              title="Lojas Locais" 
+              description="Apoie vendedores e artesãos moçambicanos." 
+            />
+            <FeatureCard 
+              icon={<ShoppingBag size={32} />} 
+              title="Compra Segura" 
+              description="Transações protegidas e garantia de devolução." 
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Featured Products Section */}
-      <div className="container mx-auto px-4 md:px-8 mb-12">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Produtos em Destaque</h2>
-        
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-          {isLoading ? (
-            Array.from({ length: 10 }).map((_, index) => (
-              <Skeleton key={index} className="h-80 w-full rounded-lg" />
-            ))
-          ) : (
-            products?.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))
-          )}
+        {/* Featured Products Section */}
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Produtos em Destaque</h2>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+            {isLoading ? (
+              Array.from({ length: 10 }).map((_, index) => (
+                <Skeleton key={index} className="h-80 w-full rounded-lg" />
+              ))
+            ) : (
+              products?.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Placeholder for Categories or other sections */}
-      <div className="container mx-auto px-4 md:px-8 mb-12">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Categorias Populares</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Skeleton className="h-24 w-full rounded-lg" />
-          <Skeleton className="h-24 w-full rounded-lg" />
-          <Skeleton className="h-24 w-full rounded-lg" />
-          <Skeleton className="h-24 w-full rounded-lg" />
+        {/* Placeholder for Categories or other sections */}
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Categorias Populares</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+          </div>
         </div>
       </div>
     </div>
