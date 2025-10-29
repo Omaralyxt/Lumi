@@ -204,9 +204,9 @@ export default function Home() {
         
         {/* Top Navigation & Separator */}
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-end mb-4"> {/* Alterado para justify-end já que só temos elementos à direita */}
             
-            <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">Lumi</h1>
+            {/* Title Removed */}
 
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
@@ -227,7 +227,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Search Input Removed */}
           <Separator className="dark:bg-gray-700" />
         </div>
 
