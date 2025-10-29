@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getBanners, syncBannersWithStorage } from '@/api/products';
 
 interface Banner {
@@ -15,6 +14,11 @@ const BannerCarousel: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Refs para lidar com o swipe
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const minSwipeDistance = 50; // Distância mínima para considerar um swipe
 
   const fetchBanners = useCallback(async () => {
     setIsLoading(true);
@@ -31,22 +35,50 @@ const BannerCarousel: React.FC = () => {
     fetchBanners();
   }, [fetchBanners]);
 
-  useEffect(() => {
-    if (banners.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % banners.length);
-      }, 5000); // Troca a cada 5 segundos
-      return () => clearInterval(interval);
-    }
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % banners.length);
   }, [banners.length]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % banners.length);
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+  }, [banners.length]);
+
+  // Autoplay
+  useEffect(() => {
+    if (banners.length > 1) {
+      const interval = setInterval(nextSlide, 5000); // Troca a cada 5 segundos
+      return () => clearInterval(interval);
+    }
+  }, [banners.length, nextSlide]);
+
+  // Lógica de Swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = 0; // Reset end position
+    touchStartX.current = e.targetTouches[0].clientX;
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
   };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+    
+    // Resetar posições
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
+
 
   if (isLoading) {
     return (
@@ -65,7 +97,12 @@ const BannerCarousel: React.FC = () => {
   }
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div 
+      className="relative w-full overflow-hidden cursor-grab"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Container principal com altura definida para banners */}
       <div className="relative h-64 md:h-96 bg-white">
         {banners.map((banner, index) => (
@@ -84,22 +121,6 @@ const BannerCarousel: React.FC = () => {
           </a>
         ))}
       </div>
-
-      {/* Navegação */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition z-10"
-        aria-label="Previous slide"
-      >
-        <ChevronLeft className="w-6 h-6" />
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition z-10"
-        aria-label="Next slide"
-      >
-        <ChevronRight className="w-6 h-6" />
-      </button>
 
       {/* Indicadores */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
