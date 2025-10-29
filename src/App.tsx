@@ -27,6 +27,10 @@ import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import RootRedirect from "./components/RootRedirect";
 import TrackOrderPage from "./pages/TrackOrderPage";
+import AddressesPage from "./pages/AddressesPage";
+import PaymentsPage from "./pages/PaymentsPage";
+import CouponsPage from "./pages/CouponsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -47,12 +51,17 @@ function App() {
                       <Route path="/home" element={<Home />} />
                       <Route path="/categories" element={<CategoriesPage />} />
                       <Route path="/offers" element={<OffersPage />} />
-                      <Route path="/favorites" element={<FavoritesPage />} />
                       
                       {/* Rotas que exigem login ou redirecionam para login */}
                       <Route path="/account" element={<AccountPage />} />
                       <Route path="/orders" element={<OrderHistoryPage />} />
                       <Route path="/profile" element={<Profile />} />
+                      <Route path="/favorites" element={<FavoritesPage />} />
+                      <Route path="/addresses" element={<AddressesPage />} />
+                      <Route path="/payments" element={<PaymentsPage />} />
+                      <Route path="/coupons" element={<CouponsPage />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      
                       <Route path="/checkout" element={<CheckoutPage />} />
                       <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
                       
