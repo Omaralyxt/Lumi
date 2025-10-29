@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, MapPin, Phone, Edit, Trash2, CheckCircle, Plus, LocateFixed, Save } from 'lucide-react';
+import { ArrowLeft, MapPin, Edit, Trash2, CheckCircle, Plus, LocateFixed, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { getCustomerAddresses, upsertCustomerAddress, setActiveAddress, deleteCustomerAddress, CustomerAddress } from '@/api/addresses';
 import LocationPicker from '@/components/LocationPicker';
+import { Badge } from '@/components/ui/badge'; // Adicionado Badge
 
 const initialAddressState: Partial<CustomerAddress> = {
   name: '',
@@ -24,6 +25,134 @@ const initialAddressState: Partial<CustomerAddress> = {
   longitude: null,
   is_active: false,
 };
+
+interface AddressModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentAddress: Partial<CustomerAddress>;
+  setCurrentAddress: React.Dispatch<React.SetStateAction<Partial<CustomerAddress>>>;
+  handleSave: (e: React.FormEvent) => Promise<void>;
+  isSaving: boolean;
+  isLocationPickerOpen: boolean;
+  setIsLocationPickerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  handleLocationSave: (lat: number, lng: number) => void;
+}
+
+const AddressModal: React.FC<AddressModalProps> = ({
+  isOpen,
+  onClose,
+  currentAddress,
+  setCurrentAddress,
+  handleSave,
+  isSaving,
+  isLocationPickerOpen,
+  setIsLocationPickerOpen,
+  handleLocationSave,
+}) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCurrentAddress(prev => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>{currentAddress.id ? "Editar Endereço" : "Adicionar Novo Endereço"}</DialogTitle>
+        </DialogHeader>
+        
+        {isLocationPickerOpen ? (
+          <LocationPicker
+            initialLat={currentAddress.latitude}
+            initialLng={currentAddress.longitude}
+            onSave={handleLocationSave}
+            onClose={() => setIsLocationPickerOpen(false)}
+          />
+        ) : (
+          <form onSubmit={handleSave} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome do Endereço *</Label>
+              <Input
+                id="name"
+                name="name"
+                value={currentAddress.name || ''}
+                onChange={handleInputChange}
+                placeholder="Ex: Casa, Trabalho"
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">Cidade *</Label>
+                <Input
+                  id="city"
+                  name="city"
+                  value={currentAddress.city || ''}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="district">Bairro/Distrito</Label>
+                <Input
+                  id="district"
+                  name="district"
+                  value={currentAddress.district || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="full_address">Rua, Avenida ou Número da Casa *</Label>
+              <Textarea
+                id="full_address"
+                name="full_address"
+                value={currentAddress.full_address || ''}
+                onChange={handleInputChange}
+                rows={2}
+                required
+              />
+            </div>
+            
+            <div className="border-t pt-4 space-y-3">
+              <h4 className="font-semibold text-sm">Localização GPS (Opcional)</h4>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  {currentAddress.latitude && currentAddress.longitude 
+                    ? `Lat: ${currentAddress.latitude.toFixed(4)}, Lng: ${currentAddress.longitude?.toFixed(4)}`
+                    : "Coordenadas não definidas."
+                  }
+                </p>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsLocationPickerOpen(true)}
+                >
+                  <LocateFixed className="h-4 w-4 mr-2" />
+                  {currentAddress.latitude ? "Editar GPS" : "Definir GPS"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                <Save className="h-4 w-4 mr-2" />
+                {isSaving ? "Salvando..." : "Salvar Endereço"}
+              </Button>
+            </div>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 
 export default function AddressesPage() {
   const navigate = useNavigate();
@@ -60,7 +189,7 @@ export default function AddressesPage() {
     setIsModalOpen(true);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentAddress.name || !currentAddress.full_address || !currentAddress.city) {
       toast.error("Nome, endereço completo e cidade são obrigatórios.");
@@ -78,7 +207,7 @@ export default function AddressesPage() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [currentAddress, fetchAddresses]);
   
   const handleDelete = async (id: string) => {
     if (window.confirm("Tem certeza que deseja deletar este endereço?")) {
@@ -102,105 +231,12 @@ export default function AddressesPage() {
     }
   };
   
-  const handleLocationSave = (lat: number, lng: number) => {
+  const handleLocationSave = useCallback((lat: number, lng: number) => {
     setCurrentAddress(prev => ({ ...prev, latitude: lat, longitude: lng }));
     setIsLocationPickerOpen(false);
     toast.info(`Coordenadas salvas: Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`);
-  };
+  }, []);
 
-  const AddressModal = () => (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>{currentAddress.id ? "Editar Endereço" : "Adicionar Novo Endereço"}</DialogTitle>
-        </DialogHeader>
-        
-        {isLocationPickerOpen ? (
-          <LocationPicker
-            initialLat={currentAddress.latitude}
-            initialLng={currentAddress.longitude}
-            onSave={handleLocationSave}
-            onClose={() => setIsLocationPickerOpen(false)}
-          />
-        ) : (
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome do Endereço *</Label>
-              <Input
-                id="name"
-                value={currentAddress.name || ''}
-                onChange={(e) => setCurrentAddress({...currentAddress, name: e.target.value})}
-                placeholder="Ex: Casa, Trabalho"
-                required
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">Cidade *</Label>
-                <Input
-                  id="city"
-                  value={currentAddress.city || ''}
-                  onChange={(e) => setCurrentAddress({...currentAddress, city: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="district">Bairro/Distrito</Label>
-                <Input
-                  id="district"
-                  value={currentAddress.district || ''}
-                  onChange={(e) => setCurrentAddress({...currentAddress, district: e.target.value})}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="full_address">Rua, Avenida ou Número da Casa *</Label>
-              <Textarea
-                id="full_address"
-                value={currentAddress.full_address || ''}
-                onChange={(e) => setCurrentAddress({...currentAddress, full_address: e.target.value})}
-                rows={2}
-                required
-              />
-            </div>
-            
-            <div className="border-t pt-4 space-y-3">
-              <h4 className="font-semibold text-sm">Localização GPS (Opcional)</h4>
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  {currentAddress.latitude && currentAddress.longitude 
-                    ? `Lat: ${currentAddress.latitude.toFixed(4)}, Lng: ${currentAddress.longitude?.toFixed(4)}`
-                    : "Coordenadas não definidas."
-                  }
-                </p>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setIsLocationPickerOpen(true)}
-                >
-                  <LocateFixed className="h-4 w-4 mr-2" />
-                  {currentAddress.latitude ? "Editar GPS" : "Definir GPS"}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSaving}>
-                <Save className="h-4 w-4 mr-2" />
-                {isSaving ? "Salvando..." : "Salvar Endereço"}
-              </Button>
-            </div>
-          </form>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
@@ -284,7 +320,20 @@ export default function AddressesPage() {
           </div>
         )}
       </div>
-      <AddressModal />
+      <AddressModal 
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setIsLocationPickerOpen(false); // Fecha o picker se o modal principal fechar
+        }}
+        currentAddress={currentAddress}
+        setCurrentAddress={setCurrentAddress}
+        handleSave={handleSave}
+        isSaving={isSaving}
+        isLocationPickerOpen={isLocationPickerOpen}
+        setIsLocationPickerOpen={setIsLocationPickerOpen}
+        handleLocationSave={handleLocationSave}
+      />
     </div>
   );
 }
