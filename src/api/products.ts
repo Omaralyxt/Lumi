@@ -97,7 +97,7 @@ const baseProductQuery = () => supabase
 // Função para sincronizar imagens do storage com a tabela de banners
 export const syncBannersWithStorage = async () => {
   const BUCKET_NAME = 'Banners and logos';
-  const FOLDER_NAME = 'Banner';
+  const FOLDER_NAME = 'Banners'; // CORRIGIDO: Usando 'Banners' (plural)
 
   try {
     // 1. Listar arquivos no storage
