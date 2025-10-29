@@ -1,106 +1,119 @@
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { getBanners } from '@/api/products';
-import { Skeleton } from './ui/skeleton';
-import { AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-// Swiper Imports
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getBanners, syncBannersWithStorage } from '@/api/products';
 
 interface Banner {
   id: number;
   title: string;
+  description: string;
   image_url: string;
   link_url: string;
   active: boolean;
 }
 
-export default function BannerCarousel() {
+const BannerCarousel: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadBanners() {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getBanners();
-        setBanners(data as Banner[]);
-      } catch (e) {
-        setError("Falha ao carregar banners.");
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadBanners();
+  const fetchBanners = useCallback(async () => {
+    setIsLoading(true);
+    // Sincroniza primeiro (se necessário)
+    await syncBannersWithStorage();
+    
+    // Busca os banners ativos
+    const fetchedBanners = await getBanners();
+    setBanners(fetchedBanners);
+    setIsLoading(false);
   }, []);
 
-  if (loading) {
-    return <Skeleton className="w-full h-48 sm:h-64 md:h-80 rounded-2xl" />;
-  }
-  
-  if (error) {
+  useEffect(() => {
+    fetchBanners();
+  }, [fetchBanners]);
+
+  useEffect(() => {
+    if (banners.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % banners.length);
+      }, 5000); // Troca a cada 5 segundos
+      return () => clearInterval(interval);
+    }
+  }, [banners.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % banners.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+  };
+
+  if (isLoading) {
     return (
-      <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg flex items-center">
-        <AlertCircle className="h-5 w-5 mr-2" />
-        {error}
+      <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (banners.length === 0) {
+    return (
+      <div className="w-full h-64 bg-gray-100 flex items-center justify-center text-gray-500">
+        Nenhum banner disponível.
       </div>
     );
   }
 
   return (
-    <div className="relative w-full">
-      {banners.length > 0 ? (
-        <Swiper
-          modules={[Autoplay, Pagination]}
-          spaceBetween={0}
-          slidesPerView={1}
-          loop={true}
-          pagination={{ 
-            clickable: true,
-            // Custom classes to ensure dots are visible and styled for dark/light mode
-            bulletClass: 'swiper-pagination-bullet !bg-white/50 !opacity-100',
-            bulletActiveClass: 'swiper-pagination-bullet-active !bg-white !w-4',
-          }}
-          autoplay={{
-            delay: 4000, // 4 seconds auto slide
-            disableOnInteraction: false,
-          }}
-          className="w-full h-48 sm:h-64 md:h-80 rounded-2xl shadow-lg"
-        >
-          {banners.map((banner, index) => (
-            <SwiperSlide key={banner.id}>
-              <a
-                href={banner.link_url || '#'}
-                target={banner.link_url ? '_self' : '_self'}
-                rel="noopener noreferrer"
-                className={cn(
-                  "block w-full h-full overflow-hidden",
-                  !banner.link_url && "pointer-events-none cursor-default"
-                )}
-              >
-                <img
-                  src={banner.image_url}
-                  alt={banner.title || `Banner ${index + 1}`}
-                  className="w-full h-full object-cover transition-opacity duration-500"
-                  loading="lazy"
-                />
-              </a>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      ) : (
-        <div className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-xl p-8 text-center h-48 sm:h-64 md:h-80 flex items-center justify-center">
-          Nenhum banner disponível no momento
-        </div>
-      )}
+    <div className="relative w-full overflow-hidden">
+      {/* Container principal com altura definida para banners */}
+      <div className="relative h-64 md:h-96 bg-white">
+        {banners.map((banner, index) => (
+          <a 
+            key={index} 
+            href={banner.link_url || '#'} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className={`absolute inset-0 transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <img
+              src={banner.image_url}
+              alt={banner.title || `Banner ${index + 1}`}
+              className="w-full h-full object-contain transition-opacity duration-500"
+            />
+          </a>
+        ))}
+      </div>
+
+      {/* Navegação */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition z-10"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="w-6 h-6" />
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition z-10"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="w-6 h-6" />
+      </button>
+
+      {/* Indicadores */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+        {banners.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentSlide(index)}
+            className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? 'bg-white' : 'bg-gray-400 bg-opacity-50'}`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
-}
+};
+
+export default BannerCarousel;
