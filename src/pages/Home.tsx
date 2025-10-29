@@ -146,7 +146,7 @@ const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
 export default function Home() {
   const navigate = useNavigate();
   const { user: session, loading: authLoading } = useAuth();
-  const { cartCount: totalItems } = useCart();
+  const { cartCount: totalItems } = useCart(); // Still imported, but not used in UI
 
   // Fetch Banners
   const { data: banners, isLoading: isLoadingBanners } = useQuery({
@@ -210,17 +210,9 @@ export default function Home() {
               <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={session?.user_metadata?.avatar_url || undefined} alt="User Avatar" />
-                  {/* AvatarFallback removed */}
                 </Avatar>
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => navigate('/cart')} className="relative">
-                <ShoppingCart className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-                {totalItems > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-red-500 text-white">
-                    {totalItems}
-                  </Badge>
-                )}
-              </Button>
+              {/* Shopping Cart Button Removed */}
             </div>
           </div>
 
