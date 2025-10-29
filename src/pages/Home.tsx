@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { getBanners, getFeaturedProducts } from '@/api/products';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/context/CartContext';
@@ -21,8 +21,47 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 const BannerCarousel = ({ banners }: { banners: { id: string; image_url: string; link: string }[] }) => {
   if (!banners || banners.length === 0) return null;
 
+  const [api, setApi] = useState<CarouselApi>();
+
+  // Implementação do Autoplay
+  useEffect(() => {
+    if (!api) return;
+
+    const intervalTime = 5000; // 5 segundos
+    let timer: NodeJS.Timeout;
+
+    const startAutoplay = () => {
+      timer = setInterval(() => {
+        if (api.canScrollNext()) {
+          api.scrollNext();
+        } else {
+          api.scrollTo(0); // Volta ao início
+        }
+      }, intervalTime);
+    };
+
+    const stopAutoplay = () => {
+      clearInterval(timer);
+    };
+
+    // Inicia o autoplay
+    startAutoplay();
+
+    // Pausa ao interagir (opcional, mas bom para UX)
+    api.on("pointerDown", stopAutoplay);
+    api.on("pointerUp", startAutoplay);
+    
+    // Limpeza
+    return () => {
+      stopAutoplay();
+      api.off("pointerDown", stopAutoplay);
+      api.off("pointerUp", startAutoplay);
+    };
+  }, [api]);
+
+
   return (
-    <Carousel className="w-full">
+    <Carousel className="w-full" setApi={setApi}>
       <CarouselContent>
         {banners.map((banner) => (
           <CarouselItem key={banner.id}>
@@ -210,24 +249,6 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Top Navigation & Separator (Removed) */}
-        {/* The content below was removed:
-        <div className="mb-4">
-          <div className="flex items-center justify-end mb-4">
-            
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={session?.user_metadata?.avatar_url || undefined} alt="User Avatar" />
-                </Avatar>
-              </Button>
-            </div>
-          </div>
-
-          <Separator className="dark:bg-gray-700" />
-        </div>
-        */}
-
         {/* Quick Categories Carousel */}
         <section className="py-6">
           <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Categorias Populares</h2>
