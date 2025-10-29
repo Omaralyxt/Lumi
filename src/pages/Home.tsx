@@ -132,7 +132,7 @@ const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
 
   return (
     <div 
-      className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity"
+      className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity w-full"
       onClick={handleCategoryClick}
     >
       <div className="text-2xl p-3 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1">
@@ -146,7 +146,7 @@ const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
 export default function Home() {
   const navigate = useNavigate();
   const { user: session, loading: authLoading } = useAuth();
-  const { cartCount: totalItems } = useCart(); // Still imported, but not used in UI
+  const { cartCount: totalItems } = useCart();
 
   // Fetch Banners
   const { data: banners, isLoading: isLoadingBanners } = useQuery({
@@ -173,7 +173,7 @@ export default function Home() {
     staleTime: 1000 * 60 * 1, // 1 minute
   });
 
-  // Quick Categories (Top 5 groups)
+  // Quick Categories (Top 5 groups + "Todas")
   const quickCategories = useMemo(() => {
     const icons: Record<string, string> = {
       "Moda e Estilo": '👗',
@@ -182,10 +182,18 @@ export default function Home() {
       "Eletrodomésticos": '🧺',
       "Beleza e Cuidados Pessoais": '💄',
     };
-    return PRODUCT_CATEGORIES.slice(0, 5).map(group => ({
+    const categories = PRODUCT_CATEGORIES.slice(0, 5).map(group => ({
       name: group.group,
       icon: icons[group.group] || '📦',
     }));
+
+    // Adicionar a categoria "Todas"
+    categories.push({
+      name: 'Todas',
+      icon: <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />,
+    } as any); // Usamos 'any' temporariamente para o ícone ser um componente React
+
+    return categories;
   }, []);
 
   return (
@@ -212,30 +220,44 @@ export default function Home() {
                   <AvatarImage src={session?.user_metadata?.avatar_url || undefined} alt="User Avatar" />
                 </Avatar>
               </Button>
-              {/* Shopping Cart Button Removed */}
             </div>
           </div>
 
           <Separator className="dark:bg-gray-700" />
         </div>
 
-        {/* Quick Categories */}
+        {/* Quick Categories Carousel */}
         <section className="py-6">
           <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Categorias Populares</h2>
-          <div className="flex justify-between space-x-2 overflow-x-auto pb-2">
-            {quickCategories.map((category) => (
-              <QuickCategory key={category.name} name={category.name} icon={category.icon} />
-            ))}
-            <div 
-              className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity min-w-[60px]"
-              onClick={() => navigate('/categories')}
-            >
-              <div className="text-2xl p-3 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1">
-                <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-              </div>
-              <p className="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-2">Todas</p>
-            </div>
-          </div>
+          
+          <Carousel
+            opts={{
+              align: "start",
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-2">
+              {quickCategories.map((category, index) => (
+                <CarouselItem key={category.name} className="basis-1/4 sm:basis-1/6 md:basis-1/8 lg:basis-1/10 pl-2">
+                  {category.name === 'Todas' ? (
+                    <div 
+                      className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity w-full"
+                      onClick={() => navigate('/categories')}
+                    >
+                      <div className="text-2xl p-3 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1">
+                        {category.icon}
+                      </div>
+                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-2">{category.name}</p>
+                    </div>
+                  ) : (
+                    <QuickCategory name={category.name} icon={category.icon as string} />
+                  )}
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden sm:flex left-0" />
+            <CarouselNext className="hidden sm:flex right-0" />
+          </Carousel>
         </section>
 
         <Separator className="dark:bg-gray-700" />
