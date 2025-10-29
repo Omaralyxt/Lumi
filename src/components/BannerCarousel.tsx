@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import useEmblaCarousel, { EmblaOptionsType } from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
+import React, { useState, useEffect } from 'react';
 import { getBanners } from '@/api/products';
 import { Skeleton } from './ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Swiper Imports
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 interface Banner {
   id: number;
@@ -16,34 +20,10 @@ interface Banner {
   active: boolean;
 }
 
-const OPTIONS: EmblaOptionsType = { 
-  loop: true,
-  align: 'start',
-};
-
-const AUTOPLAY_OPTIONS = {
-  delay: 4000, // 4 seconds auto slide
-  stopOnInteraction: false,
-  stopOnMouseEnter: true,
-};
-
 export default function BannerCarousel() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [emblaRef, emblaApi] = useEmblaCarousel(OPTIONS, [Autoplay(AUTOPLAY_OPTIONS)]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const onSelect = useCallback((emblaApi: any) => {
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, []);
-
-  useEffect(() => {
-    if (emblaApi) {
-      emblaApi.on('select', onSelect);
-      onSelect(emblaApi);
-    }
-  }, [emblaApi, onSelect]);
 
   useEffect(() => {
     async function loadBanners() {
@@ -63,7 +43,7 @@ export default function BannerCarousel() {
   }, []);
 
   if (loading) {
-    return <Skeleton className="w-full h-48 rounded-2xl" />;
+    return <Skeleton className="w-full h-48 sm:h-64 md:h-80 rounded-2xl" />;
   }
   
   if (error) {
@@ -78,53 +58,47 @@ export default function BannerCarousel() {
   return (
     <div className="relative w-full">
       {banners.length > 0 ? (
-        <div className="embla overflow-hidden rounded-2xl shadow-lg" ref={emblaRef}>
-          <div className="embla__container flex touch-pan-y">
-            {banners.map((banner, index) => (
-              <div 
-                className="embla__slide flex-shrink-0 w-full min-w-0" 
-                key={banner.id}
+        <Swiper
+          modules={[Autoplay, Pagination]}
+          spaceBetween={0}
+          slidesPerView={1}
+          loop={true}
+          pagination={{ 
+            clickable: true,
+            // Custom classes to ensure dots are visible and styled for dark/light mode
+            bulletClass: 'swiper-pagination-bullet !bg-white/50 !opacity-100',
+            bulletActiveClass: 'swiper-pagination-bullet-active !bg-white !w-4',
+          }}
+          autoplay={{
+            delay: 4000, // 4 seconds auto slide
+            disableOnInteraction: false,
+          }}
+          className="w-full h-48 sm:h-64 md:h-80 rounded-2xl shadow-lg"
+        >
+          {banners.map((banner, index) => (
+            <SwiperSlide key={banner.id}>
+              <a
+                href={banner.link_url || '#'}
+                target={banner.link_url ? '_self' : '_self'}
+                rel="noopener noreferrer"
+                className={cn(
+                  "block w-full h-full overflow-hidden",
+                  !banner.link_url && "pointer-events-none cursor-default"
+                )}
               >
-                <a
-                  href={banner.link_url || '#'}
-                  target={banner.link_url ? '_self' : '_self'}
-                  rel="noopener noreferrer"
-                  className={cn(
-                    "block w-full h-48 sm:h-64 md:h-80 overflow-hidden",
-                    !banner.link_url && "pointer-events-none cursor-default"
-                  )}
-                >
-                  <img
-                    src={banner.image_url}
-                    alt={banner.title || `Banner ${index + 1}`}
-                    className="w-full h-full object-cover transition-opacity duration-500"
-                    loading="lazy"
-                  />
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-xl p-8 text-center h-48 flex items-center justify-center">
-          Nenhum banner disponível no momento
-        </div>
-      )}
-      
-      {/* Dots Navigation */}
-      {emblaApi && banners.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => emblaApi.scrollTo(index)}
-              className={cn(
-                "w-2 h-2 rounded-full transition-colors",
-                index === selectedIndex ? "bg-white w-4" : "bg-white/50"
-              )}
-              aria-label={`Go to slide ${index + 1}`}
-            />
+                <img
+                  src={banner.image_url}
+                  alt={banner.title || `Banner ${index + 1}`}
+                  className="w-full h-full object-cover transition-opacity duration-500"
+                  loading="lazy"
+                />
+              </a>
+            </SwiperSlide>
           ))}
+        </Swiper>
+      ) : (
+        <div className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-xl p-8 text-center h-48 sm:h-64 md:h-80 flex items-center justify-center">
+          Nenhum banner disponível no momento
         </div>
       )}
     </div>
