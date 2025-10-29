@@ -6,9 +6,9 @@ import { Grid3X3, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/useCategories";
-import HomeBannerScroll from "@/components/HomeBannerScroll"; // Importar o novo componente
+import BannerCarousel from "@/components/BannerCarousel"; // Importar o novo componente
 import ProductSection from "@/components/ProductSection";
-import { getFeaturedProducts } from "@/api/products";
+import { getFeaturedProducts, syncBannersWithStorage } from "@/api/products";
 
 // Componente de Item de Categoria
 const CategoryItem = ({ name, navigate }: { name: string, navigate: (path: string) => void }) => (
@@ -27,7 +27,7 @@ const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => 
 
   if (loading) {
     return (
-      <div className="py-8">
+      <div className="py-8 px-4 max-w-md mx-auto">
         <h2 className="font-title text-3xl font-bold mb-6 tracking-wide text-gray-900 dark:text-white">
           Explorar Categorias
         </h2>
@@ -41,7 +41,7 @@ const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => 
   }
 
   if (error) {
-    return <div className="py-8 text-red-500">Erro ao carregar categorias: {error}</div>;
+    return <div className="py-8 px-4 max-w-md mx-auto text-red-500">Erro ao carregar categorias: {error}</div>;
   }
 
   if (categories.length === 0) {
@@ -49,7 +49,7 @@ const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => 
   }
 
   return (
-    <div className="py-8">
+    <div className="py-8 px-4 max-w-md mx-auto">
       <h2 className="font-title text-3xl font-bold mb-6 tracking-wide text-gray-900 dark:text-white">
         Explorar Categorias
       </h2>
@@ -70,23 +70,31 @@ const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => 
 export default function Home() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Sincronizar banners do storage com a tabela ao carregar a página
+    syncBannersWithStorage();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <main className="max-w-md mx-auto p-4">
-        {/* Banner Scroll */}
-        <div className="mb-8">
-          <HomeBannerScroll />
-        </div>
+      {/* Banner Carousel (Full Width) */}
+      <div className="mb-8 px-4 md:px-8">
+        <BannerCarousel />
+      </div>
 
+      {/* Conteúdo Principal (Centralizado) */}
+      <main>
         {/* Seção de Categorias */}
         <CategorySection navigate={navigate} />
 
         {/* Seção de Produtos em Destaque (Dynamic) */}
-        <ProductSection 
-          title="Produtos em Destaque" 
-          fetchFunction={getFeaturedProducts} 
-          showStoreInfo={true}
-        />
+        <div className="px-4 max-w-md mx-auto">
+          <ProductSection 
+            title="Produtos em Destaque" 
+            fetchFunction={getFeaturedProducts} 
+            showStoreInfo={true}
+          />
+        </div>
       </main>
     </div>
   );

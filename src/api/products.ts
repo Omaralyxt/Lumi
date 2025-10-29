@@ -94,6 +94,73 @@ const baseProductQuery = () => supabase
     product_images (image_url, sort_order)
   `);
 
+// Função para sincronizar imagens do storage com a tabela de banners
+export const syncBannersWithStorage = async () => {
+  const BUCKET_NAME = 'Banners and logos';
+  const FOLDER_NAME = 'Banner';
+
+  try {
+    // 1. Listar arquivos no storage
+    const { data: files, error: listError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .list(FOLDER_NAME, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'name', order: 'asc' },
+      });
+
+    if (listError) throw listError;
+
+    if (!files || files.length === 0) {
+      console.log("No files found in storage folder.");
+      return;
+    }
+
+    // 2. Buscar URLs existentes no banco de dados
+    const { data: existingBanners, error: fetchError } = await supabase
+      .from('banner & Fotos')
+      .select('image_url');
+
+    if (fetchError) throw fetchError;
+
+    const existingUrls: Set<string> = new Set(existingBanners.map(b => b.image_url));
+    const newBannersToInsert: any[] = [];
+
+    // 3. Processar arquivos e identificar novos banners
+    for (const file of files) {
+      if (file.name === '.emptyFolderPlaceholder') continue;
+
+      const filePath = `${FOLDER_NAME}/${file.name}`;
+      const publicUrl = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(filePath).data.publicUrl;
+
+      if (!existingUrls.has(publicUrl)) {
+        newBannersToInsert.push({
+          image_url: publicUrl,
+          link: null, // link_url is stored as 'link' in the DB schema
+          title: file.name,
+          active: true,
+        });
+      }
+    }
+
+    // 4. Inserir novos banners
+    if (newBannersToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from('banner & Fotos')
+        .insert(newBannersToInsert);
+
+      if (insertError) throw insertError;
+      console.log(`Successfully inserted ${newBannersToInsert.length} new banners.`);
+    }
+
+  } catch (error) {
+    console.error("Error during banner synchronization:", error);
+  }
+};
+
+
 // Função para buscar banners ativos
 export const getBanners = async (): Promise<Banner[]> => {
   const { data, error } = await supabase
