@@ -210,7 +210,8 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Top Navigation & Separator */}
+        {/* Top Navigation & Separator (Removed) */}
+        {/* The content below was removed:
         <div className="mb-4">
           <div className="flex items-center justify-end mb-4">
             
@@ -225,6 +226,7 @@ export default function Home() {
 
           <Separator className="dark:bg-gray-700" />
         </div>
+        */}
 
         {/* Quick Categories Carousel */}
         <section className="py-6">
