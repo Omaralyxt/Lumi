@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useOrders } from "@/context/OrdersContext";
@@ -11,37 +11,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle, CheckCircle, Phone } from "lucide-react";
+import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle, CheckCircle, Phone, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { initiateMpesaPayment } from "@/utils/mpesa";
 import MpesaStatusModal from "@/components/MpesaStatusModal";
+import { getCustomerAddresses, setActiveAddress, CustomerAddress } from "@/api/addresses"; // Importar API de Endereços
 
 interface CheckoutErrors {
   address?: string;
   payment?: string;
   mpesaPhone?: string;
 }
-
-const deliveryAddresses = [
-  {
-    id: 1,
-    name: "João Silva",
-    phone: "+258 82 123 4567",
-    address: "Av. Kenneth Kaunda, 123",
-    city: "Maputo",
-    district: "KaMubukwana",
-    isDefault: true,
-  },
-  {
-    id: 2,
-    name: "João Silva",
-    phone: "+258 82 123 4567",
-    address: "Rua dos Heróis de Mueda, 456",
-    city: "Maputo",
-    district: "Malhangalene",
-    isDefault: false,
-  },
-];
 
 const paymentMethods = [
   {
@@ -89,34 +69,55 @@ const cities = [
 
 export default function Checkout() {
   const { cartItems, cartTotal, deliveryFee, getDeliveryInfo, clearCart } = useCart();
-  const { createOrder, loading } = useOrders();
+  const { createOrder, loading: orderLoading } = useOrders();
   const navigate = useNavigate();
   
-  const [selectedAddress, setSelectedAddress] = useState(deliveryAddresses[0]);
+  // Novo estado para endereços reais
+  const [availableAddresses, setAvailableAddresses] = useState<CustomerAddress[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<CustomerAddress | null>(null);
+  const [addressLoading, setAddressLoading] = useState(true);
+  
   const [selectedPayment, setSelectedPayment] = useState("mpesa");
-  const [mpesaPhone, setMpesaPhone] = useState(deliveryAddresses[0].phone);
+  const [mpesaPhone, setMpesaPhone] = useState("");
   const [errors, setErrors] = useState<CheckoutErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderStep, setOrderStep] = useState<"address" | "payment" | "confirm">("address");
-  const [newAddress, setNewAddress] = useState({
-    name: "",
-    phone: "",
-    address: "",
-    city: "Maputo",
-    district: "",
-  });
 
   // Mpesa Modal State
   const [isMpesaModalOpen, setIsMpesaModalOpen] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [currentOrderNumber, setCurrentOrderNumber] = useState<string | null>(null);
 
+  // 1. Fetch Addresses
+  const fetchAddresses = useCallback(async () => {
+    setAddressLoading(true);
+    try {
+      const addresses = await getCustomerAddresses();
+      setAvailableAddresses(addresses);
+      
+      const activeAddress = addresses.find(a => a.is_active) || addresses[0];
+      setSelectedAddress(activeAddress || null);
+      
+      if (activeAddress) {
+        // Tenta preencher o telefone M-Pesa com o telefone do endereço ativo (se disponível)
+        // Nota: O telefone do endereço não está na tabela customer_addresses, mas vamos usar o telefone do perfil do usuário se necessário.
+        // Por enquanto, vamos usar um mock de telefone se o campo estiver vazio.
+        setMpesaPhone("+258 84 123 4567"); // Mocked phone
+      }
+      
+    } catch (error) {
+      toast.error("Falha ao carregar endereços de entrega.");
+    } finally {
+      setAddressLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (cartItems.length === 0) {
       navigate('/cart');
     }
-  }, [cartItems, navigate]);
+    fetchAddresses();
+  }, [cartItems, navigate, fetchAddresses]);
 
   const subtotal = cartTotal;
   const total = subtotal + deliveryFee;
@@ -132,8 +133,8 @@ export default function Checkout() {
       newErrors.payment = "Por favor, selecione um método de pagamento";
     }
     
-    if (orderStep === "payment" && selectedPayment === "mpesa" && !mpesaPhone) {
-      newErrors.mpesaPhone = "O número M-Pesa é obrigatório.";
+    if (orderStep === "payment" && selectedPayment === "mpesa" && (!mpesaPhone || mpesaPhone.length < 9)) {
+      newErrors.mpesaPhone = "O número M-Pesa é obrigatório e deve ser válido.";
     }
     
     setErrors(newErrors);
@@ -141,8 +142,8 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!validateForm()) {
-      setOrderStep("payment"); // Volta para o passo de pagamento se houver erro de M-Pesa
+    if (!validateForm() || !selectedAddress) {
+      setOrderStep("payment"); 
       return;
     }
 
@@ -153,7 +154,13 @@ export default function Checkout() {
       const orderData = {
         items: cartItems,
         total,
-        shippingAddress: selectedAddress,
+        shippingAddress: {
+          name: selectedAddress.name,
+          phone: mpesaPhone, // Usando o telefone M-Pesa como telefone de contato
+          address: selectedAddress.full_address,
+          city: selectedAddress.city,
+          district: selectedAddress.district || '',
+        },
         paymentMethod: selectedPayment,
         deliveryInfo: getDeliveryInfo(selectedAddress.city),
       };
@@ -173,12 +180,10 @@ export default function Checkout() {
         toast.dismiss('mpesa-init');
 
         if (mpesaResult.success) {
-          // Abre o modal de espera
           setCurrentOrderId(order.id);
           setCurrentOrderNumber(order.orderNumber);
           setIsMpesaModalOpen(true);
           
-          // Não limpa o carrinho nem navega aqui, o modal fará isso após a confirmação (simulada)
           setIsSubmitting(false);
           return; 
         } else {
@@ -188,14 +193,13 @@ export default function Checkout() {
         }
       }
       
-      // 3. Se não for M-Pesa, limpar carrinho e redirecionar imediatamente (simulação de pagamento instantâneo)
+      // 3. Se não for M-Pesa, limpar carrinho e redirecionar imediatamente
       clearCart();
       navigate(`/order-confirmation/${order.id}`);
     } catch (error) {
       console.error("Erro ao criar pedido:", error);
       toast.error("Falha crítica ao finalizar pedido.");
     } finally {
-      // Se o pagamento for M-Pesa, o isSubmitting é resetado dentro do bloco M-Pesa
       if (selectedPayment !== "mpesa") {
         setIsSubmitting(false);
       }
@@ -211,38 +215,35 @@ export default function Checkout() {
   const handleBackStep = () => {
     setOrderStep("address");
   };
-
-  const handleAddNewAddress = () => {
-    if (newAddress.name && newAddress.phone && newAddress.address && newAddress.city) {
-      const newAddressObj = {
-        ...newAddress,
-        id: Date.now(),
-        isDefault: false,
-      };
-      deliveryAddresses.push(newAddressObj);
-      setSelectedAddress(newAddressObj);
-      setNewAddress({
-        name: "",
-        phone: "",
-        address: "",
-        city: "Maputo",
-        district: "",
-      });
-      toast.success("Novo endereço adicionado!");
+  
+  const handleAddressSelection = async (address: CustomerAddress) => {
+    setSelectedAddress(address);
+    if (!address.is_active) {
+      try {
+        await setActiveAddress(address.id);
+        fetchAddresses(); // Re-fetch para atualizar o estado de todos os endereços
+      } catch (error) {
+        toast.error("Falha ao definir endereço ativo.");
+      }
     }
   };
 
-  if (cartItems.length === 0) {
+  if (cartItems.length === 0 || addressLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p>Seu carrinho está vazio. Redirecionando...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="ml-3">Carregando checkout...</p>
       </div>
     );
   }
+  
+  const activeAddress = selectedAddress || availableAddresses.find(a => a.is_active);
+  const deliveryEta = activeAddress ? getDeliveryInfo(activeAddress.city).eta : 'N/A';
+  const deliveryFeeDisplay = deliveryFee.toLocaleString('pt-MZ');
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header (Mantido) */}
       <div className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
@@ -261,7 +262,7 @@ export default function Checkout() {
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar (Mantido) */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -313,10 +314,16 @@ export default function Checkout() {
             {orderStep === "address" && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Endereço de Entrega
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center">
+                      <MapPin className="h-5 w-5 mr-2" />
+                      Endereço de Entrega
+                    </CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/addresses')}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Gerenciar Endereços
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {errors.address && (
@@ -327,100 +334,52 @@ export default function Checkout() {
                   )}
                   
                   <div className="space-y-3">
-                    {deliveryAddresses.map((address) => (
-                      <div
-                        key={address.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                          selectedAddress.id === address.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => setSelectedAddress(address)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h3 className="font-medium">{address.name}</h3>
-                              {address.isDefault && (
-                                <Badge variant="secondary" className="text-xs">Padrão</Badge>
+                    {availableAddresses.length === 0 ? (
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
+                        Nenhum endereço cadastrado. Por favor, adicione um em "Gerenciar Endereços".
+                      </div>
+                    ) : (
+                      availableAddresses.map((address) => (
+                        <div
+                          key={address.id}
+                          className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                            selectedAddress?.id === address.id
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => handleAddressSelection(address)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <h3 className="font-medium">{address.name}</h3>
+                                {address.is_active && (
+                                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">Ativo</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-700 mt-1">
+                                {address.full_address}, {address.district}, {address.city}
+                              </p>
+                              {address.latitude && (
+                                <p className="text-xs text-gray-500 mt-1 flex items-center">
+                                  <LocateFixed className="h-3 w-3 mr-1" />
+                                  GPS: {address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
+                                </p>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600">{address.phone}</p>
-                            <p className="text-sm text-gray-700 mt-1">
-                              {address.address}, {address.district}, {address.city}
-                            </p>
+                            {selectedAddress?.id === address.id && (
+                              <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              </div>
+                            )}
                           </div>
-                          {selectedAddress.id === address.id && (
-                            <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                          )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="border-t pt-4">
-                    <h3 className="font-medium mb-3">Adicionar Novo Endereço</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="name">Nome Completo</Label>
-                        <Input
-                          id="name"
-                          value={newAddress.name}
-                          onChange={(e) => setNewAddress({...newAddress, name: e.target.value})}
-                          placeholder="João Silva"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Telefone</Label>
-                        <Input
-                          id="phone"
-                          value={newAddress.phone}
-                          onChange={(e) => setNewAddress({...newAddress, phone: e.target.value})}
-                          placeholder="+258 82 123 4567"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="city">Cidade</Label>
-                        <Select value={newAddress.city} onValueChange={(value) => setNewAddress({...newAddress, city: value})}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {cities.map(city => (
-                              <SelectItem key={city} value={city}>{city}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="district">Bairro</Label>
-                        <Input
-                          id="district"
-                          value={newAddress.district}
-                          onChange={(e) => setNewAddress({...newAddress, district: e.target.value})}
-                          placeholder="KaMubukwana"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label htmlFor="address">Endereço Completo</Label>
-                        <Textarea
-                          id="address"
-                          value={newAddress.address}
-                          onChange={(e) => setNewAddress({...newAddress, address: e.target.value})}
-                          placeholder="Av. Kenneth Kaunda, 123"
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                    <Button onClick={handleAddNewAddress} variant="outline" className="mt-3">
-                      Adicionar Endereço
-                    </Button>
+                      ))
+                    )}
                   </div>
                   
                   <div className="flex justify-end">
-                    <Button onClick={handleNextStep}>
+                    <Button onClick={handleNextStep} disabled={!selectedAddress}>
                       Continuar para Pagamento
                     </Button>
                   </div>
@@ -512,7 +471,7 @@ export default function Checkout() {
             )}
 
             {/* Confirmation Step */}
-            {orderStep === "confirm" && (
+            {orderStep === "confirm" && activeAddress && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -521,7 +480,7 @@ export default function Checkout() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Order Summary */}
+                  {/* Order Summary (Mantido) */}
                   <div>
                     <h3 className="font-medium mb-3">Resumo do Pedido</h3>
                     <div className="space-y-4">
@@ -552,7 +511,7 @@ export default function Checkout() {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Frete</span>
-                          <span>MT {deliveryFee.toLocaleString('pt-MZ')}</span>
+                          <span>MT {deliveryFeeDisplay}</span>
                         </div>
                         <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                           <span>Total</span>
@@ -569,10 +528,10 @@ export default function Checkout() {
                       Informações de Entrega
                     </h3>
                     <p className="text-sm text-gray-700">
-                      <strong>Endereço:</strong> {selectedAddress.address}, {selectedAddress.district}, {selectedAddress.city}
+                      <strong>Endereço:</strong> {activeAddress.full_address}, {activeAddress.district}, {activeAddress.city}
                     </p>
                     <p className="text-sm text-gray-700">
-                      <strong>Previsão de entrega:</strong> {getDeliveryInfo(selectedAddress.city).eta}
+                      <strong>Previsão de entrega:</strong> {deliveryEta}
                     </p>
                   </div>
                   
@@ -601,10 +560,10 @@ export default function Checkout() {
                     </Button>
                     <Button 
                       onClick={handlePlaceOrder}
-                      disabled={isSubmitting || loading}
+                      disabled={isSubmitting || orderLoading}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      {isSubmitting || loading ? (
+                      {isSubmitting || orderLoading ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           Processando...
@@ -619,7 +578,7 @@ export default function Checkout() {
             )}
           </div>
 
-          {/* Order Summary Sidebar */}
+          {/* Order Summary Sidebar (Mantido) */}
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardContent className="p-6">
@@ -629,13 +588,13 @@ export default function Checkout() {
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <span className="text-sm text-gray-600">
-                      Entrega em {selectedAddress.city}, {selectedAddress.district}
+                      Entrega em {activeAddress?.city || 'N/A'}, {activeAddress?.district || 'N/A'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Truck className="h-4 w-4 text-gray-500" />
                     <span className="text-sm text-gray-600">
-                      {getDeliveryInfo(selectedAddress.city).eta}
+                      {deliveryEta}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -653,7 +612,7 @@ export default function Checkout() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Frete</span>
-                    <span>MT {deliveryFee.toLocaleString('pt-MZ')}</span>
+                    <span>MT {deliveryFeeDisplay}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                     <span>Total</span>
@@ -676,8 +635,6 @@ export default function Checkout() {
           isOpen={isMpesaModalOpen}
           onClose={() => {
             setIsMpesaModalOpen(false);
-            // Se o usuário fechar o modal antes de pagar, ele pode tentar novamente
-            // ou mudar o método de pagamento.
           }}
           orderId={currentOrderId}
           orderNumber={currentOrderNumber}
