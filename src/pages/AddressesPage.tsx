@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, MapPin, Phone, Edit, Trash2, CheckCircle, Plus, LocateFixed } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Edit, Trash2, CheckCircle, Plus, LocateFixed, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -171,7 +171,7 @@ export default function AddressesPage() {
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600">
                   {currentAddress.latitude && currentAddress.longitude 
-                    ? `Lat: ${currentAddress.latitude.toFixed(4)}, Lng: ${currentAddress.longitude.toFixed(4)}`
+                    ? `Lat: ${currentAddress.latitude.toFixed(4)}, Lng: ${currentAddress.longitude?.toFixed(4)}`
                     : "Coordenadas não definidas."
                   }
                 </p>
