@@ -97,7 +97,7 @@ const baseProductQuery = () => supabase
 // Função para sincronizar imagens do storage com a tabela de banners
 export const syncBannersWithStorage = async () => {
   const BUCKET_NAME = 'Banners and logos';
-  const FOLDER_NAME = 'Banners'; // CORRIGIDO: Usando 'Banners' (plural)
+  const FOLDER_NAME = 'Banners'; 
 
   try {
     // 1. Listar arquivos no storage
@@ -116,9 +116,9 @@ export const syncBannersWithStorage = async () => {
       return;
     }
 
-    // 2. Buscar URLs existentes no banco de dados
+    // 2. Buscar URLs existentes no banco de dados (usando a nova tabela 'banners')
     const { data: existingBanners, error: fetchError } = await supabase
-      .from('banner & Fotos')
+      .from('banners')
       .select('image_url');
 
     if (fetchError) throw fetchError;
@@ -138,7 +138,7 @@ export const syncBannersWithStorage = async () => {
       if (!existingUrls.has(publicUrl)) {
         newBannersToInsert.push({
           image_url: publicUrl,
-          link: null, // link_url is stored as 'link' in the DB schema
+          link: null, 
           title: file.name,
           active: true,
         });
@@ -148,7 +148,7 @@ export const syncBannersWithStorage = async () => {
     // 4. Inserir novos banners
     if (newBannersToInsert.length > 0) {
       const { error: insertError } = await supabase
-        .from('banner & Fotos')
+        .from('banners') // Usando a nova tabela 'banners'
         .insert(newBannersToInsert);
 
       if (insertError) throw insertError;
@@ -164,11 +164,11 @@ export const syncBannersWithStorage = async () => {
 // Função para buscar banners ativos
 export const getBanners = async (): Promise<Banner[]> => {
   const { data, error } = await supabase
-    .from('banner & Fotos')
-    .select('id, title, description, image_url, link, active, order')
+    .from('banners') // Usando a nova tabela 'banners'
+    .select('id, title, description, image_url, link, active, sort_order')
     .eq('active', true)
-    .order('order', { ascending: true, nullsFirst: false }) // Ordena por 'order'
-    .order('id', { ascending: true }); // Fallback por 'id'
+    .order('sort_order', { ascending: true, nullsFirst: false }) 
+    .order('id', { ascending: true }); 
     
   if (error) {
     console.error("Erro ao buscar banners:", error);
@@ -177,16 +177,16 @@ export const getBanners = async (): Promise<Banner[]> => {
   
   // Mapear para o tipo Banner e renomear 'link' para 'link_url'
   return data.map(item => ({
-    id: Number(item.id), // Convertendo bigint para number
+    id: Number(item.id), 
     title: item.title || '',
     description: item.description || '',
     image_url: item.image_url || '/placeholder.svg',
-    link_url: item.link || '', // Usando 'link' do DB como 'link_url'
+    link_url: item.link || '', 
     active: item.active || false,
   }));
 };
 
-// Função para buscar produto por ID
+// Funções de produto (mantidas)
 export const getProductById = async (id: string): Promise<Product> => {
   const { data, error } = await baseProductQuery()
     .eq('id', id)
@@ -199,7 +199,6 @@ export const getProductById = async (id: string): Promise<Product> => {
   return mapSupabaseProductToFrontend(data);
 };
 
-// Função para buscar produtos similares (por categoria)
 export const getSimilarProducts = async (category: string, excludeId?: string | number): Promise<Product[]> => {
   const { data, error } = await baseProductQuery()
     .eq('category', category)
@@ -214,7 +213,6 @@ export const getSimilarProducts = async (category: string, excludeId?: string | 
   return data.map(mapSupabaseProductToFrontend);
 };
 
-// Função para buscar todos os produtos
 export const getAllProducts = async (): Promise<Product[]> => {
   const { data, error } = await baseProductQuery();
   
@@ -226,7 +224,6 @@ export const getAllProducts = async (): Promise<Product[]> => {
   return data.map(mapSupabaseProductToFrontend);
 };
 
-// Função para buscar produtos por categoria
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
   const { data, error } = await baseProductQuery()
     .eq('category', category);
@@ -239,7 +236,6 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
   return data.map(mapSupabaseProductToFrontend);
 };
 
-// Função para buscar produtos em destaque (simulando por data de criação)
 export const getFeaturedProducts = async (): Promise<Product[]> => {
   const { data, error } = await baseProductQuery()
     .order('created_at', { ascending: false })
