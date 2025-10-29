@@ -203,7 +203,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Navigation & Search */}
-        <div className="pb-4"> {/* Mantendo o padding bottom para separação */}
+        <div className="mb-4"> {/* Adicionando margem inferior para separar da próxima seção */}
           <div className="flex items-center justify-between mb-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/menu')}>
               <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
@@ -230,7 +230,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative mb-4"> {/* Adicionando margem inferior para separar da Separator */}
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
@@ -240,7 +240,7 @@ export default function Home() {
               readOnly
             />
           </div>
-          <Separator className="mt-4 dark:bg-gray-700" />
+          <Separator className="dark:bg-gray-700" />
         </div>
 
         {/* Quick Categories */}
