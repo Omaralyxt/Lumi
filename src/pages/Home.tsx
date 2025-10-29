@@ -1,101 +1,84 @@
-"use client";
+import React from 'react';
+import BannerCarousel from '@/components/BannerCarousel';
+import ProductCard from '@/components/ProductCard';
+import { getAllProducts } from '@/api/products';
+import { useQuery } from '@tanstack/react-query';
+import { Product } from '@/types/product';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ShoppingBag, Store, Truck } from 'lucide-react';
 
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Grid3X3, AlertCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useCategories } from "@/hooks/useCategories";
-import BannerCarousel from "@/components/BannerCarousel"; // Importar o novo componente
-import ProductSection from "@/components/ProductSection";
-import { getFeaturedProducts, syncBannersWithStorage } from "@/api/products";
-
-// Componente de Item de Categoria
-const CategoryItem = ({ name, navigate }: { name: string, navigate: (path: string) => void }) => (
-  <Card 
-    className="flex flex-col items-center justify-center p-4 cursor-pointer hover:bg-gray-50 transition-colors dark:hover:bg-gray-800"
-    onClick={() => navigate(`/category/${name.toLowerCase().replace(/\s+/g, '-')}`)}
-  >
-    <Grid3X3 className="h-8 w-8 text-blue-600 mb-2" />
-    <p className="text-sm font-medium text-center">{name}</p>
-  </Card>
+const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; description: string }> = ({ icon, title, description }) => (
+  <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-sm">
+    <div className="text-primary mb-3">{icon}</div>
+    <h3 className="font-semibold text-lg mb-1">{title}</h3>
+    <p className="text-sm text-gray-600">{description}</p>
+  </div>
 );
 
-// Componente de Seção de Categorias
-const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => {
-  const { categories, loading, error } = useCategories();
-
-  if (loading) {
-    return (
-      <div className="py-8 px-4 max-w-md mx-auto">
-        <h2 className="font-title text-3xl font-bold mb-6 tracking-wide text-gray-900 dark:text-white">
-          Explorar Categorias
-        </h2>
-        <div className="grid grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="py-8 px-4 max-w-md mx-auto text-red-500">Erro ao carregar categorias: {error}</div>;
-  }
-
-  if (categories.length === 0) {
-    return null;
-  }
+const Home: React.FC = () => {
+  const { data: products, isLoading } = useQuery<Product[]>({
+    queryKey: ['allProducts'],
+    queryFn: getAllProducts,
+  });
 
   return (
-    <div className="py-8 px-4 max-w-md mx-auto">
-      <h2 className="font-title text-3xl font-bold mb-6 tracking-wide text-gray-900 dark:text-white">
-        Explorar Categorias
-      </h2>
-      <div className="grid grid-cols-3 gap-4">
-        {categories.map((category) => (
-          <CategoryItem 
-            key={category.name} 
-            name={category.name} 
-            navigate={navigate} 
+    <div className="min-h-screen bg-gray-50">
+      
+      {/* Banner Carousel (Full Width) */}
+      <div className="mb-8">
+        <BannerCarousel />
+      </div>
+
+      {/* Features Section */}
+      <div className="container mx-auto px-4 md:px-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureCard 
+            icon={<Truck size={32} />} 
+            title="Entrega Rápida" 
+            description="Receba seus produtos em 24-48 horas em Maputo." 
           />
-        ))}
+          <FeatureCard 
+            icon={<Store size={32} />} 
+            title="Lojas Locais" 
+            description="Apoie vendedores e artesãos moçambicanos." 
+          />
+          <FeatureCard 
+            icon={<ShoppingBag size={32} />} 
+            title="Compra Segura" 
+            description="Transações protegidas e garantia de devolução." 
+          />
+        </div>
+      </div>
+
+      {/* Featured Products Section */}
+      <div className="container mx-auto px-4 md:px-8 mb-12">
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Produtos em Destaque</h2>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+          {isLoading ? (
+            Array.from({ length: 10 }).map((_, index) => (
+              <Skeleton key={index} className="h-80 w-full rounded-lg" />
+            ))
+          ) : (
+            products?.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Placeholder for Categories or other sections */}
+      <div className="container mx-auto px-4 md:px-8 mb-12">
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Categorias Populares</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+        </div>
       </div>
     </div>
   );
 };
 
-// Componente Principal da Página
-export default function Home() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Sincronizar banners do storage com a tabela ao carregar a página
-    syncBannersWithStorage();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      {/* Banner Carousel (Full Width) */}
-      <div className="mb-8 px-4 md:px-8">
-        <BannerCarousel />
-      </div>
-
-      {/* Conteúdo Principal (Centralizado) */}
-      <main>
-        {/* Seção de Categorias */}
-        <CategorySection navigate={navigate} />
-
-        {/* Seção de Produtos em Destaque (Dynamic) */}
-        <div className="px-4 max-w-md mx-auto">
-          <ProductSection 
-            title="Produtos em Destaque" 
-            fetchFunction={getFeaturedProducts} 
-            showStoreInfo={true}
-          />
-        </div>
-      </main>
-    </div>
-  );
-}
+export default Home;
