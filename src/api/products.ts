@@ -7,7 +7,7 @@ interface Banner {
   title: string;
   description: string;
   image_url: string;
-  link: string;
+  link_url: string; // Alterado para link_url
   active: boolean;
 }
 
@@ -98,22 +98,23 @@ const baseProductQuery = () => supabase
 export const getBanners = async (): Promise<Banner[]> => {
   const { data, error } = await supabase
     .from('banner & Fotos')
-    .select('id, title, description, image_url, link, active')
+    .select('id, title, description, image_url, link, active, order')
     .eq('active', true)
-    .order('id', { ascending: true });
+    .order('order', { ascending: true, nullsFirst: false }) // Ordena por 'order'
+    .order('id', { ascending: true }); // Fallback por 'id'
     
   if (error) {
     console.error("Erro ao buscar banners:", error);
     return [];
   }
   
-  // Mapear para o tipo Banner (o ID é bigint, mas o componente espera number ou string)
+  // Mapear para o tipo Banner e renomear 'link' para 'link_url'
   return data.map(item => ({
     id: Number(item.id), // Convertendo bigint para number
     title: item.title || '',
     description: item.description || '',
     image_url: item.image_url || '/placeholder.svg',
-    link: item.link || '#',
+    link_url: item.link || '', // Usando 'link' do DB como 'link_url'
     active: item.active || false,
   }));
 };

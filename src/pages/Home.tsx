@@ -6,19 +6,9 @@ import { Grid3X3, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/useCategories";
-import BannerCarousel from "@/components/BannerCarousel";
+import HomeBannerScroll from "@/components/HomeBannerScroll"; // Importar o novo componente
 import ProductSection from "@/components/ProductSection";
-import { getBanners, getFeaturedProducts } from "@/api/products";
-
-// Tipagem para o Banner (importada da API)
-interface Banner {
-  id: number;
-  title: string;
-  description: string;
-  image_url: string;
-  link: string;
-  active: boolean;
-}
+import { getFeaturedProducts } from "@/api/products";
 
 // Componente de Item de Categoria
 const CategoryItem = ({ name, navigate }: { name: string, navigate: (path: string) => void }) => (
@@ -79,46 +69,13 @@ const CategorySection = ({ navigate }: { navigate: (path: string) => void }) => 
 // Componente Principal da Página
 export default function Home() {
   const navigate = useNavigate();
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [bannerLoading, setBannerLoading] = useState(true);
-  const [bannerError, setBannerError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchBanners = async () => {
-      setBannerLoading(true);
-      try {
-        const data = await getBanners();
-        setBanners(data);
-      } catch (err) {
-        setBannerError("Falha ao carregar banners.");
-        console.error(err);
-      } finally {
-        setBannerLoading(false);
-      }
-    };
-    fetchBanners();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <main className="max-w-md mx-auto p-4">
-        {/* Banner Carousel */}
+        {/* Banner Scroll */}
         <div className="mb-8">
-          {bannerLoading ? (
-            <Skeleton className="w-full h-64 md:h-80 rounded-xl" />
-          ) : bannerError ? (
-            <div className="p-6 bg-red-100 text-red-700 rounded-lg flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              {bannerError}
-            </div>
-          ) : banners.length > 0 ? (
-            <BannerCarousel banners={banners} />
-          ) : (
-            <div className="bg-blue-100 dark:bg-blue-900 p-6 rounded-lg shadow-md">
-              <h1 className="text-4xl font-title font-extrabold text-blue-800 dark:text-blue-200 mb-2">Lumi Market</h1>
-              <p className="text-blue-600 dark:text-blue-300">Descubra produtos incríveis de vendedores locais.</p>
-            </div>
-          )}
+          <HomeBannerScroll />
         </div>
 
         {/* Seção de Categorias */}
