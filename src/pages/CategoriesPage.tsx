@@ -1,40 +1,73 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, ShoppingCart, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PRODUCT_CATEGORIES } from '@/constants/categories';
+import { getCategoryCounts } from '@/api/search';
+import { useQuery } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock Data for Categories
-const mockCategories = [
-  { id: '1', name: 'Eletrônicos', count: 120, icon: '📱' },
-  { id: '2', name: 'Moda Feminina', count: 85, icon: '👗' },
-  { id: '3', name: 'Casa & Cozinha', count: 210, icon: '🏠' },
-  { id: '4', name: 'Esportes', count: 55, icon: '⚽' },
-  { id: '5', name: 'Beleza', count: 90, icon: '💄' },
-  { id: '6', name: 'Livros', count: 45, icon: '📚' },
-  { id: '7', name: 'Automotivo', count: 30, icon: '🚗' },
-  { id: '8', name: 'Brinquedos', count: 75, icon: '🧸' },
-];
+// Mapeamento simples de ícones para grupos de categorias
+const categoryIcons: Record<string, string> = {
+  "Moda e Estilo": '👗',
+  "Tecnologia e Eletrônicos": '📱',
+  "Casa e Decoração": '🏠',
+  "Eletrodomésticos": '🧺',
+  "Beleza e Cuidados Pessoais": '💄',
+  "Bebés e Crianças": '🧸',
+  "Ferramentas e Construção": '🔨',
+  "Automóveis e Motos": '🚗',
+  "Papelaria e Escritório": '📚',
+  "Esportes e Lazer": '⚽',
+  "Supermercado e Alimentos": '🛒',
+  "Saúde e Bem-estar": '💊',
+  "Animais de Estimação": '🐾',
+  "Entretenimento e Cultura": '🎬',
+};
 
 export default function CategoriesPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [categories, setCategories] = useState(mockCategories);
+  
+  // Fetch product counts from Supabase
+  const { data: categoryCounts = {}, isLoading: isLoadingCounts } = useQuery<Record<string, number>>({
+    queryKey: ['categoryCounts'],
+    queryFn: getCategoryCounts,
+  });
 
-  useEffect(() => {
-    const filtered = mockCategories.filter(category =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Flatten categories and apply search filter
+  const allCategories = useMemo(() => {
+    const flatCategories: { name: string; group: string; icon: string; count: number }[] = [];
+    PRODUCT_CATEGORIES.forEach(group => {
+      group.categories.forEach(name => {
+        flatCategories.push({
+          name,
+          group: group.group,
+          icon: categoryIcons[group.group] || '📦',
+          count: categoryCounts[name] || 0,
+        });
+      });
+    });
+    return flatCategories;
+  }, [categoryCounts]);
+
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm) return allCategories;
+    const lowerCaseSearch = searchTerm.toLowerCase();
+    return allCategories.filter(category =>
+      category.name.toLowerCase().includes(lowerCaseSearch)
     );
-    setCategories(filtered);
-  }, [searchTerm]);
+  }, [allCategories, searchTerm]);
 
-  const handleCategoryClick = (categoryId: string) => {
-    // Navegar para a página de produtos filtrada pela categoria
-    navigate(`/products?category=${categoryId}`);
+  const handleCategoryClick = (categoryName: string) => {
+    // Cria um slug a partir do nome da categoria para a URL
+    const slug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    navigate(`/category/${slug}`);
   };
 
   return (
@@ -68,28 +101,36 @@ export default function CategoriesPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {categories.map((category) => (
-            <Card 
-              key={category.id} 
-              className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800"
-              onClick={() => handleCategoryClick(category.id)}
-            >
-              <CardContent className="p-4 flex flex-col items-center text-center">
-                <div className="text-4xl mb-3">{category.icon}</div>
-                <h3 className="font-body font-semibold text-sm mb-1 line-clamp-1 dark:text-white">{category.name}</h3>
-                <Badge 
-                  variant="secondary" 
-                  className="text-xs bg-gray-200 text-gray-700 dark:bg-blue-700 dark:text-white"
-                >
-                  {category.count} produtos
-                </Badge>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {isLoadingCounts ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {[...Array(10)].map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full rounded-lg" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {filteredCategories.map((category) => (
+              <Card 
+                key={category.name} 
+                className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800"
+                onClick={() => handleCategoryClick(category.name)}
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="text-4xl mb-3">{category.icon}</div>
+                  <h3 className="font-body font-semibold text-sm mb-1 line-clamp-1 dark:text-white">{category.name}</h3>
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs bg-gray-200 text-gray-700 dark:bg-blue-700 dark:text-white"
+                  >
+                    {category.count} produtos
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
         
-        {categories.length === 0 && (
+        {filteredCategories.length === 0 && !isLoadingCounts && (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             Nenhuma categoria encontrada para "{searchTerm}".
           </div>
