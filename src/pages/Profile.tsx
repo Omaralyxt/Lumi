@@ -24,7 +24,7 @@ const initialFormData: Partial<CustomerProfile> = {
   shipping_address: "",
   city: "",
   district: "",
-  state: "Maputo",
+  state: "Maputo", // Default
   zip_code: "",
 };
 
@@ -42,15 +42,16 @@ export default function Profile() {
       const profileData = await getCustomerProfile(user.id);
       
       if (profileData) {
-        // Se o perfil existir, preenche o formulário
+        // Se o perfil existir, preenche o formulário com os dados do DB
         setFormData(profileData);
       } else {
-        // Se não existir, usa dados básicos do auth.user
+        // Se não existir (primeiro acesso após registro), usa dados básicos do auth.user
+        // e preenche os campos de endereço com strings vazias/defaults para evitar 'N/A'
         setFormData({
+          ...initialFormData, // Garante que todos os campos de endereço tenham um valor inicial (vazio ou default)
           full_name: user.user_metadata.full_name || user.email?.split('@')[0] || '',
           email: user.email || '',
           phone: user.user_metadata.phone || '',
-          // Outros campos permanecem vazios/default
         });
       }
     } catch (error) {
@@ -101,7 +102,7 @@ export default function Profile() {
     return <div className="text-center py-12 text-red-500">Acesso negado. Faça login para ver seu perfil.</div>;
   }
 
-  // Dados a serem exibidos (usando formData, que é preenchido com dados reais)
+  // Dados a serem exibidos (usando formData, que é preenchido com dados reais ou defaults)
   const displayData = formData;
   const joinedAt = user.created_at ? new Date(user.created_at).toLocaleDateString('pt-MZ', { year: 'numeric', month: 'long' }) : 'N/A';
 
