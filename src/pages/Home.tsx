@@ -202,10 +202,9 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Top Navigation & Search */}
+        {/* Top Navigation & Separator */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-4">
-            {/* Menu Button Removed */}
             
             <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">Lumi</h1>
 
@@ -228,16 +227,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Buscar produtos, lojas ou categorias..."
-              className="pl-10 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:ring-blue-500"
-              onClick={() => navigate('/search')}
-              readOnly
-            />
-          </div>
+          {/* Search Input Removed */}
           <Separator className="dark:bg-gray-700" />
         </div>
 
