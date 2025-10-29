@@ -2,24 +2,34 @@ import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth'; // Corrigido o caminho de importação
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
 const AccountPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  // O hook useAuth não expõe 'signOut' diretamente, mas o AppLayout já lida com o estado de auth.
+  // Para manter a funcionalidade de logout, vamos usar o supabase client diretamente aqui,
+  // ou garantir que o useAuth forneça a função de logout.
+  
+  // Como o useAuth atual não expõe signOut, vamos importá-lo do supabase client.
+  // No entanto, o useAuth atualizado em src/hooks/useAuth.tsx não tem a função signOut.
+  // Vou atualizar o useAuth para incluir a função de logout.
+  
+  // Revertendo para a estrutura original do useAuth para evitar quebrar o hook.
+  // Vou usar o supabase client diretamente para o logout, como feito em AppLayout.
+  
+  const handleSignOut = async () => {
+    const { supabase } = await import('@/integrations/supabase/client');
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   const currentPath = location.pathname.split('/').pop() || 'profile';
 
   const handleTabChange = (value: string) => {
     navigate(`/account/${value}`);
-  };
-
-  const handleSignOut = () => {
-    signOut();
-    navigate('/');
   };
 
   return (
