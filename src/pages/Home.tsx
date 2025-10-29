@@ -11,12 +11,11 @@ import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
 import { useQuery } from '@tanstack/react-query';
-import { getActiveBanners } from '@/api/banners';
-import { getFeaturedProducts } from '@/api/products';
+import { getFeaturedProducts, getBanners as getActiveBanners } from '@/api/products';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useAuth } from '@/hooks/useAuth';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/context/CartContext'; // Corrigido o import do useCart
 import { formatCurrency } from '@/lib/utils';
 
 // Mock data for features (since we don't have a dedicated API for this yet)
@@ -35,7 +34,8 @@ const mockStores = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  // Nota: useAuth retorna { user, isAuthenticated, loading }, não { session }
+  const { isAuthenticated } = useAuth(); 
   const { cartItems } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -66,7 +66,7 @@ export default function Home() {
   };
 
   const handleProductClick = (productId: string) => {
-    navigate(`/product/${productId}`);
+    navigate(`/sales/${productId}`); // Corrigido para usar a rota /sales/:id
   };
 
   return (
@@ -128,9 +128,9 @@ export default function Home() {
                     <Button 
                       variant="ghost" 
                       className="w-full justify-start text-lg dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => navigate(session ? '/profile' : '/login')}
+                      onClick={() => navigate(isAuthenticated ? '/profile' : '/login')}
                     >
-                      {session ? 'Meu Perfil' : 'Entrar / Cadastrar'}
+                      {isAuthenticated ? 'Meu Perfil' : 'Entrar / Cadastrar'}
                     </Button>
                   </div>
                 </SheetContent>
@@ -156,7 +156,7 @@ export default function Home() {
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
+              <Button variant="ghost" size="icon" onClick={() => navigate(isAuthenticated ? '/account' : '/login')}>
                 <User className="h-6 w-6 text-gray-700 dark:text-gray-300" />
               </Button>
               <Button variant="ghost" size="icon" onClick={() => navigate('/cart')} className="relative">
@@ -218,7 +218,7 @@ export default function Home() {
                   <CarouselItem key={banner.id}>
                     <div 
                       className="relative w-full h-48 md:h-72 bg-gray-200 rounded-lg overflow-hidden cursor-pointer"
-                      onClick={() => banner.link && navigate(banner.link)}
+                      onClick={() => banner.link_url && navigate(banner.link_url)}
                     >
                       <img 
                         src={banner.image_url} 
@@ -291,20 +291,20 @@ export default function Home() {
                 >
                   <div className="relative h-32 sm:h-40 overflow-hidden rounded-t-lg bg-gray-100 dark:bg-gray-800">
                     <img 
-                      src={product.image_url || 'https://via.placeholder.com/300x200?text=Produto'} 
-                      alt={product.name} 
+                      src={product.images[0] || 'https://via.placeholder.com/300x200?text=Produto'} 
+                      alt={product.title} 
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <CardContent className="p-3">
-                    <h3 className="font-semibold text-sm line-clamp-2 mb-1 dark:text-white">{product.name}</h3>
+                    <h3 className="font-semibold text-sm line-clamp-2 mb-1 dark:text-white">{product.title}</h3>
                     <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-1">
-                      {formatCurrency(product.min_price)}
+                      MT {product.price.toLocaleString('pt-MZ')}
                     </p>
                     <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
                       <span>{product.rating?.toFixed(1) || 'N/A'}</span>
-                      <span className="ml-2">({product.review_count || 0})</span>
+                      <span className="ml-2">({product.reviewCount || 0})</span>
                     </div>
                   </CardContent>
                 </Card>
