@@ -1,4 +1,3 @@
-Subcategories) and maintaining product counts.">
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
