@@ -28,6 +28,9 @@ const initialFormData: Partial<CustomerProfile> = {
   zip_code: "",
 };
 
+// Função auxiliar para garantir que null/undefined se torne string vazia
+const safeString = (value: string | null | undefined) => value ?? "";
+
 export default function Profile() {
   const { user, loading: authLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -46,9 +49,8 @@ export default function Profile() {
         setFormData(profileData);
       } else {
         // Se não existir (primeiro acesso após registro), usa dados básicos do auth.user
-        // e preenche os campos de endereço com strings vazias/defaults para evitar 'N/A'
         setFormData({
-          ...initialFormData, // Garante que todos os campos de endereço tenham um valor inicial (vazio ou default)
+          ...initialFormData, 
           full_name: user.user_metadata.full_name || user.email?.split('@')[0] || '',
           email: user.email || '',
           phone: user.user_metadata.phone || '',
@@ -106,6 +108,12 @@ export default function Profile() {
   const displayData = formData;
   const joinedAt = user.created_at ? new Date(user.created_at).toLocaleDateString('pt-MZ', { year: 'numeric', month: 'long' }) : 'N/A';
 
+  // Função para exibir o valor ou 'N/A' se for realmente vazio
+  const displayValue = (value: string | null | undefined) => {
+    const safeValue = safeString(value);
+    return safeValue.trim() === '' ? 'N/A' : safeValue;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20 dark:bg-gray-950">
       {/* Main Content */}
@@ -117,7 +125,7 @@ export default function Profile() {
               <User className="h-10 w-10 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{displayData.full_name || 'Usuário Lumi'}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{displayValue(displayData.full_name)}</h1>
               <div className="flex items-center space-x-4 mt-2">
                 <Badge variant="secondary" className="dark:bg-gray-700 dark:text-gray-300">Membro desde {joinedAt}</Badge>
                 {/* Mocked stats removed for simplicity */}
@@ -144,12 +152,12 @@ export default function Profile() {
                   <Input
                     id="full_name"
                     name="full_name"
-                    value={formData.full_name || ''}
+                    value={safeString(formData.full_name)}
                     onChange={handleInputChange}
                     required
                   />
                 ) : (
-                  <p className="text-gray-900 dark:text-white font-medium">{displayData.full_name || 'N/A'}</p>
+                  <p className="text-gray-900 dark:text-white font-medium">{displayValue(displayData.full_name)}</p>
                 )}
               </div>
               
@@ -158,7 +166,7 @@ export default function Profile() {
                 <Label htmlFor="email">Email</Label>
                 <p className="text-gray-900 dark:text-white font-medium flex items-center">
                   <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                  {displayData.email || 'N/A'}
+                  {displayValue(displayData.email)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">O email só pode ser alterado nas configurações de segurança.</p>
               </div>
@@ -170,14 +178,14 @@ export default function Profile() {
                   <Input
                     id="phone"
                     name="phone"
-                    value={formData.phone || ''}
+                    value={safeString(formData.phone)}
                     onChange={handleInputChange}
                     placeholder="+258 8x xxx xxxx"
                   />
                 ) : (
                   <p className="text-gray-900 dark:text-white font-medium flex items-center">
                     <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                    {displayData.phone || 'N/A'}
+                    {displayValue(displayData.phone)}
                   </p>
                 )}
               </div>
@@ -189,14 +197,14 @@ export default function Profile() {
                   <Input
                     id="alternative_phone"
                     name="alternative_phone"
-                    value={formData.alternative_phone || ''}
+                    value={safeString(formData.alternative_phone)}
                     onChange={handleInputChange}
                     placeholder="+258 8x xxx xxxx (Opcional)"
                   />
                 ) : (
                   <p className="text-gray-900 dark:text-white font-medium flex items-center">
                     <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                    {displayData.alternative_phone || 'N/A'}
+                    {displayValue(displayData.alternative_phone)}
                   </p>
                 )}
               </div>
@@ -212,12 +220,12 @@ export default function Profile() {
                   <Input
                     id="city"
                     name="city"
-                    value={formData.city || ''}
+                    value={safeString(formData.city)}
                     onChange={handleInputChange}
                     required
                   />
                 ) : (
-                  <p className="text-gray-900 dark:text-white font-medium">{displayData.city || 'N/A'}</p>
+                  <p className="text-gray-900 dark:text-white font-medium">{displayValue(displayData.city)}</p>
                 )}
               </div>
               
@@ -228,12 +236,12 @@ export default function Profile() {
                   <Input
                     id="district"
                     name="district"
-                    value={formData.district || ''}
+                    value={safeString(formData.district)}
                     onChange={handleInputChange}
                     required
                   />
                 ) : (
-                  <p className="text-gray-900 dark:text-white font-medium">{displayData.district || 'N/A'}</p>
+                  <p className="text-gray-900 dark:text-white font-medium">{displayValue(displayData.district)}</p>
                 )}
               </div>
               
@@ -244,12 +252,12 @@ export default function Profile() {
                   <Input
                     id="state"
                     name="state"
-                    value={formData.state || ''}
+                    value={safeString(formData.state)}
                     onChange={handleInputChange}
                     required
                   />
                 ) : (
-                  <p className="text-gray-900 dark:text-white font-medium">{displayData.state || 'N/A'}</p>
+                  <p className="text-gray-900 dark:text-white font-medium">{displayValue(displayData.state)}</p>
                 )}
               </div>
             </div>
@@ -261,7 +269,7 @@ export default function Profile() {
                 <Textarea
                   id="shipping_address"
                   name="shipping_address"
-                  value={formData.shipping_address || ''}
+                  value={safeString(formData.shipping_address)}
                   onChange={handleInputChange}
                   rows={2}
                   required
@@ -269,7 +277,7 @@ export default function Profile() {
               ) : (
                 <p className="text-gray-900 dark:text-white font-medium flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                  {displayData.shipping_address || 'N/A'}
+                  {displayValue(displayData.shipping_address)}
                 </p>
               )}
             </div>
