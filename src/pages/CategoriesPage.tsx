@@ -107,10 +107,7 @@ export default function CategoriesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ChevronLeft className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-          </Button>
+        <div className="flex items-center justify-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Todas as Categorias
           </h1>
