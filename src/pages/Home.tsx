@@ -204,16 +204,13 @@ export default function Home() {
         
         {/* Top Navigation & Separator */}
         <div className="mb-4">
-          <div className="flex items-center justify-end mb-4"> {/* Alterado para justify-end já que só temos elementos à direita */}
+          <div className="flex items-center justify-end mb-4">
             
-            {/* Title Removed */}
-
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="icon" onClick={() => navigate(session ? '/profile' : '/login')}>
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300">
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
+                  <AvatarImage src={session?.user_metadata?.avatar_url || undefined} alt="User Avatar" />
+                  {/* AvatarFallback removed */}
                 </Avatar>
               </Button>
               <Button variant="ghost" size="icon" onClick={() => navigate('/cart')} className="relative">
