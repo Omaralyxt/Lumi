@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/context/CartContext';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -144,7 +144,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
 
 // Componente principal da página de vendas
 export default function SalesPage() {
-  const { productId } = useParams<{ productId: string }>();
+  const { id: productId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
@@ -205,17 +205,49 @@ export default function SalesPage() {
       return;
     }
 
-    addToCart({
-      id: selectedVariant.id,
-      productId: product.id,
-      name: product.name,
-      variantName: selectedVariant.name,
+    // Mapeamento simplificado para o CartContext (que espera o tipo Product)
+    // Nota: O CartContext espera um objeto Product completo, mas aqui estamos passando
+    // apenas os dados essenciais da variante. Isso pode causar problemas se o CartContext
+    // tentar acessar campos como `images[0]` ou `shop.name` diretamente do item.
+    // Para corrigir isso, precisamos garantir que o objeto passado para `addToCart`
+    // tenha a estrutura mínima de `Product` ou que o `CartContext` seja adaptado.
+    
+    // Revertendo para a estrutura completa do Product (como era antes)
+    // Para evitar quebrar o CartContext, vamos buscar o objeto Product completo
+    // e usar a variante selecionada para definir o preço/estoque.
+    
+    // Como não temos o objeto Product completo aqui, vamos simular a estrutura mínima
+    // que o CartContext espera, usando os dados que temos.
+    
+    const productForCart = {
+      id: selectedVariant.id, // Usamos o ID da variante como ID do item no carrinho
+      title: product.name,
+      description: product.description,
       price: selectedVariant.price,
-      quantity: quantity,
-      imageUrl: product.product_images[0]?.image_url || '',
-      storeId: product.store_id,
-      shippingCost: product.shipping_cost,
-    });
+      originalPrice: undefined,
+      rating: 4.5,
+      reviewCount: 0,
+      shop: {
+        id: product.store_id,
+        name: product.store_name,
+        rating: 4.5,
+        reviewCount: 0,
+        isVerified: true,
+      },
+      stock: selectedVariant.stock,
+      category: 'Outros', // Mocked
+      features: [],
+      specifications: {},
+      deliveryInfo: { city: 'Maputo', fee: product.shipping_cost, eta: '1-2 dias' },
+      reviews: [],
+      qa: [],
+      images: product.product_images.map(img => img.image_url),
+      options: [{ name: "Variante", values: [selectedVariant.name] }],
+      variants: product.product_variants,
+      timeDelivery: '2-5 dias úteis',
+    };
+
+    addToCart(productForCart as any, quantity);
     toast.success(`${quantity}x ${product.name} (${selectedVariant.name}) adicionado ao carrinho!`);
   };
 
@@ -245,7 +277,7 @@ export default function SalesPage() {
             {/* Price and Rating */}
             <div className="flex items-baseline space-x-4">
               <p className="text-4xl font-extrabold text-blue-600 dark:text-blue-400">
-                {formatCurrency(currentPrice)}
+                MT {currentPrice.toLocaleString('pt-MZ')}
               </p>
               <div className="flex items-center text-yellow-500">
                 <Star className="h-4 w-4 fill-yellow-500" />
@@ -335,7 +367,7 @@ export default function SalesPage() {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
                 <Truck className="h-5 w-5 text-blue-500" />
-                <span className="font-medium">Custo de Envio: {formatCurrency(product.shipping_cost)}</span>
+                <span className="font-medium">Custo de Envio: MT {product.shipping_cost.toLocaleString('pt-MZ')}</span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 O custo de envio é fixo por loja. O valor final será calculado no checkout.
