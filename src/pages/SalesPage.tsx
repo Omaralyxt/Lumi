@@ -13,6 +13,7 @@ import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 
 // Tipos de dados (simplificados)
 interface ProductVariant {
