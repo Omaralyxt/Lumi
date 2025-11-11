@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { searchProducts, getCategories } from "../api/search";
 import { Star, Package, Store, X, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 // Tipagem básica para o componente
 interface AdvancedSearchProps {
@@ -37,8 +38,9 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }: PriceSliderP
     onChange(newValue);
   }, [value, onChange]);
 
-  const formatPrice = useCallback((price: number) => {
-    return `MT ${price.toLocaleString('pt-MZ')}`;
+  const formatPriceDisplay = useCallback((price: number) => {
+    // Usamos formatCurrency para a exibição
+    return formatCurrency(price);
   }, []);
 
   return (
@@ -48,7 +50,7 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }: PriceSliderP
           Faixa de preço
         </label>
         <span className="font-body text-sm text-blue-600 font-semibold">
-          {formatPrice(value[0])} - {formatPrice(value[1])}
+          {formatPriceDisplay(value[0])} - {formatPriceDisplay(value[1])}
         </span>
       </div>
       
@@ -379,11 +381,11 @@ export default function AdvancedSearch({ initialQuery, onSearch }: AdvancedSearc
                         </div>
                         <div className="flex items-center justify-between mt-1">
                           <p className="font-title text-sm font-bold text-blue-600">
-                            {item.price.toLocaleString('pt-MZ')} MT
+                            {formatCurrency(item.price)}
                           </p>
                           {item.originalPrice && item.originalPrice > item.price && (
                             <p className="font-body text-xs text-gray-500 line-through">
-                              {item.originalPrice.toLocaleString('pt-MZ')} MT
+                              {formatCurrency(item.originalPrice)}
                             </p>
                           )}
                         </div>

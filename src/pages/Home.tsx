@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/context/CartContext';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatCurrency } from '@/lib/utils'; // Importação adicionada
 
 // Componente de Banner
 const BannerCarousel = ({ banners }: { banners: { id: string; image_url: string; link: string }[] }) => {
@@ -145,7 +146,7 @@ const ProductCard = ({ product }: { product: Product }) => {
           <h3 className="font-body font-medium text-sm line-clamp-2 mb-2 dark:text-white">{product.name}</h3>
           <div className="flex items-center justify-between">
             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              MT {product.price.toLocaleString('pt-MZ')}
+              {formatCurrency(product.price)}
             </span>
             <Button 
               size="sm" 
@@ -274,8 +275,8 @@ export default function Home() {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="hidden sm:flex left-0" />
-            <CarouselNext className="hidden sm:flex right-0" />
+            <CarouselPrevious className="hidden sm:flex" />
+            <CarouselNext className="hidden sm:flex" />
           </Carousel>
         </section>
 

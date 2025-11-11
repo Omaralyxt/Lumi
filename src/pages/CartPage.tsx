@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft } from "lucide-react";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 const CartItemRow = ({ item }: { item: CartItem }) => {
   const { updateQuantity, removeFromCart } = useCart();
@@ -18,7 +19,7 @@ const CartItemRow = ({ item }: { item: CartItem }) => {
         <Link to={`/store/${item.shop.id}`} className="text-sm text-gray-500 hover:underline hover:text-blue-600">
           {item.shop.name}
         </Link>
-        <p className="text-sm font-bold text-blue-600">MT {item.price.toLocaleString('pt-MZ')}</p>
+        <p className="text-sm font-bold text-blue-600">{formatCurrency(item.price)}</p>
       </div>
       <div className="flex items-center border rounded-lg">
         <Button variant="ghost" size="sm" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
@@ -29,7 +30,7 @@ const CartItemRow = ({ item }: { item: CartItem }) => {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
-      <p className="font-semibold w-24 text-right">MT {(item.price * item.quantity).toLocaleString('pt-MZ')}</p>
+      <p className="font-semibold w-24 text-right">{formatCurrency(item.price * item.quantity)}</p>
       <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500">
         <Trash2 className="h-4 w-4" />
       </Button>
@@ -38,9 +39,8 @@ const CartItemRow = ({ item }: { item: CartItem }) => {
 };
 
 export default function CartPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
-  const deliveryFee = cartTotal > 10000 ? 0 : 250;
-  const total = cartTotal + deliveryFee;
+  const { cartItems, cartSubtotal, deliveryFee, cartTotal } = useCart();
+  const total = cartTotal; // cartTotal já inclui o deliveryFee
 
   if (cartItems.length === 0) {
     return (
@@ -84,15 +84,15 @@ export default function CartPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>MT {cartTotal.toLocaleString('pt-MZ')}</span>
+                  <span>{formatCurrency(cartSubtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Entrega</span>
-                  <span>{deliveryFee === 0 ? 'Grátis' : `MT ${deliveryFee.toLocaleString('pt-MZ')}`}</span>
+                  <span>{deliveryFee === 0 ? 'Grátis' : formatCurrency(deliveryFee)}</span>
                 </div>
                 <div className="border-t pt-4 flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>MT {total.toLocaleString('pt-MZ')}</span>
+                  <span>{formatCurrency(total)}</span>
                 </div>
                 <Button asChild className="w-full text-lg py-6">
                   <Link to="/checkout">Ir para o Checkout</Link>

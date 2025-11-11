@@ -8,6 +8,7 @@ import FavoriteButton from "./FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import { motion } from "framer-motion"; // Importação adicionada
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 interface ProductGridProps {
   products: Product[];
@@ -67,7 +68,7 @@ export default function ProductGrid({ products, title, showStoreInfo = false }: 
           </div>
 
           <p className="text-lg font-bold mt-2 text-gray-800 dark:text-gray-200">
-            MT {product.price.toLocaleString('pt-MZ')}
+            {formatCurrency(product.price)}
           </p>
 
           <div className="flex justify-between items-center mt-3">

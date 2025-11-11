@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { searchProducts } from "@/api/search";
 import { Product } from "@/types/product";
 import Loading from "@/components/Loading";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 interface OfferProduct extends Product {
   discount: number;

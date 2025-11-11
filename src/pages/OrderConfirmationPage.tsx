@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Package, Truck, MapPin, Clock, ShoppingBag } from "lucide-react";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 export default function OrderConfirmationPage() {
   const { orderId } = useParams();
   const { getOrderById, loading } = useOrders();
   const navigate = useNavigate();
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
     if (orderId) {
@@ -193,7 +194,7 @@ export default function OrderConfirmationPage() {
                 <div>
                   <p className="text-sm text-gray-600">Total</p>
                   <p className="font-bold text-xl text-blue-600">
-                    MT {order.total.toLocaleString('pt-MZ')}
+                    {formatCurrency(order.total)}
                   </p>
                 </div>
               </div>
@@ -208,7 +209,7 @@ export default function OrderConfirmationPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((item) => (
+              {order.items.map((item: any) => (
                 <div key={item.id} className="flex items-center space-x-4 p-3 border rounded-lg">
                   <img 
                     src={item.images[0]} 
@@ -221,7 +222,7 @@ export default function OrderConfirmationPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      MT {(item.price * item.quantity).toLocaleString('pt-MZ')}
+                      {formatCurrency(item.price * item.quantity)}
                     </p>
                   </div>
                 </div>

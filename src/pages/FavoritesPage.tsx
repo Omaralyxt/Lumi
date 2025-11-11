@@ -11,6 +11,7 @@ import { Product } from "@/types/product";
 import FavoriteButton from "@/components/FavoriteButton";
 import { toast } from "sonner";
 import { useFavorites } from "@/context/FavoritesContext";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 // Dados mockados com estrutura completa para compatibilidade com o carrinho
 const initialFavorites: Product[] = [
@@ -162,11 +163,11 @@ export default function FavoritesPage() {
                     <div className="flex items-center justify-between pt-2">
                       <div>
                         <span className="text-xl font-bold text-blue-600">
-                          MT {item.price.toLocaleString('pt-MZ')}
+                          {formatCurrency(item.price)}
                         </span>
                         {item.originalPrice && (
                           <span className="text-sm text-gray-500 line-through ml-2">
-                            MT {item.originalPrice.toLocaleString('pt-MZ')}
+                            {formatCurrency(item.originalPrice)}
                           </span>
                         )}
                       </div>

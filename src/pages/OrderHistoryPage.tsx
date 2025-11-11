@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Package, Truck, CheckCircle, XCircle, ArrowLeft, Star } from "lucide-react";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 const statusMap: Record<OrderStatus, { text: string; icon: React.ElementType; color: string }> = {
   pending: { text: "Pendente", icon: Package, color: "bg-yellow-100 text-yellow-800" },
@@ -103,7 +104,7 @@ export default function OrderHistoryPage() {
                               <p className="text-sm text-gray-500">Qtd: {item.quantity}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold">MT {item.price.toLocaleString('pt-MZ')}</p>
+                              <p className="font-semibold">{formatCurrency(item.price)}</p>
                               {order.status === 'delivered' && (
                                 <Button 
                                   variant="link" 
@@ -120,7 +121,7 @@ export default function OrderHistoryPage() {
                         ))}
                       </div>
                       <div className="border-t mt-4 pt-4 flex items-center justify-between">
-                        <p className="text-lg font-bold">Total: MT {order.total.toLocaleString('pt-MZ')}</p>
+                        <p className="text-lg font-bold">Total: {formatCurrency(order.total)}</p>
                         <Button variant="outline" size="sm">Ver Detalhes</Button>
                       </div>
                     </CardContent>

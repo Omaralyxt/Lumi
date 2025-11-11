@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { initiateMpesaPayment } from "@/utils/mpesa";
 import MpesaStatusModal from "@/components/MpesaStatusModal";
 import { getCustomerAddresses, setActiveAddress, CustomerAddress } from "@/api/addresses"; // Importar API de Endereços
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 interface CheckoutErrors {
   address?: string;
@@ -239,7 +240,7 @@ export default function Checkout() {
   
   const activeAddress = selectedAddress || availableAddresses.find(a => a.is_active);
   const deliveryEta = activeAddress ? getDeliveryInfo(activeAddress.city).eta : 'N/A';
-  const deliveryFeeDisplay = deliveryFee.toLocaleString('pt-MZ');
+  const deliveryFeeDisplay = formatCurrency(deliveryFee);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -498,7 +499,7 @@ export default function Checkout() {
                           </div>
                           <div className="text-right">
                             <p className="font-medium">
-                              MT {(item.price * item.quantity).toLocaleString('pt-MZ')}
+                              {formatCurrency(item.price * item.quantity)}
                             </p>
                           </div>
                         </div>
@@ -507,15 +508,15 @@ export default function Checkout() {
                       <div className="border-t pt-4 space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>Subtotal</span>
-                          <span>MT {subtotal.toLocaleString('pt-MZ')}</span>
+                          <span>{formatCurrency(subtotal)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Frete</span>
-                          <span>MT {deliveryFeeDisplay}</span>
+                          <span>{deliveryFeeDisplay}</span>
                         </div>
                         <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                           <span>Total</span>
-                          <span className="text-blue-600">MT {total.toLocaleString('pt-MZ')}</span>
+                          <span className="text-blue-600">{formatCurrency(total)}</span>
                         </div>
                       </div>
                     </div>
@@ -608,15 +609,15 @@ export default function Checkout() {
                 <div className="border-t pt-4 space-y-2 mb-6">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
-                    <span>MT {subtotal.toLocaleString('pt-MZ')}</span>
+                    <span>{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Frete</span>
-                    <span>MT {deliveryFeeDisplay}</span>
+                    <span>{deliveryFeeDisplay}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                     <span>Total</span>
-                    <span className="text-blue-600">MT {total.toLocaleString('pt-MZ')}</span>
+                    <span className="text-blue-600">{formatCurrency(total)}</span>
                   </div>
                 </div>
                 

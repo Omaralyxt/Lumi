@@ -3,6 +3,7 @@ import { ArrowLeft, Gift, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '@/lib/utils'; // Importação adicionada
 
 export default function CouponsPage() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export default function CouponsPage() {
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-700">MT {credits.toLocaleString('pt-MZ')}</div>
+            <div className="text-2xl font-bold text-green-700">{formatCurrency(credits)}</div>
             <p className="text-xs text-gray-500">Crédito de reembolso e bônus</p>
           </CardContent>
         </Card>
