@@ -2,13 +2,13 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import IndexPage from './pages/Index';
+import HomePage from './pages/Home'; // Corrigido de Index para Home
 import LoginPage from './pages/Login';
 import AppLayout from './components/AppLayout';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { OrdersProvider } from './context/OrdersContext';
-import OrderHistoryPage from './pages/OrderHistoryPage'; // Importando a nova página
+import OrderHistoryPage from './pages/OrderHistoryPage';
 
 function App() {
   return (
@@ -18,7 +18,8 @@ function App() {
           <OrdersProvider>
             <AppLayout>
               <Routes>
-                <Route path="/" element={<IndexPage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/orders" element={<OrderHistoryPage />} />
                 {/* Adicione outras rotas aqui */}
