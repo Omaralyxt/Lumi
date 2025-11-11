@@ -2,6 +2,24 @@ import { Order, OrderStatus, PaymentStatus } from '@/types/order';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from '@/context/CartContext'; // Necessário para tipagem de itens
 
+// Tipagem para os dados de entrada da criação do pedido
+interface OrderDataInput {
+  items: CartItem[];
+  total: number;
+  shippingAddress: {
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    district: string | null;
+  };
+  paymentMethod: string;
+  deliveryInfo: {
+    fee: number;
+    eta: string;
+  };
+}
+
 // Função auxiliar para mapear dados do Supabase para o tipo Order
 const mapSupabaseOrderToFrontend = (order: any): Order => {
   // Mapeamento dos order_items
@@ -59,6 +77,107 @@ const mapSupabaseOrderToFrontend = (order: any): Order => {
     estimatedDelivery: order.estimated_delivery,
   };
 };
+
+/**
+ * Gera um número de pedido único (Mocked/Simples).
+ */
+const generateOrderNumber = () => {
+  const date = new Date();
+  const dateStr = date.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+  const random = Math.floor(1000 + Math.random() * 9000); // 4 dígitos
+  return `LMI-${dateStr}-${random}`;
+};
+
+
+/**
+ * Cria um novo pedido no banco de dados.
+ */
+export const createOrder = async (data: OrderDataInput): Promise<Order> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado.');
+  
+  const orderNumber = generateOrderNumber();
+  
+  // 1. Inserir o pedido principal (orders)
+  const orderPayload = {
+    buyer_id: user.id,
+    buyer_name: data.shippingAddress.name,
+    buyer_email: user.email,
+    buyer_phone: data.shippingAddress.phone,
+    buyer_address: data.shippingAddress.address,
+    buyer_city: data.shippingAddress.city,
+    buyer_country: 'Mozambique', // Default
+    order_number: orderNumber,
+    status: 'pending' as OrderStatus,
+    payment_method: data.paymentMethod,
+    payment_status: 'awaiting_payment' as PaymentStatus,
+    total_amount: data.total,
+    shipping_cost: data.deliveryInfo.fee,
+    estimated_delivery: data.deliveryInfo.eta,
+    // Nota: store_id é null aqui, pois é um pedido multi-loja (se for o caso).
+    // Para simplificar, vamos assumir que o primeiro item define o store_id, 
+    // mas o ideal seria criar um pedido por loja ou usar uma estrutura diferente.
+    // Usaremos o store_id do primeiro item para satisfazer a FK (se houver apenas 1 loja)
+    store_id: data.items[0]?.shop.id || null, 
+  };
+
+  const { data: newOrderData, error: orderError } = await supabase
+    .from('orders')
+    .insert(orderPayload)
+    .select()
+    .single();
+
+  if (orderError) {
+    console.error("Error inserting order:", orderError);
+    throw new Error(`Falha ao criar pedido principal: ${orderError.message}`);
+  }
+  
+  const newOrderId = newOrderData.id;
+
+  // 2. Inserir os itens do pedido (order_items)
+  const itemPayloads = data.items.map(item => ({
+    order_id: newOrderId,
+    store_id: item.shop.id,
+    product_id: item.id, // Usando o ID do produto/variante
+    product_name: item.title,
+    variant: item.options[0]?.values[0] || 'Padrão',
+    quantity: item.quantity,
+    price: item.price,
+    subtotal: item.price * item.quantity,
+  }));
+
+  const { error: itemsError } = await supabase
+    .from('order_items')
+    .insert(itemPayloads);
+
+  if (itemsError) {
+    console.error("Error inserting order items:", itemsError);
+    // Nota: Em um sistema real, você faria um rollback do pedido principal aqui.
+    throw new Error(`Falha ao inserir itens do pedido: ${itemsError.message}`);
+  }
+  
+  // 3. Retornar o pedido completo (simulando a busca)
+  const finalOrder: Order = {
+    ...mapSupabaseOrderToFrontend({ ...newOrderData, order_items: itemPayloads }),
+    id: newOrderId,
+    orderNumber: orderNumber,
+    total: data.total,
+    shippingCost: data.deliveryInfo.fee,
+    estimatedDelivery: data.deliveryInfo.eta,
+    // Preencher campos de comprador que não estão no mapSupabaseOrderToFrontend
+    buyerName: orderPayload.buyer_name,
+    buyerEmail: orderPayload.buyer_email,
+    buyerPhone: orderPayload.buyer_phone,
+    buyerAddress: orderPayload.buyer_address,
+    buyerCity: orderPayload.buyer_city,
+    buyerCountry: orderPayload.buyer_country,
+    shippingAddress: data.shippingAddress,
+    paymentMethod: data.paymentMethod,
+  };
+
+  return finalOrder;
+};
+
 
 /**
  * Busca todos os pedidos do comprador logado.

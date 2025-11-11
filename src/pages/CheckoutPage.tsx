@@ -13,7 +13,6 @@ import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { CartItem } from '@/context/CartContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useMutation } from '@tanstack/react-query';
 import { useOrders } from '@/context/OrdersContext';
 import { Badge } from '@/components/ui/badge';
 import { getCustomerAddresses, CustomerAddress } from '@/api/addresses'; // Importando API de endereços
@@ -76,7 +75,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { cartItems, clearCart, getDeliveryInfo } = useCart();
-  const { createOrder } = useOrders();
+  const { createOrder } = useOrders(); // Usando a função do contexto
   
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(undefined);
@@ -126,6 +125,7 @@ export default function CheckoutPage() {
   const storeDeliveryFees = useMemo(() => {
     const fees: Record<string, number> = {};
     Object.keys(groupedItems).forEach(storeId => {
+      // Usamos o deliveryInfo do primeiro item da loja para determinar a taxa de entrega
       fees[storeId] = groupedItems[storeId][0].deliveryInfo.fee;
     });
     return fees;
@@ -145,20 +145,6 @@ export default function CheckoutPage() {
     return addresses.find(a => a.id === selectedAddressId);
   }, [addresses, selectedAddressId]);
 
-  // Mutation para criar o pedido
-  const createOrderMutation = useMutation({
-    mutationFn: createOrder,
-    onSuccess: (data) => {
-      clearCart();
-      navigate(`/order-confirmation/${data.id}`);
-    },
-    onError: (error) => {
-      console.error("Erro ao criar pedido:", error);
-      toast.error("Falha ao finalizar o pedido. Tente novamente.");
-      setIsProcessing(false);
-    },
-  });
-
   const handlePlaceOrder = async () => {
     if (!user) {
       toast.error("Você precisa estar logado para finalizar a compra.");
@@ -176,7 +162,6 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
     
-    // O OrdersContext espera um objeto OrderData simplificado
     const orderData = {
       items: cartItems,
       total: finalTotal,
@@ -194,7 +179,17 @@ export default function CheckoutPage() {
       },
     };
 
-    createOrderMutation.mutate(orderData);
+    try {
+      const newOrder = await createOrder(orderData);
+      clearCart();
+      toast.success("Pedido criado com sucesso!");
+      navigate(`/order-confirmation/${newOrder.id}`);
+    } catch (error) {
+      console.error("Erro ao criar pedido:", error);
+      toast.error("Falha ao finalizar o pedido. Tente novamente.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (authLoading) {
@@ -212,7 +207,7 @@ export default function CheckoutPage() {
     return null;
   }
 
-  if (cartItems.length === 0 && !createOrderMutation.isSuccess) {
+  if (cartItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center">
         <h1 className="text-2xl font-bold mb-2">Seu carrinho está vazio</h1>
@@ -359,14 +354,14 @@ export default function CheckoutPage() {
                 <Button 
                   className="w-full text-lg py-6 mt-4 bg-blue-600 hover:bg-blue-700"
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing || createOrderMutation.isPending || addresses.length === 0}
+                  disabled={isProcessing || addresses.length === 0}
                 >
-                  {isProcessing || createOrderMutation.isPending ? (
+                  {isProcessing ? (
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                   ) : (
                     <CheckCircle className="h-5 w-5 mr-2" />
                   )}
-                  {isProcessing || createOrderMutation.isPending ? 'Processando...' : 'Finalizar Pedido'}
+                  {isProcessing ? 'Processando...' : 'Finalizar Pedido'}
                 </Button>
                 
                 <p className="text-xs text-gray-500 text-center pt-2 dark:text-gray-400">
