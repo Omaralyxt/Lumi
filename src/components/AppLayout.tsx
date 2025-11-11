@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, ShoppingCart, Package, User, Heart, Settings, LogOut, ListOrdered } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -21,7 +21,7 @@ const menuItems = [
 ];
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthContext(); // Usando logout do contexto
   const location = useLocation();
 
   // Ocultar layout em páginas de autenticação
