@@ -1,253 +1,207 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, Home, Package, Store, Bell, LogOut, Settings, LayoutDashboard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/context/AuthContext';
-import { useCart } from '@/context/CartContext';
-import { LOGO_URL } from '@/lib/constants';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { Badge } from './ui/badge';
+"use client";
 
-interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ElementType;
-  roles?: ('buyer' | 'seller' | 'administrator')[];
+import React, { ReactNode, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ThemeToggle } from "./ThemeToggle";
+import BottomNavLumi from "./BottomNavLumi";
+import { useTheme } from "@/context/ThemeProvider";
+import HeaderCart from "./HeaderCart";
+import { supabase } from '@/integrations/supabase/client';
+import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck, Bell, Percent, Grid3X3, Home, LogOut } from "lucide-react";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
+
+interface AppLayoutProps {
+  children: ReactNode;
 }
 
-const navItems: NavItem[] = [
-  { name: 'Início', href: '/home', icon: Home, roles: ['buyer'] },
-  { name: 'Pedidos', href: '/orders', icon: Package, roles: ['buyer'] },
-  { name: 'Minha Loja', href: '/seller/dashboard', icon: Store, roles: ['seller'] },
-  { name: 'Admin', href: '/admin/dashboard', icon: LayoutDashboard, roles: ['administrator'] },
-];
+const LOGO_URL = "https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/logo/Logo%20Lumi.png";
+const excludedPaths = ["/login", "/register"];
 
-const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, profile, signOut, isAuthenticated, isLoading } = useAuth();
-  const { cartItems } = useCart();
+export default function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const navigate = useNavigate();
+  const { theme } = useTheme();
+  const [user, setUser] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const userRole = profile?.role || 'buyer';
+  const isAuthPage = excludedPaths.some(path => location.pathname.startsWith(path));
+  const isHomePage = location.pathname === "/home" || location.pathname === "/";
 
-  const filteredNavItems = navItems.filter(item => 
-    !item.roles || item.roles.includes(userRole as 'buyer' | 'seller' | 'administrator')
-  );
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      // Redirecionar usuários logados de páginas de autenticação para /home
+      if (user && isAuthPage) {
+        navigate('/home');
+      }
+    };
 
-  const isSeller = userRole === 'seller';
-  const isAdmin = userRole === 'administrator';
+    checkUser();
 
-  const handleSignOut = async () => {
-    await signOut();
+    // Escutar mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      
+      // Redirecionar após login/logout
+      if (_event === 'SIGNED_IN') {
+        navigate('/home');
+      } else if (_event === 'SIGNED_OUT') {
+        navigate('/home');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, isAuthPage]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/home');
   };
 
-  const renderAuthButtons = () => {
-    if (isLoading) {
-      return <div className="h-8 w-20 bg-gray-200 animate-pulse rounded"></div>;
-    }
+  // Menu simplificado para utilidades e rotas secundárias
+  const menuItems = [
+    { icon: Package, label: "Meus Pedidos", href: "/orders" },
+    { icon: Heart, label: "Favoritos", href: "/favorites" },
+    { icon: Bell, label: "Notificações", href: "/notifications" },
+    { icon: Truck, label: "Acompanhar Pedido", href: "/track-order" },
+    { icon: Store, label: "Lojas Parceiras", href: "/stores" },
+  ];
 
-    if (isAuthenticated) {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={profile?.avatar_url || "/placeholder-user.jpg"} alt={profile?.first_name || "User"} />
-                <AvatarFallback>{profile?.first_name?.[0] || 'U'}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{profile?.first_name} {profile?.last_name}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {user?.email}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            
-            {/* Buyer Links */}
-            {userRole === 'buyer' && (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/orders">
-                    <Package className="mr-2 h-4 w-4" />
-                    <span>Meus Pedidos</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Perfil</span>
-                  </Link>
-                </DropdownMenuItem>
-              </>
-            )}
-
-            {/* Seller Links */}
-            {isSeller && (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/seller/dashboard">
-                    <Store className="mr-2 h-4 w-4" />
-                    <span>Dashboard da Loja</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/seller/products">
-                    <Package className="mr-2 h-4 w-4" />
-                    <span>Meus Produtos</span>
-                  </Link>
-                </DropdownMenuItem>
-              </>
-            )}
-
-            {/* Admin Links */}
-            {isAdmin && (
-              <DropdownMenuItem asChild>
-                <Link to="/admin/dashboard">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>Admin Dashboard</span>
-                </Link>
-              </DropdownMenuItem>
-            )}
-
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Sair</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-
-    return (
-      <div className="flex space-x-2">
-        <Button asChild variant="ghost" className="hidden sm:inline-flex">
-          <Link to="/login">Entrar</Link>
-        </Button>
-        <Button asChild className="hidden sm:inline-flex">
-          <Link to="/register">Cadastrar</Link>
-        </Button>
-      </div>
-    );
-  };
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-40 w-full border-b bg-white/90 backdrop-blur-sm dark:bg-gray-900/90">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Logo and Mobile Menu */}
-          <div className="flex items-center space-x-4">
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild className="lg:hidden">
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Toggle Menu</span>
+    <div
+      className={`min-h-screen transition-all duration-500 ease-in-out font-body ${
+        theme === "dark"
+          ? "bg-[#0a0a0a] text-white"
+          : "bg-[#fafafa] text-gray-900"
+      }`}
+    >
+      {/* Navbar com Menu Hambúrguer, Logo e Busca Centralizada */}
+      <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3">
+        <div className="flex items-center justify-between h-16">
+          {/* Menu Hambúrguer e Logo */}
+          <div className="flex items-center space-x-3">
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                <nav className="flex flex-col space-y-4 pt-6">
-                  {filteredNavItems.map((item) => (
+              <SheetContent side="left" className="w-80 bg-white dark:bg-gray-900">
+                <SheetHeader>
+                  <SheetTitle className="text-gray-900 dark:text-white">Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-6 space-y-2">
+                  {/* Itens principais (já na barra inferior, mas úteis no menu) */}
+                  <Link
+                    to="/home"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Home className="h-5 w-5" />
+                    <span>Início</span>
+                  </Link>
+                  <Link
+                    to="/categories"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Grid3X3 className="h-5 w-5" />
+                    <span>Categorias</span>
+                  </Link>
+                  <Link
+                    to="/offers"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Percent className="h-5 w-5" />
+                    <span>Ofertas</span>
+                  </Link>
+                  
+                  {/* Itens Secundários */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+                  
+                  {menuItems.map((item) => (
                     <Link
-                      key={item.name}
+                      key={item.label}
                       to={item.href}
-                      className={`flex items-center space-x-3 p-2 rounded-md text-lg font-medium transition-colors ${
-                        location.pathname === item.href
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
-                      }`}
-                      onClick={() => setIsSheetOpen(false)}
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
+                      <span>{item.label}</span>
                     </Link>
                   ))}
-                  {!isAuthenticated && (
-                    <>
-                      <Link to="/login" className="p-2 rounded-md text-lg font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800" onClick={() => setIsSheetOpen(false)}>
-                        Entrar
-                      </Link>
-                      <Link to="/register" className="p-2 rounded-md text-lg font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800" onClick={() => setIsSheetOpen(false)}>
-                        Cadastrar
-                      </Link>
-                    </>
+                  
+                  {/* Autenticação */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+                  {user ? (
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-gray-900 dark:text-white"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      <span>Sair</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-gray-900 dark:text-white"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <User className="h-5 w-5" />
+                      <span>Entrar</span>
+                    </Link>
                   )}
                 </nav>
               </SheetContent>
             </Sheet>
 
+            {/* Logo ao lado do menu hambúrguer */}
             <Link to="/home" className="flex items-center space-x-2">
               <img src={LOGO_URL} alt="Lumi Logo" className="h-8 w-auto" />
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-6">
-            {filteredNavItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === item.href ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
+          {/* Busca Centralizada */}
+          <div className="flex-1 max-w-2xl mx-4">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const searchInput = e.currentTarget.querySelector('input');
+              if (searchInput?.value.trim()) {
+                navigate(`/search?q=${encodeURIComponent(searchInput.value)}`);
+              }
+            }}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar produtos, lojas ou marcas..."
+                  className="w-full pl-4 pr-4 py-2 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
+                />
+              </div>
+            </form>
+          </div>
 
-          {/* Actions and Auth */}
-          <div className="flex items-center space-x-4">
-            <Button asChild variant="ghost" size="icon" className="relative">
-              <Link to="/cart">
-                <ShoppingCart className="h-5 w-5" />
-                {cartItems.length > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs">
-                    {cartItems.length}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
-            
-            {renderAuthButtons()}
+          {/* Botões à direita */}
+          <div className="flex items-center space-x-3">
+            <HeaderCart />
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
-      <main className="flex-grow">
-        {children}
-      </main>
+      {/* Conteúdo principal */}
+      <main className="pb-20">{children}</main>
 
-      <footer className="border-t bg-gray-50 dark:bg-gray-900/50">
-        <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-center md:text-left mb-4 md:mb-0">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                &copy; {new Date().getFullYear()} Lumi. Todos os direitos reservados.
-              </p>
-            </div>
-            <div className="flex space-x-6">
-              <Link to="/about" className="text-sm text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary">
-                Sobre
-              </Link>
-              <Link to="/contact" className="text-sm text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary">
-                Contato
-              </Link>
-              <Link to="/terms" className="text-sm text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary">
-                Termos
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <BottomNavLumi />
     </div>
   );
-};
-
-export default AppLayout;
+}
