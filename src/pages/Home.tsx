@@ -16,8 +16,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/context/CartContext';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatCurrency } from '@/lib/utils'; // Importação adicionada
+import { formatCurrency } from '@/lib/utils';
 import { Product as ProductType } from '@/types/product'; // Importando o tipo Product completo
+import ProductCard from '@/components/ProductCard'; // Importando o ProductCard externo
 
 // Componente de Banner
 const BannerCarousel = ({ banners }: { banners: { id: string | number; image_url: string; link_url: string }[] }) => {
@@ -89,83 +90,6 @@ const BannerCarousel = ({ banners }: { banners: { id: string | number; image_url
   );
 };
 
-// Componente de Produto
-interface Product {
-  id: string;
-  name: string;
-  image_url: string;
-  price: number;
-  store_name: string;
-  store_id: string;
-}
-
-const ProductCard = ({ product }: { product: Product }) => {
-  const navigate = useNavigate();
-  const { addToCart } = useCart();
-
-  const handleViewProduct = () => {
-    navigate(`/sales/${product.id}`);
-  };
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Simplificado: Adiciona o produto principal (assumindo que o preço é o da variante padrão)
-    addToCart({
-      id: product.id,
-      title: product.name,
-      description: "Descrição padrão", // Adicionado para satisfazer ProductType
-      price: product.price,
-      images: [product.image_url],
-      shop: { id: product.store_id, name: product.store_name, rating: 4.5, reviewCount: 0, isVerified: true },
-      stock: 10, // Mocked
-      category: 'Outros', // Mocked
-      features: [],
-      specifications: {},
-      deliveryInfo: { city: 'Maputo', fee: 150, eta: '1-2 dias' },
-      options: [],
-      variants: [],
-      rating: 4.5,
-      reviewCount: 0,
-      timeDelivery: '2-5 dias úteis',
-      reviews: [], // Adicionado para satisfazer ProductType
-      qa: [], // Adicionado para satisfazer ProductType
-    } as ProductType, 1); // Cast para ProductType
-  };
-
-  return (
-    <Card 
-      className="w-full cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800"
-      onClick={handleViewProduct}
-    >
-      <CardContent className="p-0">
-        <div className="relative w-full aspect-square overflow-hidden rounded-t-lg">
-          <img
-            src={product.image_url || '/placeholder.svg'}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-          />
-        </div>
-        <div className="p-3">
-          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-1">{product.store_name}</p>
-          <h3 className="font-body font-medium text-sm line-clamp-2 mb-2 dark:text-white">{product.name}</h3>
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {formatCurrency(product.price)}
-            </span>
-            <Button 
-              size="sm" 
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-              onClick={handleAddToCart}
-            >
-              +
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 // Componente de Categoria Rápida
 const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
   const navigate = useNavigate();
@@ -201,20 +125,9 @@ export default function Home() {
   });
 
   // Fetch Products
-  const { data: products, isLoading: isLoadingProducts } = useQuery<Product[]>({
+  const { data: products, isLoading: isLoadingProducts } = useQuery<ProductType[]>({
     queryKey: ['products', 'featured'],
-    queryFn: async () => {
-      const featured = await getFeaturedProducts();
-      // Mapear para o formato simplificado esperado pelo ProductCard
-      return featured.map(p => ({
-        id: p.id as string,
-        name: p.title,
-        image_url: p.images[0],
-        price: p.price,
-        store_name: p.shop.name,
-        store_id: p.shop.id,
-      }));
-    },
+    queryFn: getFeaturedProducts, // Agora retorna o tipo ProductType completo
     staleTime: 1000 * 60 * 1, // 1 minute
   });
 
@@ -299,6 +212,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {/* Usando o ProductCard externo que já está configurado para a rota /sales/:id */}
               {products?.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
