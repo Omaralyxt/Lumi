@@ -260,7 +260,8 @@ export default function Home() {
           
           <Carousel
             opts={{
-              align: "start",
+              // Removendo align: "start" e adicionando dragFree: true
+              dragFree: true,
             }}
             className="w-full"
           >
