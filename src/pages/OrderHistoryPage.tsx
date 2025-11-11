@@ -6,7 +6,7 @@ import { Order, OrderStatus } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, Package, Truck, CheckCircle, XCircle, ArrowLeft, Star } from "lucide-react";
+import { ShoppingBag, Package, Truck, CheckCircle, XCircle, ArrowLeft, Star, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useOrders } from "@/context/OrdersContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +26,7 @@ export default function OrderHistoryPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      console.log("Fetching orders...");
       fetchOrders();
     }
   }, [isAuthenticated, fetchOrders]);
@@ -66,7 +67,11 @@ export default function OrderHistoryPage() {
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 py-6">
           {error ? (
-            <div className="text-center py-12 text-red-600">{error}</div>
+            <div className="text-center py-12 p-6 bg-red-50 border border-red-200 rounded-lg text-red-700 flex flex-col items-center">
+              <AlertCircle className="h-8 w-8 mb-3" />
+              <h2 className="font-semibold text-lg">Erro ao carregar pedidos</h2>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-12">
               <ShoppingBag className="h-16 w-16 mx-auto text-gray-300 mb-4" />
