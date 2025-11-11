@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { CartItem } from '@/context/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
-import { createOrder } from '@/api/orders';
+import { useOrders } from '@/context/OrdersContext'; // Importando useOrders
 
 // Componente de Item do Pedido
 const OrderItemSummary = ({ item }: { item: CartItem }) => (
@@ -73,7 +73,8 @@ const StoreSummary = ({ storeId, items, deliveryFee }: { storeId: string; items:
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartTotal, clearCart, getDeliveryInfo } = useCart(); // Adicionado getDeliveryInfo
+  const { createOrder } = useOrders(); // Usando createOrder do OrdersContext
   
   const [selectedAddress, setSelectedAddress] = useState('address_1'); // Mocked
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('mpesa');
@@ -117,13 +118,13 @@ export default function CheckoutPage() {
 
   const finalTotal = totalProductsSubtotal + totalDeliveryFee;
 
-  // Mutation para criar o pedido
+  // Mutation para criar o pedido (usando a função do context)
   const createOrderMutation = useMutation({
     mutationFn: createOrder,
     onSuccess: (data) => {
-      toast.success("Pedido criado com sucesso!");
+      // O OrdersContext já mostra o toast de sucesso
       clearCart();
-      navigate(`/order-confirmation/${data.order_id}`);
+      navigate(`/order-confirmation/${data.id}`); // Usando data.id que é o ID do pedido retornado pelo context
     },
     onError: (error) => {
       console.error("Erro ao criar pedido:", error);
@@ -148,26 +149,30 @@ export default function CheckoutPage() {
     }
 
     setIsProcessing(true);
-
-    // Preparar dados do pedido
+    
+    const selectedShippingAddress = addresses.find(a => a.id === selectedAddress);
+    if (!selectedShippingAddress) {
+      toast.error("Endereço de entrega inválido.");
+      setIsProcessing(false);
+      return;
+    }
+    
+    // O OrdersContext espera um objeto OrderData simplificado
     const orderData = {
-      buyer_id: user.id,
-      buyer_name: user.user_metadata.first_name + ' ' + user.user_metadata.last_name,
-      buyer_email: user.email,
-      buyer_address: addresses.find(a => a.id === selectedAddress)?.full_address || 'Endereço não encontrado',
-      buyer_city: addresses.find(a => a.id === selectedAddress)?.city || 'Cidade Desconhecida',
-      payment_method: selectedPaymentMethod,
-      total_amount: finalTotal,
-      shipping_cost: totalDeliveryFee,
-      items: cartItems.map(item => ({
-        product_id: item.id,
-        store_id: item.shop.id,
-        product_name: item.title,
-        variant: item.options[0]?.values[0] || 'Padrão',
-        quantity: item.quantity,
-        price: item.price,
-        subtotal: item.price * item.quantity,
-      })),
+      items: cartItems,
+      total: finalTotal,
+      shippingAddress: {
+        name: user.user_metadata.full_name || user.email,
+        phone: user.user_metadata.phone || 'N/A',
+        address: selectedShippingAddress.full_address,
+        city: selectedShippingAddress.city,
+        district: selectedShippingAddress.district,
+      },
+      paymentMethod: selectedPaymentMethod,
+      deliveryInfo: {
+        fee: totalDeliveryFee,
+        eta: getDeliveryInfo(selectedShippingAddress.city).eta, // Obtém ETA da cidade
+      },
     };
 
     createOrderMutation.mutate(orderData);
