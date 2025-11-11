@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Truck, MapPin, CreditCard, Loader2, ShoppingCart, Plus } from 'lucide-react';
+import { CheckCircle, Truck, MapPin, CreditCard, Loader2, ShoppingCart, Plus, LocateFixed } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { CartItem } from '@/context/CartContext';
@@ -258,6 +258,12 @@ export default function CheckoutPage() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               {address.full_address}, {address.district}, {address.city}
                             </p>
+                            {address.latitude && address.longitude && (
+                              <p className="text-xs text-gray-500 mt-1 flex items-center">
+                                <LocateFixed className="h-3 w-3 mr-1" />
+                                GPS: {address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
+                              </p>
+                            )}
                           </Label>
                         </div>
                       ))}

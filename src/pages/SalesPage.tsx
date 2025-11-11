@@ -64,7 +64,8 @@ const fetchProduct = async (productId: string): Promise<Product> => {
   }
 
   // Mapear dados para o formato Product
-  const storeName = Array.isArray(data.stores) ? data.stores[0]?.name : data.stores?.name || 'Loja Desconhecida';
+  // Corrigido o acesso a data.stores para garantir compatibilidade com o tipo retornado pelo Supabase
+  const storeName = (data.stores as { name: string } | null)?.name || 'Loja Desconhecida';
 
   return {
     id: data.id,
@@ -331,7 +332,7 @@ export default function SalesPage() {
                         }
                         ${variant.stock <= 0 && 'opacity-50 cursor-not-allowed line-through'}
                       `}
-                      onClick={() => !variant.stock <= 0 && setSelectedVariant(variant)}
+                      onClick={() => variant.stock > 0 && setSelectedVariant(variant)}
                       disabled={variant.stock <= 0}
                     >
                       {variant.name}

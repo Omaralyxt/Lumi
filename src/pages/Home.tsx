@@ -17,9 +17,10 @@ import { useCart } from '@/context/CartContext';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatCurrency } from '@/lib/utils'; // Importação adicionada
+import { Product as ProductType } from '@/types/product'; // Importando o tipo Product completo
 
 // Componente de Banner
-const BannerCarousel = ({ banners }: { banners: { id: string; image_url: string; link: string }[] }) => {
+const BannerCarousel = ({ banners }: { banners: { id: string | number; image_url: string; link_url: string }[] }) => {
   if (!banners || banners.length === 0) return null;
 
   const [api, setApi] = useState<CarouselApi>();
@@ -69,7 +70,7 @@ const BannerCarousel = ({ banners }: { banners: { id: string; image_url: string;
             <div className="p-1">
               <Card className="border-none shadow-none">
                 <CardContent className="flex aspect-video items-center justify-center p-0">
-                  <a href={banner.link} className="w-full h-full">
+                  <a href={banner.link_url} className="w-full h-full">
                     <img
                       src={banner.image_url}
                       alt={`Banner ${banner.id}`}
@@ -112,6 +113,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     addToCart({
       id: product.id,
       title: product.name,
+      description: "Descrição padrão", // Adicionado para satisfazer ProductType
       price: product.price,
       images: [product.image_url],
       shop: { id: product.store_id, name: product.store_name, rating: 4.5, reviewCount: 0, isVerified: true },
@@ -125,7 +127,9 @@ const ProductCard = ({ product }: { product: Product }) => {
       rating: 4.5,
       reviewCount: 0,
       timeDelivery: '2-5 dias úteis',
-    }, 1);
+      reviews: [], // Adicionado para satisfazer ProductType
+      qa: [], // Adicionado para satisfazer ProductType
+    } as ProductType, 1); // Cast para ProductType
   };
 
   return (

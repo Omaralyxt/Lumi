@@ -6,6 +6,15 @@ const mockOrders: Order[] = [
     orderDate: '2024-07-28T10:30:00Z',
     total: 12750,
     status: 'shipped',
+    paymentStatus: 'paid', // Adicionado
+    orderNumber: 'LMI-20240728-1234', // Adicionado
+    shippingCost: 250, // Adicionado
+    buyerName: "João Silva", // Adicionado
+    buyerEmail: "joao.silva@example.com", // Adicionado
+    buyerPhone: "+258 82 123 4567", // Adicionado
+    buyerAddress: "Av. Kenneth Kaunda, 123", // Adicionado
+    buyerCity: "Maputo", // Adicionado
+    buyerCountry: "Mozambique", // Adicionado
     items: [
       {
         id: 'mock-prod-1', // Alterado para string
@@ -27,7 +36,7 @@ const mockOrders: Order[] = [
         rating: 4.5,
         reviewCount: 128,
         timeDelivery: "2-5 dias úteis",
-      }
+      } as any // Usando 'as any' para simplificar o mock de CartItem
     ],
     shippingAddress: {
       name: "João Silva",
@@ -44,6 +53,15 @@ const mockOrders: Order[] = [
     orderDate: '2024-07-25T15:00:00Z',
     total: 4550,
     status: 'delivered',
+    paymentStatus: 'paid', // Adicionado
+    orderNumber: 'LMI-20240725-1233', // Adicionado
+    shippingCost: 200, // Adicionado
+    buyerName: "João Silva", // Adicionado
+    buyerEmail: "joao.silva@example.com", // Adicionado
+    buyerPhone: "+258 82 123 4567", // Adicionado
+    buyerAddress: "Av. Kenneth Kaunda, 123", // Adicionado
+    buyerCity: "Maputo", // Adicionado
+    buyerCountry: "Mozambique", // Adicionado
     items: [
       {
         id: 'mock-prod-2', // Alterado para string
@@ -65,7 +83,7 @@ const mockOrders: Order[] = [
         rating: 4.2,
         reviewCount: 89,
         timeDelivery: "2-3 dias úteis",
-      },
+      } as any,
       {
         id: 'mock-prod-3', // Alterado para string
         title: "Panela de Pressão Inox",
@@ -86,7 +104,7 @@ const mockOrders: Order[] = [
         rating: 4.8,
         reviewCount: 156,
         timeDelivery: "3-5 dias úteis",
-      }
+      } as any
     ],
     shippingAddress: {
       name: "João Silva",
@@ -103,6 +121,15 @@ const mockOrders: Order[] = [
     orderDate: '2024-07-29T08:00:00Z',
     total: 2249,
     status: 'pending',
+    paymentStatus: 'awaiting_payment', // Adicionado
+    orderNumber: 'LMI-20240729-1232', // Adicionado
+    shippingCost: 250, // Adicionado
+    buyerName: "João Silva", // Adicionado
+    buyerEmail: "joao.silva@example.com", // Adicionado
+    buyerPhone: "+258 82 123 4567", // Adicionado
+    buyerAddress: "Rua dos Heróis de Mueda, 456", // Adicionado
+    buyerCity: "Maputo", // Adicionado
+    buyerCountry: "Mozambique", // Adicionado
     items: [
       {
         id: 'mock-prod-4', // Alterado para string
@@ -124,7 +151,7 @@ const mockOrders: Order[] = [
         rating: 4.3,
         reviewCount: 67,
         timeDelivery: "2-4 dias úteis",
-      }
+      } as any
     ],
     shippingAddress: {
       name: "João Silva",
