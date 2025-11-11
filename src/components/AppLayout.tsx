@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ShoppingCart, User, Home, Package, Store, Bell, LogOut, Settings, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { LOGO_URL } from '@/lib/constants';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -25,24 +25,12 @@ const navItems: NavItem[] = [
 ];
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // O hook useAuth não fornece 'profile', 'signOut' ou 'isLoading' diretamente no estado atual.
-  // Vou ajustar para usar apenas o que está disponível no useAuth (user, isAuthenticated, loading).
-  const { user, isAuthenticated, loading: isLoading } = useAuth();
+  const { user, profile, signOut, isAuthenticated, isLoading } = useAuth();
   const { cartItems } = useCart();
   const location = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Mocking profile and signOut for now, as the current useAuth hook is simple.
-  // Since the user is authenticated via Supabase, we can extract basic info from user object.
-  const profile = {
-    first_name: user?.user_metadata.full_name?.split(' ')[0] || 'Usuário',
-    last_name: user?.user_metadata.full_name?.split(' ').slice(1).join(' ') || '',
-    avatar_url: user?.user_metadata.avatar_url,
-    role: user?.user_metadata.user_type || 'buyer', // Assuming user_type is stored in metadata
-  };
-  
-  // Use the role from the user metadata or default to 'buyer'
-  const userRole = profile.role || 'buyer';
+  const userRole = profile?.role || 'buyer';
 
   const filteredNavItems = navItems.filter(item => 
     !item.roles || item.roles.includes(userRole as 'buyer' | 'seller' | 'administrator')
@@ -52,7 +40,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAdmin = userRole === 'administrator';
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
   };
 
   const renderAuthButtons = () => {
