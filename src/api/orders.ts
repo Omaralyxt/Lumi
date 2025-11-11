@@ -6,7 +6,7 @@ import { CartItem } from '@/context/CartContext'; // Necessário para tipagem de
 const mapSupabaseOrderToFrontend = (order: any): Order => {
   // Mapeamento dos order_items
   const items: CartItem[] = (order.order_items || []).map((item: any) => ({
-    id: item.product_id, // Usamos o ID do produto como ID do item (simplificação)
+    id: item.id, // Usando o ID único da linha order_items como chave principal
     title: item.product_name,
     price: item.price,
     quantity: item.quantity,
