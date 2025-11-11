@@ -44,6 +44,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
+    
     try {
       const fetchedOrders = await getBuyerOrders();
       setOrders(fetchedOrders);
@@ -58,6 +59,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         toast.error("Falha ao carregar pedidos: " + (err.message || "Erro desconhecido"));
       }
     } finally {
+      // GARANTIR que o loading para, mesmo que haja um erro.
       setLoading(false);
     }
   };
