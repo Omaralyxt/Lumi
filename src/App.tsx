@@ -8,7 +8,7 @@ import AppLayout from './components/AppLayout';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { OrdersProvider } from './context/OrdersContext';
-import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderHistoryPage from './pages/OrderHistoryPage'; // Componente de Histórico de Pedidos
 import RegisterPage from './pages/Register';
 import { QueryProvider } from './context/QueryProvider'; // Importando QueryProvider
 import RootRedirect from './components/RootRedirect';
@@ -31,7 +31,7 @@ import NotFound from './pages/NotFound';
 import CreateProduct from './components/CreateProduct';
 import AdminDashboard from './pages/AdminDashboard';
 import SalesDashboard from './pages/SalesDashboard';
-import CartPage from './pages/CartPage'; // Adicionando a importação de CartPage
+import CartPage from './pages/CartPage';
 
 
 function App() {
@@ -68,6 +68,7 @@ function App() {
                   <Route path="/coupons" element={<CouponsPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/favorites" element={<FavoritesPage />} />
+                  <Route path="/order-history" element={<OrderHistoryPage />} /> {/* Rota adicionada/corrigida */}
                   
                   {/* Rotas de Autenticação */}
                   <Route path="/login" element={<LoginPage />} />
