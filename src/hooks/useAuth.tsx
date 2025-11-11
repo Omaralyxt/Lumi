@@ -26,7 +26,6 @@ export function useAuth(): AuthState {
         isAuthenticated: !!user,
         loading: false,
       });
-      console.log("useAuth: Initial check complete. Authenticated:", !!user);
     };
 
     checkUser();
@@ -37,7 +36,6 @@ export function useAuth(): AuthState {
         isAuthenticated: !!session?.user,
         loading: false,
       });
-      console.log(`useAuth: Auth state changed. Event: ${_event}. Authenticated:`, !!session?.user);
     });
 
     return () => {
