@@ -74,7 +74,7 @@ const StoreSummary = ({ storeId, items, deliveryFee }: { storeId: string; items:
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { cartItems, clearCart, getDeliveryInfo } = useCart();
   const { createOrder } = useOrders();
   
@@ -197,6 +197,21 @@ export default function CheckoutPage() {
     createOrderMutation.mutate(orderData);
   };
 
+  if (authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <p className="mt-4 text-gray-600">Verificando autenticação...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    // Redirecionamento se não estiver autenticado após o carregamento
+    navigate('/login');
+    return null;
+  }
+
   if (cartItems.length === 0 && !createOrderMutation.isSuccess) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center">
@@ -206,12 +221,6 @@ export default function CheckoutPage() {
     );
   }
   
-  if (!isAuthenticated) {
-    // Redirecionamento de segurança, embora AppLayout deva lidar com isso
-    navigate('/login');
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
