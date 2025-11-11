@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Truck, MapPin, CreditCard, Loader2, ShoppingCart } from 'lucide-react';
+import { CheckCircle, Truck, MapPin, CreditCard, Loader2, ShoppingCart, Plus } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { CartItem } from '@/context/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
-import { useOrders } from '@/context/OrdersContext'; // Importando useOrders
-import { Badge } from '@/components/ui/badge'; // Adicionando Badge
+import { useOrders } from '@/context/OrdersContext';
+import { Badge } from '@/components/ui/badge';
+import { getCustomerAddresses, CustomerAddress } from '@/api/addresses'; // Importando API de endereços
 
 // Componente de Item do Pedido
 const OrderItemSummary = ({ item }: { item: CartItem }) => (
@@ -73,19 +74,41 @@ const StoreSummary = ({ storeId, items, deliveryFee }: { storeId: string; items:
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { cartItems, cartTotal, clearCart, getDeliveryInfo } = useCart(); // Adicionado getDeliveryInfo
-  const { createOrder } = useOrders(); // Usando createOrder do OrdersContext
+  const { user, isAuthenticated } = useAuth();
+  const { cartItems, clearCart, getDeliveryInfo } = useCart();
+  const { createOrder } = useOrders();
   
-  const [selectedAddress, setSelectedAddress] = useState('address_1'); // Mocked
+  const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(undefined);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('mpesa');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
 
-  // Mocked Data
-  const addresses = [
-    { id: 'address_1', name: 'Casa', full_address: 'Rua da Liberdade, 123', city: 'Maputo', district: 'Central' },
-    { id: 'address_2', name: 'Trabalho', full_address: 'Av. 24 de Julho, 456', city: 'Maputo', district: 'Polana' },
-  ];
+  // 1. Carregar endereços do usuário
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchAddresses = async () => {
+        setLoadingAddresses(true);
+        try {
+          const fetchedAddresses = await getCustomerAddresses();
+          setAddresses(fetchedAddresses);
+          
+          // Selecionar o endereço ativo ou o primeiro como padrão
+          const defaultAddress = fetchedAddresses.find(a => a.is_active) || fetchedAddresses[0];
+          if (defaultAddress) {
+            setSelectedAddressId(defaultAddress.id);
+          }
+        } catch (error) {
+          toast.error("Falha ao carregar endereços de entrega.");
+        } finally {
+          setLoadingAddresses(false);
+        }
+      };
+      fetchAddresses();
+    } else {
+      setLoadingAddresses(false);
+    }
+  }, [isAuthenticated]);
 
   // Agrupar itens do carrinho por loja
   const groupedItems = useMemo(() => {
@@ -99,11 +122,10 @@ export default function CheckoutPage() {
     return groups;
   }, [cartItems]);
 
-  // Calcular o total de envio por loja (usando o primeiro item como referência para o custo de envio da loja)
+  // Calcular o total de envio por loja
   const storeDeliveryFees = useMemo(() => {
     const fees: Record<string, number> = {};
     Object.keys(groupedItems).forEach(storeId => {
-      // Assumindo que o custo de envio é o mesmo para todos os itens da mesma loja
       fees[storeId] = groupedItems[storeId][0].deliveryInfo.fee;
     });
     return fees;
@@ -118,14 +140,17 @@ export default function CheckoutPage() {
   }, [cartItems]);
 
   const finalTotal = totalProductsSubtotal + totalDeliveryFee;
+  
+  const selectedShippingAddress = useMemo(() => {
+    return addresses.find(a => a.id === selectedAddressId);
+  }, [addresses, selectedAddressId]);
 
-  // Mutation para criar o pedido (usando a função do context)
+  // Mutation para criar o pedido
   const createOrderMutation = useMutation({
     mutationFn: createOrder,
     onSuccess: (data) => {
-      // O OrdersContext já mostra o toast de sucesso
       clearCart();
-      navigate(`/order-confirmation/${data.id}`); // Usando data.id que é o ID do pedido retornado pelo context
+      navigate(`/order-confirmation/${data.id}`);
     },
     onError: (error) => {
       console.error("Erro ao criar pedido:", error);
@@ -140,8 +165,8 @@ export default function CheckoutPage() {
       navigate('/login');
       return;
     }
-    if (!selectedAddress) {
-      toast.error("Por favor, selecione um endereço de entrega.");
+    if (!selectedAddressId || !selectedShippingAddress) {
+      toast.error("Por favor, selecione um endereço de entrega válido.");
       return;
     }
     if (!selectedPaymentMethod) {
@@ -151,20 +176,13 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
     
-    const selectedShippingAddress = addresses.find(a => a.id === selectedAddress);
-    if (!selectedShippingAddress) {
-      toast.error("Endereço de entrega inválido.");
-      setIsProcessing(false);
-      return;
-    }
-    
     // O OrdersContext espera um objeto OrderData simplificado
     const orderData = {
       items: cartItems,
       total: finalTotal,
       shippingAddress: {
-        name: user.user_metadata.full_name || user.email,
-        phone: user.user_metadata.phone || 'N/A',
+        name: selectedShippingAddress.name,
+        phone: user.user_metadata.phone || 'N/A', // Usando telefone do Auth/Profile
         address: selectedShippingAddress.full_address,
         city: selectedShippingAddress.city,
         district: selectedShippingAddress.district,
@@ -172,7 +190,7 @@ export default function CheckoutPage() {
       paymentMethod: selectedPaymentMethod,
       deliveryInfo: {
         fee: totalDeliveryFee,
-        eta: getDeliveryInfo(selectedShippingAddress.city).eta, // Obtém ETA da cidade
+        eta: getDeliveryInfo(selectedShippingAddress.city).eta,
       },
     };
 
@@ -186,6 +204,12 @@ export default function CheckoutPage() {
         <Button onClick={() => navigate('/')} className="mt-4">Continuar Comprando</Button>
       </div>
     );
+  }
+  
+  if (!isAuthenticated) {
+    // Redirecionamento de segurança, embora AppLayout deva lidar com isso
+    navigate('/login');
+    return null;
   }
 
   return (
@@ -207,20 +231,43 @@ export default function CheckoutPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress} className="space-y-4">
-                  {addresses.map(address => (
-                    <div key={address.id} className="flex items-start space-x-3 p-3 border rounded-lg dark:border-gray-700">
-                      <RadioGroupItem value={address.id} id={`address-${address.id}`} className="mt-1" />
-                      <Label htmlFor={`address-${address.id}`} className="flex-1 cursor-pointer">
-                        <p className="font-semibold">{address.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{address.full_address}, {address.district}, {address.city}</p>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-                <Button variant="outline" className="mt-4 w-full dark:border-gray-700 dark:hover:bg-gray-700">
-                  Adicionar Novo Endereço
-                </Button>
+                {loadingAddresses ? (
+                  <div className="text-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-600" />
+                    <p className="text-sm text-gray-500 mt-2">Carregando endereços...</p>
+                  </div>
+                ) : addresses.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-red-500 mb-3">Nenhum endereço cadastrado.</p>
+                    <Button variant="outline" className="w-full" onClick={() => navigate('/addresses')}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Novo Endereço
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="space-y-4">
+                      {addresses.map(address => (
+                        <div key={address.id} className="flex items-start space-x-3 p-3 border rounded-lg dark:border-gray-700">
+                          <RadioGroupItem value={address.id} id={`address-${address.id}`} className="mt-1" />
+                          <Label htmlFor={`address-${address.id}`} className="flex-1 cursor-pointer">
+                            <div className="flex items-center space-x-2">
+                              <p className="font-semibold">{address.name}</p>
+                              {address.is_active && <Badge variant="secondary" className="text-xs">Padrão</Badge>}
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {address.full_address}, {address.district}, {address.city}
+                            </p>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                    <Button variant="outline" className="mt-4 w-full dark:border-gray-700 dark:hover:bg-gray-700" onClick={() => navigate('/addresses')}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Gerenciar Endereços
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -297,7 +344,7 @@ export default function CheckoutPage() {
                 <Button 
                   className="w-full text-lg py-6 mt-4 bg-blue-600 hover:bg-blue-700"
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing || createOrderMutation.isPending}
+                  disabled={isProcessing || createOrderMutation.isPending || addresses.length === 0}
                 >
                   {isProcessing || createOrderMutation.isPending ? (
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
