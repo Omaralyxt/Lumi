@@ -7,6 +7,7 @@ import { Product } from "@/types/product";
 import FavoriteButton from "./FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 interface ProductCardProps {
   product: Product;
@@ -54,7 +55,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <p className="text-lg font-bold mt-2 text-gray-800 dark:text-gray-200">
-          MT {product.price.toLocaleString('pt-MZ')}
+          {formatCurrency(product.price)}
         </p>
 
         <div className="flex justify-between items-center mt-3">

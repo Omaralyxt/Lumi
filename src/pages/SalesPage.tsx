@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import RelatedProductsSection from '@/components/RelatedProductsSection'; // Importando o componente
+import RelatedProductsSection from '@/components/RelatedProductsSection';
 
 // Tipos de dados (simplificados)
 interface ProductVariant {
