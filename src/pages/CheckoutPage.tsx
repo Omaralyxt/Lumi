@@ -1,646 +1,314 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { useCart } from "@/context/CartContext";
-import { useOrders } from "@/context/OrdersContext";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, CreditCard, Truck, Lock, Clock, AlertCircle, CheckCircle, Phone, Edit } from "lucide-react";
-import { toast } from "sonner";
-import { initiateMpesaPayment } from "@/utils/mpesa";
-import MpesaStatusModal from "@/components/MpesaStatusModal";
-import { getCustomerAddresses, setActiveAddress, CustomerAddress } from "@/api/addresses"; // Importar API de Endereços
-import { formatCurrency } from "@/lib/utils"; // Importação adicionada
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '@/context/CartContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { CheckCircle, Truck, MapPin, CreditCard, Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { toast } from 'sonner';
+import { CartItem } from '@/context/CartContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useMutation } from '@tanstack/react-query';
+import { createOrder } from '@/api/orders';
 
-interface CheckoutErrors {
-  address?: string;
-  payment?: string;
-  mpesaPhone?: string;
-}
+// Componente de Item do Pedido
+const OrderItemSummary = ({ item }: { item: CartItem }) => (
+  <div className="flex items-center justify-between py-3 border-b last:border-b-0">
+    <div className="flex items-center space-x-4">
+      <img src={item.images[0]} alt={item.title} className="w-12 h-12 rounded object-cover" />
+      <div>
+        <p className="font-medium text-sm line-clamp-1">{item.title}</p>
+        <p className="text-xs text-gray-500">Qtd: {item.quantity} | {item.options[0]?.values[0]}</p>
+      </div>
+    </div>
+    <p className="font-semibold text-sm">{formatCurrency(item.price * item.quantity)}</p>
+  </div>
+);
 
-const paymentMethods = [
-  {
-    id: "mpesa",
-    name: "M-Pesa",
-    icon: "💳",
-    description: "Pagamento via telemóvel",
-    instructions: "Será enviado um USSD Push para o seu número M-Pesa.",
-  },
-  {
-    id: "emola",
-    name: "eMola",
-    icon: "📱",
-    description: "Pagamento via Movitel",
-    instructions: "Envie o pagamento para o número +258 84 987 6543 com a referência do pedido.",
-  },
-  {
-    id: "card",
-    name: "Cartão de Crédito",
-    icon: "💳",
-    description: "Visa, Mastercard, etc.",
-    instructions: "Será redirecionado para a página segura do pagamento.",
-  },
-  {
-    id: "bank",
-    name: "Transferência Bancária",
-    icon: "🏦",
-    description: "Banco de Moçambique, BCM",
-    instructions: "Faça a transferência para a conta BCM 123456789 com a referência do pedido.",
-  },
-];
-
-const cities = [
-  "Maputo",
-  "Matola",
-  "Beira",
-  "Nampula",
-  "Nacala",
-  "Chimoio",
-  "Quelimane",
-  "Tete",
-  "Inhambane",
-  "Gaza",
-];
-
-export default function Checkout() {
-  const { cartItems, cartTotal, deliveryFee, getDeliveryInfo, clearCart } = useCart();
-  const { createOrder, loading: orderLoading } = useOrders();
-  const navigate = useNavigate();
-  
-  // Novo estado para endereços reais
-  const [availableAddresses, setAvailableAddresses] = useState<CustomerAddress[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<CustomerAddress | null>(null);
-  const [addressLoading, setAddressLoading] = useState(true);
-  
-  const [selectedPayment, setSelectedPayment] = useState("mpesa");
-  const [mpesaPhone, setMpesaPhone] = useState("");
-  const [errors, setErrors] = useState<CheckoutErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderStep, setOrderStep] = useState<"address" | "payment" | "confirm">("address");
-
-  // Mpesa Modal State
-  const [isMpesaModalOpen, setIsMpesaModalOpen] = useState(false);
-  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
-  const [currentOrderNumber, setCurrentOrderNumber] = useState<string | null>(null);
-
-  // 1. Fetch Addresses
-  const fetchAddresses = useCallback(async () => {
-    setAddressLoading(true);
-    try {
-      const addresses = await getCustomerAddresses();
-      setAvailableAddresses(addresses);
-      
-      const activeAddress = addresses.find(a => a.is_active) || addresses[0];
-      setSelectedAddress(activeAddress || null);
-      
-      if (activeAddress) {
-        // Tenta preencher o telefone M-Pesa com o telefone do endereço ativo (se disponível)
-        // Nota: O telefone do endereço não está na tabela customer_addresses, mas vamos usar o telefone do perfil do usuário se necessário.
-        // Por enquanto, vamos usar um mock de telefone se o campo estiver vazio.
-        setMpesaPhone("+258 84 123 4567"); // Mocked phone
-      }
-      
-    } catch (error) {
-      toast.error("Falha ao carregar endereços de entrega.");
-    } finally {
-      setAddressLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      navigate('/cart');
-    }
-    fetchAddresses();
-  }, [cartItems, navigate, fetchAddresses]);
-
-  const subtotal = cartTotal;
+// Componente de Resumo da Loja
+const StoreSummary = ({ storeId, items, deliveryFee }: { storeId: string; items: CartItem[]; deliveryFee: number }) => {
+  const storeName = items[0].shop.name;
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const total = subtotal + deliveryFee;
 
-  const validateForm = () => {
-    const newErrors: CheckoutErrors = {};
-    
-    if (orderStep === "address" && !selectedAddress) {
-      newErrors.address = "Por favor, selecione um endereço de entrega";
-    }
-    
-    if (orderStep === "payment" && !selectedPayment) {
-      newErrors.payment = "Por favor, selecione um método de pagamento";
-    }
-    
-    if (orderStep === "payment" && selectedPayment === "mpesa" && (!mpesaPhone || mpesaPhone.length < 9)) {
-      newErrors.mpesaPhone = "O número M-Pesa é obrigatório e deve ser válido.";
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  return (
+    <Card className="mb-6 dark:bg-gray-800 dark:border-gray-700">
+      <CardHeader className="py-3 border-b dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold text-lg text-gray-900 dark:text-white">{storeName}</span>
+          </div>
+          <Badge variant="secondary" className="text-xs">Vendedor</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-4">
+        {items.map(item => (
+          <OrderItemSummary key={item.id} item={item} />
+        ))}
+        <div className="mt-4 space-y-1 text-sm">
+          <div className="flex justify-between text-gray-600 dark:text-gray-400">
+            <span>Subtotal dos Produtos:</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-gray-600 dark:text-gray-400">
+            <span>Custo de Envio:</span>
+            <span>{formatCurrency(deliveryFee)}</span>
+          </div>
+          <Separator className="my-2 dark:bg-gray-700" />
+          <div className="flex justify-between font-bold text-base text-gray-900 dark:text-white">
+            <span>Total da Loja:</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default function CheckoutPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { cartItems, cartTotal, clearCart } = useCart();
+  
+  const [selectedAddress, setSelectedAddress] = useState('address_1'); // Mocked
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('mpesa');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Mocked Data
+  const addresses = [
+    { id: 'address_1', name: 'Casa', full_address: 'Rua da Liberdade, 123', city: 'Maputo', district: 'Central' },
+    { id: 'address_2', name: 'Trabalho', full_address: 'Av. 24 de Julho, 456', city: 'Maputo', district: 'Polana' },
+  ];
+
+  // Agrupar itens do carrinho por loja
+  const groupedItems = useMemo(() => {
+    const groups: Record<string, CartItem[]> = {};
+    cartItems.forEach(item => {
+      if (!groups[item.shop.id]) {
+        groups[item.shop.id] = [];
+      }
+      groups[item.shop.id].push(item);
+    });
+    return groups;
+  }, [cartItems]);
+
+  // Calcular o total de envio por loja (usando o primeiro item como referência para o custo de envio da loja)
+  const storeDeliveryFees = useMemo(() => {
+    const fees: Record<string, number> = {};
+    Object.keys(groupedItems).forEach(storeId => {
+      // Assumindo que o custo de envio é o mesmo para todos os itens da mesma loja
+      fees[storeId] = groupedItems[storeId][0].deliveryInfo.fee;
+    });
+    return fees;
+  }, [groupedItems]);
+
+  const totalDeliveryFee = useMemo(() => {
+    return Object.values(storeDeliveryFees).reduce((sum, fee) => sum + fee, 0);
+  }, [storeDeliveryFees]);
+
+  const totalProductsSubtotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cartItems]);
+
+  const finalTotal = totalProductsSubtotal + totalDeliveryFee;
+
+  // Mutation para criar o pedido
+  const createOrderMutation = useMutation({
+    mutationFn: createOrder,
+    onSuccess: (data) => {
+      toast.success("Pedido criado com sucesso!");
+      clearCart();
+      navigate(`/order-confirmation/${data.order_id}`);
+    },
+    onError: (error) => {
+      console.error("Erro ao criar pedido:", error);
+      toast.error("Falha ao finalizar o pedido. Tente novamente.");
+      setIsProcessing(false);
+    },
+  });
 
   const handlePlaceOrder = async () => {
-    if (!validateForm() || !selectedAddress) {
-      setOrderStep("payment"); 
+    if (!user) {
+      toast.error("Você precisa estar logado para finalizar a compra.");
+      navigate('/login');
+      return;
+    }
+    if (!selectedAddress) {
+      toast.error("Por favor, selecione um endereço de entrega.");
+      return;
+    }
+    if (!selectedPaymentMethod) {
+      toast.error("Por favor, selecione um método de pagamento.");
       return;
     }
 
-    setIsSubmitting(true);
-    
-    try {
-      // 1. Criar o pedido no Supabase (status: pending, payment_status: awaiting_payment)
-      const orderData = {
-        items: cartItems,
-        total,
-        shippingAddress: {
-          name: selectedAddress.name,
-          phone: mpesaPhone, // Usando o telefone M-Pesa como telefone de contato
-          address: selectedAddress.full_address,
-          city: selectedAddress.city,
-          district: selectedAddress.district || '',
-        },
-        paymentMethod: selectedPayment,
-        deliveryInfo: getDeliveryInfo(selectedAddress.city),
-      };
-      
-      const order = await createOrder(orderData);
-      
-      // 2. Processar Pagamento M-Pesa (se selecionado)
-      if (selectedPayment === "mpesa") {
-        toast.loading("Iniciando USSD Push M-Pesa...", { id: 'mpesa-init' });
-        
-        const mpesaResult = await initiateMpesaPayment({
-          msisdn: mpesaPhone,
-          amount: total,
-          orderNumber: order.orderNumber,
-        });
-        
-        toast.dismiss('mpesa-init');
+    setIsProcessing(true);
 
-        if (mpesaResult.success) {
-          setCurrentOrderId(order.id);
-          setCurrentOrderNumber(order.orderNumber);
-          setIsMpesaModalOpen(true);
-          
-          setIsSubmitting(false);
-          return; 
-        } else {
-          toast.error(mpesaResult.error || "Falha ao iniciar transação M-Pesa.");
-          setIsSubmitting(false);
-          return; 
-        }
-      }
-      
-      // 3. Se não for M-Pesa, limpar carrinho e redirecionar imediatamente
-      clearCart();
-      navigate(`/order-confirmation/${order.id}`);
-    } catch (error) {
-      console.error("Erro ao criar pedido:", error);
-      toast.error("Falha crítica ao finalizar pedido.");
-    } finally {
-      if (selectedPayment !== "mpesa") {
-        setIsSubmitting(false);
-      }
-    }
+    // Preparar dados do pedido
+    const orderData = {
+      buyer_id: user.id,
+      buyer_name: user.user_metadata.first_name + ' ' + user.user_metadata.last_name,
+      buyer_email: user.email,
+      buyer_address: addresses.find(a => a.id === selectedAddress)?.full_address || 'Endereço não encontrado',
+      buyer_city: addresses.find(a => a.id === selectedAddress)?.city || 'Cidade Desconhecida',
+      payment_method: selectedPaymentMethod,
+      total_amount: finalTotal,
+      shipping_cost: totalDeliveryFee,
+      items: cartItems.map(item => ({
+        product_id: item.id,
+        store_id: item.shop.id,
+        product_name: item.title,
+        variant: item.options[0]?.values[0] || 'Padrão',
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
+      })),
+    };
+
+    createOrderMutation.mutate(orderData);
   };
 
-  const handleNextStep = () => {
-    if (validateForm()) {
-      setOrderStep("payment");
-    }
-  };
-
-  const handleBackStep = () => {
-    setOrderStep("address");
-  };
-  
-  const handleAddressSelection = async (address: CustomerAddress) => {
-    setSelectedAddress(address);
-    if (!address.is_active) {
-      try {
-        await setActiveAddress(address.id);
-        fetchAddresses(); // Re-fetch para atualizar o estado de todos os endereços
-      } catch (error) {
-        toast.error("Falha ao definir endereço ativo.");
-      }
-    }
-  };
-
-  if (cartItems.length === 0 || addressLoading) {
+  if (cartItems.length === 0 && !createOrderMutation.isSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="ml-3">Carregando checkout...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center">
+        <h1 className="text-2xl font-bold mb-2">Seu carrinho está vazio</h1>
+        <Button onClick={() => navigate('/')} className="mt-4">Continuar Comprando</Button>
       </div>
     );
   }
-  
-  const activeAddress = selectedAddress || availableAddresses.find(a => a.is_active);
-  const deliveryEta = activeAddress ? getDeliveryInfo(activeAddress.city).eta : 'N/A';
-  const deliveryFeeDisplay = formatCurrency(deliveryFee);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header (Mantido) */}
-      <div className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">L</span>
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">Lumi</h1>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <Clock className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress Bar (Mantido) */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {[
-              { id: "address", label: "Endereço", icon: MapPin },
-              { id: "payment", label: "Pagamento", icon: CreditCard },
-              { id: "confirm", label: "Confirmação", icon: CheckCircle },
-            ].map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className={`flex items-center ${index < 2 ? 'mr-4' : ''}`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    orderStep === step.id || 
-                    (step.id === "address" && orderStep !== "payment" && orderStep !== "confirm") ||
-                    (step.id === "payment" && orderStep === "confirm")
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    <step.icon className="h-5 w-5" />
-                  </div>
-                  <span className={`ml-2 font-medium hidden sm:inline ${
-                    orderStep === step.id || 
-                    (step.id === "address" && orderStep !== "payment" && orderStep !== "confirm") ||
-                    (step.id === "payment" && orderStep === "confirm")
-                      ? 'text-blue-600'
-                      : 'text-gray-500'
-                  }`}>
-                    {step.label}
-                  </span>
-                </div>
-                {index < 2 && (
-                  <div className={`w-16 h-1 mx-4 hidden sm:block ${
-                    orderStep === "payment" || orderStep === "confirm"
-                      ? 'bg-blue-600'
-                      : 'bg-gray-200'
-                  }`}></div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold font-title mb-8 text-gray-900 dark:text-white">Finalizar Compra</h1>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Checkout Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Address Step */}
-            {orderStep === "address" && (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center">
-                      <MapPin className="h-5 w-5 mr-2" />
-                      Endereço de Entrega
-                    </CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/addresses')}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Gerenciar Endereços
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {errors.address && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
-                      <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
-                      <span className="text-red-700 text-sm">{errors.address}</span>
+          
+          {/* Coluna Principal: Endereço e Pagamento */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* 1. Endereço de Entrega */}
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center text-xl dark:text-white">
+                  <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                  1. Endereço de Entrega
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress} className="space-y-4">
+                  {addresses.map(address => (
+                    <div key={address.id} className="flex items-start space-x-3 p-3 border rounded-lg dark:border-gray-700">
+                      <RadioGroupItem value={address.id} id={`address-${address.id}`} className="mt-1" />
+                      <Label htmlFor={`address-${address.id}`} className="flex-1 cursor-pointer">
+                        <p className="font-semibold">{address.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{address.full_address}, {address.district}, {address.city}</p>
+                      </Label>
                     </div>
-                  )}
-                  
-                  <div className="space-y-3">
-                    {availableAddresses.length === 0 ? (
-                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
-                        Nenhum endereço cadastrado. Por favor, adicione um em "Gerenciar Endereços".
-                      </div>
-                    ) : (
-                      availableAddresses.map((address) => (
-                        <div
-                          key={address.id}
-                          className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                            selectedAddress?.id === address.id
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => handleAddressSelection(address)}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <h3 className="font-medium">{address.name}</h3>
-                                {address.is_active && (
-                                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">Ativo</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-700 mt-1">
-                                {address.full_address}, {address.district}, {address.city}
-                              </p>
-                              {address.latitude && (
-                                <p className="text-xs text-gray-500 mt-1 flex items-center">
-                                  <LocateFixed className="h-3 w-3 mr-1" />
-                                  GPS: {address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
-                                </p>
-                              )}
-                            </div>
-                            {selectedAddress?.id === address.id && (
-                              <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  
-                  <div className="flex justify-end">
-                    <Button onClick={handleNextStep} disabled={!selectedAddress}>
-                      Continuar para Pagamento
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  ))}
+                </RadioGroup>
+                <Button variant="outline" className="mt-4 w-full dark:border-gray-700 dark:hover:bg-gray-700">
+                  Adicionar Novo Endereço
+                </Button>
+              </CardContent>
+            </Card>
 
-            {/* Payment Step */}
-            {orderStep === "payment" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    Método de Pagamento
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {errors.payment && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
-                      <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
-                      <span className="text-red-700 text-sm">{errors.payment}</span>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {paymentMethods.map((method) => (
-                      <div
-                        key={method.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                          selectedPayment === method.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => setSelectedPayment(method.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="text-2xl">{method.icon}</div>
-                          <div className="flex-1">
-                            <h3 className="font-medium">{method.name}</h3>
-                            <p className="text-sm text-gray-600">{method.description}</p>
-                            {selectedPayment === method.id && (
-                              <p className="text-xs text-blue-600 mt-2">{method.instructions}</p>
-                            )}
-                          </div>
-                          {selectedPayment === method.id && (
-                            <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+            {/* 2. Método de Pagamento */}
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center text-xl dark:text-white">
+                  <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                  2. Método de Pagamento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod} className="space-y-4">
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg dark:border-gray-700">
+                    <RadioGroupItem value="mpesa" id="payment-mpesa" />
+                    <Label htmlFor="payment-mpesa" className="flex-1 flex items-center justify-between cursor-pointer">
+                      <span className="font-semibold">M-Pesa (Pagamento Móvel)</span>
+                      <span className="text-sm text-green-600">Recomendado</span>
+                    </Label>
                   </div>
-                  
-                  {selectedPayment === "mpesa" && (
-                    <div className="space-y-2 border-t pt-4">
-                      <Label htmlFor="mpesa-phone">Número M-Pesa *</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <Input
-                          id="mpesa-phone"
-                          type="tel"
-                          placeholder="25884xxxxxxx"
-                          value={mpesaPhone}
-                          onChange={(e) => setMpesaPhone(e.target.value)}
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                      {errors.mpesaPhone && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {errors.mpesaPhone}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg dark:border-gray-700 opacity-50 cursor-not-allowed">
+                    <RadioGroupItem value="card" id="payment-card" disabled />
+                    <Label htmlFor="payment-card" className="flex-1 cursor-pointer">
+                      <span className="font-semibold">Cartão de Crédito/Débito</span>
+                      <span className="text-xs text-gray-500 ml-2">(Em breve)</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
 
-                  <div className="flex justify-between">
-                    <Button variant="outline" onClick={handleBackStep}>
-                      Voltar
-                    </Button>
-                    <Button onClick={() => setOrderStep("confirm")}>
-                      Continuar para Confirmação
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Confirmation Step */}
-            {orderStep === "confirm" && activeAddress && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    Confirmar Pedido
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Order Summary (Mantido) */}
-                  <div>
-                    <h3 className="font-medium mb-3">Resumo do Pedido</h3>
-                    <div className="space-y-4">
-                      {cartItems.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-4">
-                          <img 
-                            src={item.images[0]} 
-                            alt={item.title}
-                            className="w-16 h-16 object-cover rounded-lg"
-                            loading="lazy"
-                          />
-                          <div className="flex-1">
-                            <h3 className="font-medium text-sm line-clamp-2">{item.title}</h3>
-                            <p className="text-sm text-gray-600">Qtd: {item.quantity}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium">
-                              {formatCurrency(item.price * item.quantity)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      <div className="border-t pt-4 space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Subtotal</span>
-                          <span>{formatCurrency(subtotal)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Frete</span>
-                          <span>{deliveryFeeDisplay}</span>
-                        </div>
-                        <div className="flex justify-between font-semibold text-lg pt-2 border-t">
-                          <span>Total</span>
-                          <span className="text-blue-600">{formatCurrency(total)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Delivery Info */}
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="font-medium mb-2 flex items-center">
-                      <Truck className="h-4 w-4 mr-2" />
-                      Informações de Entrega
-                    </h3>
-                    <p className="text-sm text-gray-700">
-                      <strong>Endereço:</strong> {activeAddress.full_address}, {activeAddress.district}, {activeAddress.city}
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      <strong>Previsão de entrega:</strong> {deliveryEta}
-                    </p>
-                  </div>
-                  
-                  {/* Payment Info */}
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="font-medium mb-2 flex items-center">
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Método de Pagamento
-                    </h3>
-                    <p className="text-sm text-gray-700">
-                      <strong>{paymentMethods.find(m => m.id === selectedPayment)?.name}</strong>
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      {paymentMethods.find(m => m.id === selectedPayment)?.instructions}
-                    </p>
-                    {selectedPayment === "mpesa" && (
-                      <p className="text-sm text-gray-700 mt-1">
-                        <strong>Número M-Pesa:</strong> {mpesaPhone}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <Button variant="outline" onClick={() => setOrderStep("payment")}>
-                      Voltar
-                    </Button>
-                    <Button 
-                      onClick={handlePlaceOrder}
-                      disabled={isSubmitting || orderLoading}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      {isSubmitting || orderLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Processando...
-                        </>
-                      ) : (
-                        'Confirmar Pedido'
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* 3. Resumo dos Itens por Loja */}
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center text-xl dark:text-white">
+                  <ShoppingCart className="h-5 w-5 mr-2 text-blue-600" />
+                  3. Itens do Pedido
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Object.keys(groupedItems).map(storeId => (
+                  <StoreSummary 
+                    key={storeId} 
+                    storeId={storeId} 
+                    items={groupedItems[storeId]} 
+                    deliveryFee={storeDeliveryFees[storeId]}
+                  />
+                ))}
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Order Summary Sidebar (Mantido) */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24">
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold mb-4">Resumo Final</h2>
-                
-                <div className="space-y-4 mb-6">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">
-                      Entrega em {activeAddress?.city || 'N/A'}, {activeAddress?.district || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Truck className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">
-                      {deliveryEta}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Lock className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">
-                      Pagamento seguro com proteção do comprador
-                    </span>
-                  </div>
+          {/* Coluna Lateral: Resumo Total e Ação */}
+          <div>
+            <Card className="sticky top-24 dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="dark:text-white">Resumo Total</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                  <span>Subtotal dos Produtos ({cartItems.length} itens)</span>
+                  <span>{formatCurrency(totalProductsSubtotal)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                  <span>Custo Total de Envio</span>
+                  <span>{formatCurrency(totalDeliveryFee)}</span>
+                </div>
+                <Separator className="dark:bg-gray-700" />
+                <div className="flex justify-between font-bold text-xl text-gray-900 dark:text-white">
+                  <span>Total a Pagar</span>
+                  <span>{formatCurrency(finalTotal)}</span>
                 </div>
                 
-                <div className="border-t pt-4 space-y-2 mb-6">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>{formatCurrency(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Frete</span>
-                    <span>{deliveryFeeDisplay}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold text-lg pt-2 border-t">
-                    <span>Total</span>
-                    <span className="text-blue-600">{formatCurrency(total)}</span>
-                  </div>
-                </div>
+                <Button 
+                  className="w-full text-lg py-6 mt-4 bg-blue-600 hover:bg-blue-700"
+                  onClick={handlePlaceOrder}
+                  disabled={isProcessing || createOrderMutation.isPending}
+                >
+                  {isProcessing || createOrderMutation.isPending ? (
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                  )}
+                  {isProcessing || createOrderMutation.isPending ? 'Processando...' : 'Finalizar Pedido'}
+                </Button>
                 
-                <div className="text-xs text-gray-500 text-center">
-                  Ao confirmar, você concorda com nossos Termos e Condições
-                </div>
+                <p className="text-xs text-gray-500 text-center pt-2 dark:text-gray-400">
+                  Ao clicar em "Finalizar Pedido", você concorda com os Termos e Condições.
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-      
-      {/* M-Pesa Status Modal */}
-      {currentOrderId && currentOrderNumber && (
-        <MpesaStatusModal
-          isOpen={isMpesaModalOpen}
-          onClose={() => {
-            setIsMpesaModalOpen(false);
-          }}
-          orderId={currentOrderId}
-          orderNumber={currentOrderNumber}
-        />
-      )}
     </div>
   );
 }
