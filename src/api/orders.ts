@@ -64,10 +64,15 @@ const mapSupabaseOrderToFrontend = (order: any): Order => {
  * Busca todos os pedidos do comprador logado.
  */
 export const getBuyerOrders = async (): Promise<Order[]> => {
+  console.log("API: Attempting to fetch user and orders...");
   const { data: { user } } = await supabase.auth.getUser();
+  
   if (!user) {
+    console.log("API: User not authenticated.");
     throw new Error("Usuário não autenticado.");
   }
+  
+  console.log(`API: User authenticated. Fetching orders for ID: ${user.id}`);
 
   const { data, error } = await supabase
     .from('orders')
@@ -79,11 +84,24 @@ export const getBuyerOrders = async (): Promise<Order[]> => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Erro ao buscar pedidos do comprador:", error);
-    throw new Error("Falha ao carregar pedidos.");
+    console.error("API: Erro ao buscar pedidos do comprador:", error);
+    throw new Error(`Falha ao carregar pedidos: ${error.message}`);
   }
+  
+  if (!data) {
+    console.log("API: No orders data returned.");
+    return [];
+  }
+  
+  console.log(`API: Successfully fetched ${data.length} raw orders. Mapping to frontend format.`);
 
-  return data.map(mapSupabaseOrderToFrontend);
+  try {
+    return data.map(mapSupabaseOrderToFrontend);
+  } catch (mapError) {
+    console.error("API: Erro durante o mapeamento dos pedidos:", mapError);
+    // Lançar um erro específico para que o contexto possa capturá-lo
+    throw new Error("Erro de processamento de dados do pedido.");
+  }
 };
 
 // Mantido para compatibilidade, mas não usado no fluxo do comprador

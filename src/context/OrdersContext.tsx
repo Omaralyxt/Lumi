@@ -48,12 +48,14 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       const fetchedOrders = await getBuyerOrders();
       setOrders(fetchedOrders);
     } catch (err: any) {
+      console.error("OrdersContext: Error during fetchOrders:", err);
       // Se o erro for "Usuário não autenticado", apenas limpamos os pedidos
-      if (err.message === "Usuário não autenticado.") {
+      if (err.message.includes("Usuário não autenticado")) {
         setOrders([]);
+        setError(null); // Não mostramos erro se for apenas deslogado
       } else {
-        setError("Falha ao carregar pedidos: " + err.message);
-        toast.error("Falha ao carregar pedidos.");
+        setError(err.message || "Falha ao carregar pedidos.");
+        toast.error("Falha ao carregar pedidos: " + (err.message || "Erro desconhecido"));
       }
     } finally {
       setLoading(false);
