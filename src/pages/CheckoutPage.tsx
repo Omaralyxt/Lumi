@@ -15,6 +15,7 @@ import { CartItem } from '@/context/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
 import { useOrders } from '@/context/OrdersContext'; // Importando useOrders
+import { Badge } from '@/components/ui/badge'; // Adicionando Badge
 
 // Componente de Item do Pedido
 const OrderItemSummary = ({ item }: { item: CartItem }) => (
