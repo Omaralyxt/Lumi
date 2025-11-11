@@ -5,6 +5,7 @@ import { Order, PaymentStatus } from '@/types/order';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from './CartContext';
+import { getBuyerOrders } from '@/api/orders'; // Importando a função real
 
 interface OrdersContextType {
   orders: Order[];
@@ -39,89 +40,29 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carregar pedidos do localStorage (em um app real, viria da API)
-  useEffect(() => {
-    // Em um ambiente real, fetchOrders seria chamado aqui para carregar pedidos do usuário logado.
-    // Por enquanto, mantemos o mock/localStorage para inicialização rápida.
-    const storedOrders = localStorage.getItem('orders');
-    if (storedOrders) {
-      setOrders(JSON.parse(storedOrders));
-    }
-  }, []);
-
-  // Salvar pedidos no localStorage
-  useEffect(() => {
-    localStorage.setItem('orders', JSON.stringify(orders));
-  }, [orders]);
-
+  // Função para buscar pedidos reais do usuário logado
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Simulação de fetch de pedidos (mantida para compatibilidade)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Em um app real, buscaríamos orders e order_items do Supabase aqui.
-      
-      // Manter mock para evitar que a página de histórico quebre se não houver dados
-      const mockOrders: Order[] = [
-        {
-          id: 'ORD-001234',
-          orderDate: '2024-07-28T10:30:00Z',
-          total: 12750,
-          status: 'shipped',
-          paymentStatus: 'paid',
-          orderNumber: 'LMI-20240728-1234',
-          shippingCost: 250,
-          items: [
-            {
-              id: 'mock-prod-1',
-              title: "Smartphone Samsung Galaxy A54 5G",
-              price: 12500,
-              images: ["/placeholder.svg"],
-              shop: { id: 'mock-store-1', name: "TechStore MZ", rating: 4.7, reviewCount: 342, isVerified: true },
-              quantity: 1,
-              stock: 15,
-              category: "Eletrónicos",
-              description: "",
-              features: [],
-              specifications: {},
-              deliveryInfo: { city: "Maputo", fee: 150, eta: "1-2 dias" },
-              reviews: [], // Adicionado
-              qa: [], // Adicionado
-              options: [],
-              variants: [], // Adicionado
-              rating: 4.5,
-              reviewCount: 128,
-              timeDelivery: "2-5 dias úteis",
-            } as CartItem
-          ],
-          buyerName: "João Silva",
-          buyerEmail: "joao@email.com",
-          buyerPhone: "+258 82 123 4567",
-          buyerAddress: "Av. Kenneth Kaunda, 123",
-          buyerCity: "Maputo",
-          buyerCountry: "Mozambique",
-          shippingAddress: {
-            name: "João Silva",
-            phone: "+258 82 123 4567",
-            address: "Av. Kenneth Kaunda, 123",
-            city: "Maputo",
-            district: "KaMubukwana",
-          },
-          paymentMethod: "M-Pesa",
-          estimatedDelivery: "2024-07-30",
-        } as Order
-      ];
-      
-      setOrders(mockOrders);
-    } catch (err) {
-      setError("Falha ao carregar pedidos");
-      toast.error("Falha ao carregar pedidos");
+      const fetchedOrders = await getBuyerOrders();
+      setOrders(fetchedOrders);
+    } catch (err: any) {
+      // Se o erro for "Usuário não autenticado", apenas limpamos os pedidos
+      if (err.message === "Usuário não autenticado.") {
+        setOrders([]);
+      } else {
+        setError("Falha ao carregar pedidos: " + err.message);
+        toast.error("Falha ao carregar pedidos.");
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // Carregar pedidos na montagem (se o usuário estiver logado, o useAuth fará o trigger)
+  // Não usamos useEffect aqui para evitar chamadas desnecessárias, a página OrderHistoryPage
+  // chamará fetchOrders diretamente.
 
   const createOrder = async (orderData: {
     items: CartItem[];
@@ -131,10 +72,6 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     deliveryInfo: { fee: number; eta: string };
   }): Promise<Order> => {
     setLoading(true);
-    
-    // Usamos uma transação simulada no cliente, mas o Supabase fará a transação real
-    // se usarmos uma função RPC, o que não estamos fazendo aqui.
-    // Portanto, faremos as inserções sequencialmente e lidaremos com erros.
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -252,23 +189,14 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
-    setLoading(true);
-    try {
-      // Em um app real, isso enviaria a atualização para a API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setOrders(prev => 
-        prev.map(order => 
-          order.id === orderId ? { ...order, status } : order
-        )
-      );
-      
-      toast.success(`Status do pedido atualizado para ${status}`);
-    } catch (err) {
-      toast.error("Falha ao atualizar status do pedido");
-    } finally {
-      setLoading(false);
-    }
+    // Esta função deve ser implementada para interagir com a API/Supabase se necessário
+    // Por enquanto, apenas atualiza o estado local (se o status for alterado por um webhook, fetchOrders resolverá)
+    setOrders(prev => 
+      prev.map(order => 
+        order.id === orderId ? { ...order, status } : order
+      )
+    );
+    toast.success(`Status do pedido atualizado para ${status}`);
   };
 
   const getOrderById = (orderId: string): Order | undefined => {
