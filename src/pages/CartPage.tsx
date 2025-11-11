@@ -39,7 +39,7 @@ const CartItemRow = ({ item }: { item: CartItem }) => {
 };
 
 export default function CartPage() {
-  const { cartItems, cartSubtotal, deliveryFee, cartTotal } = useCart();
+  const { cartItems, cartSubtotal, deliveryFee, cartTotal, clearCart } = useCart();
   const total = cartTotal; // cartTotal já inclui o deliveryFee
 
   if (cartItems.length === 0) {
