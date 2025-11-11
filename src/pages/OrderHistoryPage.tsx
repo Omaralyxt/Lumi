@@ -1,142 +1,125 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Order, OrderStatus } from "@/types/order";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, Package, Truck, CheckCircle, XCircle, ArrowLeft, Star, AlertCircle } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-import { useOrders } from "@/context/OrdersContext";
-import { useAuth } from "@/hooks/useAuth";
-import Loading from "@/components/Loading";
+import React, { useEffect } from 'react';
+import { useOrders } from '@/context/OrdersContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { format } from 'date-fns';
+import { Loader2, Package, ShoppingBag } from 'lucide-react';
+import { Order } from '@/types/order';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
-const statusMap: Record<OrderStatus, { text: string; icon: React.ElementType; color: string }> = {
-  pending: { text: "Pendente", icon: Package, color: "bg-yellow-100 text-yellow-800" },
-  confirmed: { text: "Confirmado", icon: ShoppingBag, color: "bg-blue-100 text-blue-800" },
-  shipped: { text: "Enviado", icon: Truck, color: "bg-purple-100 text-purple-800" },
-  delivered: { text: "Entregue", icon: CheckCircle, color: "bg-green-100 text-green-800" },
-  cancelled: { text: "Cancelado", icon: XCircle, color: "bg-red-100 text-red-800" },
+// Componente auxiliar para exibir um único pedido
+const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
+  const getStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'delivered':
+        return 'text-green-600 bg-green-100 dark:bg-green-900/30';
+      case 'shipped':
+        return 'text-blue-600 bg-blue-100 dark:bg-blue-900/30';
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30';
+      case 'cancelled':
+        return 'text-red-600 bg-red-100 dark:bg-red-900/30';
+      default:
+        return 'text-gray-600 bg-gray-100 dark:bg-gray-700';
+    }
+  };
+
+  return (
+    <Card className="mb-4 shadow-sm hover:shadow-md transition-shadow">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium flex items-center">
+          <ShoppingBag className="w-4 h-4 mr-2 text-primary" />
+          Pedido #{order.orderNumber}
+        </CardTitle>
+        <div className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-2xl font-bold mb-2">MZN {order.total.toFixed(2)}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+          Data: {format(new Date(order.orderDate), 'dd/MM/yyyy HH:mm')}
+        </p>
+        
+        <Separator className="my-3" />
+
+        <div className="space-y-2">
+          {order.items.slice(0, 2).map((item, index) => (
+            <div key={index} className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+              <span>{item.title} ({item.quantity}x)</span>
+              <span>MZN {(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+          ))}
+          {order.items.length > 2 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 pt-1">
+              + {order.items.length - 2} item(s) a mais
+            </p>
+          )}
+        </div>
+        
+        <div className="mt-4">
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/orders/${order.id}`}>Ver Detalhes</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
-export default function OrderHistoryPage() {
+const OrderHistoryPage: React.FC = () => {
   const { orders, loading, error, fetchOrders } = useOrders();
-  const { isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("Fetching orders...");
-      fetchOrders();
-    }
-  }, [isAuthenticated, fetchOrders]);
+    // Chama a função de busca de pedidos ao montar o componente
+    fetchOrders();
+  }, [fetchOrders]);
 
-  if (authLoading || loading) {
-    return <Loading />;
-  }
-  
-  if (!isAuthenticated) {
-    // Redirecionamento de segurança, embora AppLayout deva lidar com isso
+  if (loading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Você precisa estar logado para ver seus pedidos.</p>
-        <Button asChild className="mt-4">
-          <Link to="/login">Fazer Login</Link>
-        </Button>
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-3 text-lg text-gray-600 dark:text-gray-300">Carregando seus pedidos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500">
+        <p className="text-xl font-semibold">Erro ao carregar pedidos</p>
+        <p>{error}</p>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-        {/* Header */}
-        <div className="bg-white shadow-sm sticky top-0 z-40 dark:bg-gray-900 dark:border-b dark:border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center space-x-4">
-              <Link to="/account">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Meus Pedidos</h1>
-            </div>
-          </div>
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 dark:text-white">Histórico de Pedidos</h1>
+      
+      {orders.length === 0 ? (
+        <div className="text-center py-12 border border-dashed rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-lg font-medium dark:text-gray-300">Você ainda não fez nenhum pedido.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            Comece a explorar nossos produtos e faça sua primeira compra!
+          </p>
+          <Button asChild className="mt-4">
+            <Link to="/">Ir para a página inicial</Link>
+          </Button>
         </div>
-
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          {error ? (
-            <div className="text-center py-12 p-6 bg-red-50 border border-red-200 rounded-lg text-red-700 flex flex-col items-center">
-              <AlertCircle className="h-8 w-8 mb-3" />
-              <h2 className="font-semibold text-lg">Erro ao carregar pedidos</h2>
-              <p className="text-sm mt-1">{error}</p>
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="text-center py-12">
-              <ShoppingBag className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-              <h2 className="text-lg font-semibold dark:text-white">Nenhum pedido encontrado</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Seus pedidos aparecerão aqui assim que você fizer uma compra.</p>
-              <Button asChild>
-                <Link to="/">Começar a Comprar</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {orders.map((order) => {
-                const StatusIcon = statusMap[order.status].icon;
-                return (
-                  <Card key={order.id} className="dark:bg-gray-800 dark:border-gray-700">
-                    <CardHeader className="flex flex-row items-center justify-between border-b dark:border-gray-700">
-                      <div>
-                        <CardTitle className="dark:text-white">Pedido #{order.orderNumber}</CardTitle>
-                        <p className="text-sm text-gray-500">
-                          Feito em {new Date(order.orderDate).toLocaleDateString('pt-MZ')}
-                        </p>
-                      </div>
-                      <Badge className={statusMap[order.status].color}>
-                        <StatusIcon className="h-4 w-4 mr-2" />
-                        {statusMap[order.status].text}
-                      </Badge>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        {order.items.map(item => (
-                          <div key={item.id} className="flex items-center space-x-4">
-                            <img src={item.images[0]} alt={item.title} className="w-16 h-16 rounded-lg object-cover" />
-                            <div className="flex-1">
-                              <p className="font-medium dark:text-white">{item.title}</p>
-                              <p className="text-sm text-gray-500">Qtd: {item.quantity}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold dark:text-white">{formatCurrency(item.price)}</p>
-                              {order.status === 'delivered' && (
-                                <Button 
-                                  variant="link" 
-                                  size="sm" 
-                                  className="h-auto p-0 mt-1"
-                                  onClick={() => console.log('Review button clicked')}
-                                >
-                                  <Star className="h-3 w-3 mr-1" />
-                                  Deixar Avaliação (Desativado)
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="border-t mt-4 pt-4 flex items-center justify-between dark:border-gray-700">
-                        <p className="text-lg font-bold dark:text-white">Total: {formatCurrency(order.total)}</p>
-                        <Button variant="outline" size="sm">Ver Detalhes</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {orders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
-}
+};
+
+export default OrderHistoryPage;
