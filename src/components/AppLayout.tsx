@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, ShoppingCart, Package, User, Heart, Settings, LogOut, ListOrdered } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuthContext as useAuth } from '@/context/AuthContext'; // Corrigido para usar useAuthContext
+import { useAuth } from '@/context/AuthContext';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -21,21 +21,12 @@ const menuItems = [
 ];
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const { user, isAuthenticated } = useAuth(); // useAuth agora é useAuthContext
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   // Ocultar layout em páginas de autenticação
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   
-  // Função de logout (precisa ser implementada no AuthContext ou usar o supabase diretamente)
-  // Como o AuthContext não expõe 'logout', vamos usar o supabase diretamente aqui por enquanto,
-  // ou assumir que o useAuthContext deveria expor uma função de logout.
-  // Vou adicionar uma função de logout simples que usa o supabase, já que o useAuthContext não a expõe.
-  
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
   if (isAuthPage) {
     return <>{children}</>;
   }
@@ -72,7 +63,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {user && (
             <div className="mt-6 pt-4 border-t dark:border-gray-800">
               <Button 
-                onClick={handleSignOut} // Usando a função local
+                onClick={logout} 
                 variant="ghost" 
                 className="w-full justify-start text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
               >
