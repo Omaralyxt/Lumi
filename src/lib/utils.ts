@@ -12,10 +12,12 @@ export function cn(...inputs: ClassValue[]) {
  * @returns Formatted currency string (e.g., "1.234,56 MZN").
  */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('pt-MZ', {
-    style: 'currency',
-    currency: 'MZN',
+  // 1. Formata o número com separadores de milhar e decimal (pt-MZ)
+  const formattedNumber = new Intl.NumberFormat('pt-MZ', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+  
+  // 2. Adiciona a sigla MZN no final
+  return `${formattedNumber} MZN`;
 }
