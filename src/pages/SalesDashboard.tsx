@@ -34,6 +34,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 // Mock data for the dashboard
 const salesData = [
@@ -150,7 +151,7 @@ export default function SalesDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">MT {salesStats.receitaTotal.toLocaleString('pt-MZ')}</div>
+              <div className="text-2xl font-bold">{formatCurrency(salesStats.receitaTotal)}</div>
               <p className="text-xs text-muted-foreground">+18% em relação ao mês passado</p>
             </CardContent>
           </Card>
@@ -193,7 +194,12 @@ export default function SalesDashboard() {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip 
-                      formatter={(value) => [`MT ${Number(value).toLocaleString('pt-MZ')}`, 'Receita']}
+                      formatter={(value, name) => {
+                        if (name === 'Receita') {
+                          return [formatCurrency(Number(value)), name];
+                        }
+                        return [value, name];
+                      }}
                       labelFormatter={(label) => `Mês: ${label}`}
                     />
                     <Bar dataKey="vendas" name="Vendas" fill="#3b82f6" />
@@ -258,7 +264,7 @@ export default function SalesDashboard() {
                     <TableRow key={order.id}>
                       <TableCell className="font-medium">{order.id}</TableCell>
                       <TableCell>{order.cliente}</TableCell>
-                      <TableCell>MT {order.valor.toLocaleString('pt-MZ')}</TableCell>
+                      <TableCell>{formatCurrency(order.valor)}</TableCell>
                       <TableCell>
                         <Badge className={statusColors[order.status]}>
                           {order.status}
@@ -296,7 +302,7 @@ export default function SalesDashboard() {
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.vendas}</TableCell>
-                      <TableCell>MT {product.receita.toLocaleString('pt-MZ')}</TableCell>
+                      <TableCell>{formatCurrency(product.receita)}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />

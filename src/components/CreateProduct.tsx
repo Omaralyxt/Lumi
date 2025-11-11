@@ -304,7 +304,7 @@ export default function CreateProduct() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="shippingCost">Custo de Envio (MTN)</Label>
+                  <Label htmlFor="shippingCost">Custo de Envio (MZN)</Label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -370,7 +370,7 @@ export default function CreateProduct() {
                     />
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-2">
-                    <Label className="text-sm">Preço (MTN)</Label>
+                    <Label className="text-sm">Preço (MZN)</Label>
                     <Input
                       type="number"
                       placeholder="12500"

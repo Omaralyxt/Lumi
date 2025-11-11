@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatCurrency } from "@/lib/utils"; // Importação adicionada
 
 const stats = {
   totalUsers: 1245,
@@ -188,7 +189,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Receita Total</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    MT {(stats.totalRevenue / 1000).toLocaleString('pt-MZ')}K
+                    {formatCurrency(stats.totalRevenue)}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -295,7 +296,7 @@ export default function AdminDashboard() {
                           <p className="text-xs text-gray-500">{order.date}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">MT {order.amount.toLocaleString('pt-MZ')}</p>
+                          <p className="font-medium">{formatCurrency(order.amount)}</p>
                           <Badge className={statusColors[order.status]}>
                             {order.status}
                           </Badge>

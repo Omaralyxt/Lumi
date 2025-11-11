@@ -56,26 +56,26 @@ function PriceSlider({ minPrice = 0, maxPrice = 100000, onChange }: PriceSliderP
       
       <div className="flex gap-2 items-center">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">MT</span>
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">MZN</span>
           <Input
             type="number"
             min={minPrice}
             max={value[1]}
             value={value[0]}
             onChange={handleMinChange}
-            className="pl-8 pr-3 text-sm"
+            className="pl-10 pr-3 text-sm"
           />
         </div>
         <span className="text-gray-500 font-bold">-</span>
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">MT</span>
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">MZN</span>
           <Input
             type="number"
             min={value[0]}
             max={maxPrice}
             value={value[1]}
             onChange={handleMaxChange}
-            className="pl-8 pr-3 text-sm"
+            className="pl-10 pr-3 text-sm"
           />
         </div>
       </div>
