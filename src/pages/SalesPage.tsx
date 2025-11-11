@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import RelatedProductsSection from '@/components/RelatedProductsSection'; // Importando o novo componente
 
 // Tipos de dados (simplificados)
 interface ProductVariant {
@@ -36,6 +37,7 @@ interface Product {
   shipping_cost: number;
   store_id: string;
   store_name: string;
+  category: string; // Adicionado para buscar relacionados
   product_variants: ProductVariant[];
   product_images: ProductImage[];
 }
@@ -51,6 +53,7 @@ const fetchProduct = async (productId: string): Promise<Product> => {
       description,
       shipping_cost,
       store_id,
+      category,
       stores (name),
       product_variants (id, name, price, stock),
       product_images (id, image_url, sort_order)
@@ -74,6 +77,7 @@ const fetchProduct = async (productId: string): Promise<Product> => {
     shipping_cost: data.shipping_cost || 0,
     store_id: data.store_id,
     store_name: storeName,
+    category: data.category || 'Outros', // Garantindo que a categoria seja retornada
     product_variants: data.product_variants || [],
     product_images: data.product_images ? data.product_images.sort((a, b) => a.sort_order - b.sort_order) : [],
   };
@@ -264,7 +268,7 @@ export default function SalesPage() {
         isVerified: true,
       },
       stock: selectedVariant.stock,
-      category: 'Outros', // Mocked
+      category: product.category, // Usando a categoria real
       features: [],
       specifications: {},
       deliveryInfo: { city: 'Maputo', fee: product.shipping_cost, eta: '1-2 dias' },
@@ -412,6 +416,12 @@ export default function SalesPage() {
             </div>
           </div>
         </div>
+        
+        {/* Related Products Section */}
+        <RelatedProductsSection 
+          currentProductId={product.id}
+          currentProductCategory={product.category}
+        />
       </div>
     </div>
   );
