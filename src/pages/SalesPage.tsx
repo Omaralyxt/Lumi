@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import RelatedProductsSection from '@/components/RelatedProductsSection'; // Importando o novo componente
+import RelatedProductsSection from '@/components/RelatedProductsSection'; // Importando o componente
 
 // Tipos de dados (simplificados)
 interface ProductVariant {
@@ -67,7 +67,6 @@ const fetchProduct = async (productId: string): Promise<Product> => {
   }
 
   // Mapear dados para o formato Product
-  // Corrigido o acesso a data.stores para garantir compatibilidade com o tipo retornado pelo Supabase
   const storeName = (data.stores as { name: string } | null)?.name || 'Loja Desconhecida';
 
   return {
@@ -249,9 +248,6 @@ export default function SalesPage() {
     }
 
     // Mapeamento simplificado para o CartContext (que espera o tipo Product)
-    // Como não temos o objeto Product completo aqui, vamos simular a estrutura mínima
-    // que o CartContext espera, usando os dados que temos.
-    
     const productForCart = {
       id: selectedVariant.id, // Usamos o ID da variante como ID do item no carrinho
       title: product.name,
