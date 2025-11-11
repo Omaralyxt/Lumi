@@ -31,7 +31,7 @@ import NotFound from './pages/NotFound';
 import CreateProduct from './components/CreateProduct';
 import AdminDashboard from './pages/AdminDashboard';
 import SalesDashboard from './pages/SalesDashboard';
-import MpesaStatusModal from './components/MpesaStatusModal';
+import CartPage from './pages/CartPage'; // Adicionando a importação de CartPage
 
 
 function App() {
