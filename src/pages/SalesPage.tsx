@@ -207,16 +207,6 @@ export default function SalesPage() {
     }
 
     // Mapeamento simplificado para o CartContext (que espera o tipo Product)
-    // Nota: O CartContext espera um objeto Product completo, mas aqui estamos passando
-    // apenas os dados essenciais da variante. Isso pode causar problemas se o CartContext
-    // tentar acessar campos como `images[0]` ou `shop.name` diretamente do item.
-    // Para corrigir isso, precisamos garantir que o objeto passado para `addToCart`
-    // tenha a estrutura mínima de `Product` ou que o `CartContext` seja adaptado.
-    
-    // Revertendo para a estrutura completa do Product (como era antes)
-    // Para evitar quebrar o CartContext, vamos buscar o objeto Product completo
-    // e usar a variante selecionada para definir o preço/estoque.
-    
     // Como não temos o objeto Product completo aqui, vamos simular a estrutura mínima
     // que o CartContext espera, usando os dados que temos.
     
@@ -278,7 +268,7 @@ export default function SalesPage() {
             {/* Price and Rating */}
             <div className="flex items-baseline space-x-4">
               <p className="text-4xl font-extrabold text-blue-600 dark:text-blue-400">
-                MT {currentPrice.toLocaleString('pt-MZ')}
+                {formatCurrency(currentPrice)}
               </p>
               <div className="flex items-center text-yellow-500">
                 <Star className="h-4 w-4 fill-yellow-500" />
@@ -368,7 +358,7 @@ export default function SalesPage() {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
                 <Truck className="h-5 w-5 text-blue-500" />
-                <span className="font-medium">Custo de Envio: MT {product.shipping_cost.toLocaleString('pt-MZ')}</span>
+                <span className="font-medium">Custo de Envio: {formatCurrency(product.shipping_cost)}</span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 O custo de envio é fixo por loja. O valor final será calculado no checkout.
