@@ -31,6 +31,7 @@ interface OrdersContextType {
   error: string | null;
   fetchOrders: () => Promise<void>;
   createOrder: (data: OrderDataInput) => Promise<Order>;
+  getOrderById: (orderId: string) => Order | undefined; // Adicionando getOrderById
 }
 
 const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
@@ -78,6 +79,11 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isAuthenticated]); // Dependency on isAuthenticated ensures it runs when auth state changes
 
+  // Função para buscar um pedido pelo ID no estado local
+  const getOrderById = useCallback((orderId: string): Order | undefined => {
+    return orders.find(order => order.id === orderId);
+  }, [orders]);
+
   return (
     <OrdersContext.Provider value={{ 
       orders, 
@@ -85,6 +91,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       error, 
       fetchOrders,
       createOrder,
+      getOrderById, // Expondo a função
     }}>
       {children}
     </OrdersContext.Provider>
