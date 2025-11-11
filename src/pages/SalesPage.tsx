@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -85,6 +85,9 @@ interface ImageCarouselProps {
 
 const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const minSwipeDistance = 50; // Distância mínima para considerar um swipe
 
   if (images.length === 0) {
     return <div className="w-full h-96 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400">Sem Imagem</div>;
@@ -97,9 +100,43 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
   const prevImage = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
   };
+  
+  // Lógica de Swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = 0; // Reset end position
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextImage();
+    } else if (isRightSwipe) {
+      prevImage();
+    }
+    
+    // Resetar posições
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
+
 
   return (
-    <div className="relative w-full aspect-square rounded-lg overflow-hidden shadow-lg">
+    <div 
+      className="relative w-full aspect-square rounded-lg overflow-hidden shadow-lg cursor-grab"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <img
         src={images[currentIndex].image_url}
         alt={`Imagem ${currentIndex + 1}`}
