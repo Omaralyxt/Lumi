@@ -136,12 +136,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </Sheet>
 
             {/* Logo */}
-            <Link to="/home" className="flex items-center space-x-2">
+            <Link to="/home" className="flex items-center space-x-2 lg:mr-6">
               <img src={LOGO_URL} alt="Lumi Logo" className="h-8 w-auto" />
             </Link>
             
             {/* Navegação Desktop (Aparece em telas grandes) */}
-            <nav className="hidden lg:flex items-center space-x-6 ml-6">
+            <nav className="hidden lg:flex items-center space-x-6">
               {mainNavLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -156,8 +156,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </nav>
           </div>
 
-          {/* Centro: Busca Centralizada */}
-          <div className="flex-1 max-w-xl mx-4 hidden md:block">
+          {/* Centro: Busca Centralizada (Visível em todas as telas) */}
+          <div className="flex-1 max-w-xl mx-4">
             <form onSubmit={(e) => {
               e.preventDefault();
               const searchInput = e.currentTarget.querySelector('input');
@@ -178,15 +178,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
           {/* Lado Direito: Utilitários e Auth */}
           <div className="flex items-center space-x-3">
-            {/* Busca Mobile (Aparece em telas pequenas) */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="md:hidden"
-              onClick={() => navigate('/search')}
-            >
-              <Search className="h-5 w-5" />
-            </Button>
+            {/* Busca Mobile (REMOVIDA, pois a busca centralizada agora é visível) */}
             
             <HeaderCart />
             <ThemeToggle />
