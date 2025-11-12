@@ -170,18 +170,21 @@ export default function SalesPage() {
           <ProductInfo product={product} variants={product.variants} />
         </div>
 
-        {/* Product Description & Details */}
-        <div className="mt-6">
-          <ProductDescription product={product} />
-        </div>
+        {/* Product Description & Reviews (Horizontal Layout on Large Screens) */}
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Product Description & Specs */}
+          <div>
+            <ProductDescription product={product} />
+          </div>
 
-        {/* Reviews */}
-        <div className="mt-6">
-          <ProductReviews 
-            reviews={product.reviews} 
-            rating={product.rating} 
-            reviewCount={product.reviewCount} 
-          />
+          {/* Reviews */}
+          <div>
+            <ProductReviews 
+              reviews={product.reviews} 
+              rating={product.rating} 
+              reviewCount={product.reviewCount} 
+            />
+          </div>
         </div>
 
         {/* Related Products */}
