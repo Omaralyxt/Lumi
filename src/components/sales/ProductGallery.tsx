@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ProductImage } from "@/types/product";
-import ImageWithFallback from "../ImageWithFallback";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback"; // Corrigido o caminho
 import {
   Carousel,
   CarouselContent,
