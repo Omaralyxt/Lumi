@@ -5,11 +5,15 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import { useTheme } from "@/context/ThemeProvider"; // Importar useTheme
 
 export default function BuyerLogin() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 p-10 bg-white shadow-xl rounded-xl">
+    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`}>
+      <div className={`max-w-md w-full space-y-8 p-10 shadow-xl rounded-xl ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-24 h-24 mx-auto mb-4">
@@ -19,7 +23,7 @@ export default function BuyerLogin() {
               className="w-full h-full object-contain"
             />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
             Acesse sua conta
           </h2>
         </div>
@@ -38,7 +42,7 @@ export default function BuyerLogin() {
               },
             },
           }}
-          theme="light"
+          theme={isDark ? "dark" : "light"}
           view="sign_in"
           localization={{
             variables: {
