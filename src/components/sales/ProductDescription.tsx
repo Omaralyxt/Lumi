@@ -2,6 +2,8 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product as ProductType } from "@/types/product";
+import { Star } from "lucide-react"; // Importação adicionada
+import { Badge } from "@/components/ui/badge"; // Importação adicionada
 
 interface ProductDescriptionProps {
   product: ProductType;
