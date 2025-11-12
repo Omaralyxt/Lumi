@@ -17,10 +17,10 @@ import { useCart } from '@/context/CartContext';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatCurrency } from '@/lib/utils';
-import { Product as ProductType } from '@/types/product'; // Importando o tipo Product completo
-import ProductCard from '@/components/ProductCard'; // Importando o ProductCard externo
+import { Product as ProductType } from '@/types/product';
+import ProductCard from '@/components/ProductCard';
 
-// Componente de Banner
+// Componente de Banner (Integrado e Responsivo)
 const BannerCarousel = ({ banners }: { banners: { id: string | number; image_url: string; link_url: string }[] }) => {
   if (!banners || banners.length === 0) return null;
 
@@ -70,13 +70,16 @@ const BannerCarousel = ({ banners }: { banners: { id: string | number; image_url
           <CarouselItem key={banner.id}>
             <div className="p-1">
               <Card className="border-none shadow-none">
-                <CardContent className="flex aspect-video items-center justify-center p-0">
-                  <a href={banner.link_url} className="w-full h-full">
-                    <img
-                      src={banner.image_url}
-                      alt={`Banner ${banner.id}`}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
+                <CardContent className="flex items-center justify-center p-0">
+                  <a href={banner.link_url} className="w-full">
+                    {/* Aspecto 16:9 para desktop, 4:3 para mobile */}
+                    <div className="aspect-[16/9] md:aspect-[16/9] w-full">
+                      <img
+                        src={banner.image_url}
+                        alt={`Banner ${banner.id}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    </div>
                   </a>
                 </CardContent>
               </Card>
@@ -163,7 +166,7 @@ export default function Home() {
       {/* Banner Carousel (Full Width) */}
       <div className="mb-8">
         {isLoadingBanners ? (
-          <div className="w-full aspect-video bg-gray-200 dark:bg-gray-800 animate-pulse rounded-lg" />
+          <div className="w-full aspect-[16/9] md:aspect-[16/9] bg-gray-200 dark:bg-gray-800 animate-pulse rounded-lg" />
         ) : (
           <BannerCarousel banners={banners || []} />
         )}

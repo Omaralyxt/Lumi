@@ -7,9 +7,10 @@ import BottomNavLumi from "./BottomNavLumi";
 import { useTheme } from "@/context/ThemeProvider";
 import HeaderCart from "./HeaderCart";
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck, Bell, Percent, Grid3X3, Home, LogOut } from "lucide-react";
+import { Search, Menu, X, ShoppingCart, Heart, User, Package, Store, Truck, Bell, Percent, Grid3X3, Home, LogOut, Settings } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
+import { useAuth } from "@/hooks/useAuth"; // Importar useAuth para verificar autenticação
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -18,59 +19,38 @@ interface AppLayoutProps {
 const LOGO_URL = "https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/logo/Logo%20Lumi.png";
 const excludedPaths = ["/login", "/register"];
 
+// Links de navegação principais
+const mainNavLinks = [
+  { label: "Início", href: "/home", icon: Home },
+  { label: "Categorias", href: "/categories", icon: Grid3X3 },
+  { label: "Ofertas", href: "/offers", icon: Percent },
+];
+
+// Links de utilidades (para o menu lateral)
+const utilityLinks = [
+  { label: "Meus Pedidos", href: "/orders", icon: Package },
+  { label: "Favoritos", href: "/favorites", icon: Heart },
+  { label: "Acompanhar Pedido", href: "/track-order", icon: Truck },
+  { label: "Configurações", href: "/settings", icon: Settings },
+];
+
 export default function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [user, setUser] = useState<any>(null);
+  const { user, isAuthenticated } = useAuth(); // Usando useAuth para estado de autenticação
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isAuthPage = excludedPaths.some(path => location.pathname.startsWith(path));
-  const isHomePage = location.pathname === "/home" || location.pathname === "/";
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      
-      // Redirecionar usuários logados de páginas de autenticação para /home
-      if (user && isAuthPage) {
-        navigate('/home');
-      }
-    };
-
-    checkUser();
-
-    // Escutar mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-      
-      // Redirecionar após login/logout
-      if (_event === 'SIGNED_IN') {
-        navigate('/home');
-      } else if (_event === 'SIGNED_OUT') {
-        navigate('/home');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate, isAuthPage]);
+  
+  // Define o caminho para a página de perfil/dashboard
+  const profilePath = isAuthenticated ? "/account" : "/login";
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    setIsMenuOpen(false);
     navigate('/home');
   };
-
-  // Menu simplificado para utilidades e rotas secundárias
-  const menuItems = [
-    { icon: Package, label: "Meus Pedidos", href: "/orders" },
-    { icon: Heart, label: "Favoritos", href: "/favorites" },
-    { icon: Bell, label: "Notificações", href: "/notifications" },
-    { icon: Truck, label: "Acompanhar Pedido", href: "/track-order" },
-    { icon: Store, label: "Lojas Parceiras", href: "/stores" },
-  ];
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -84,52 +64,42 @@ export default function AppLayout({ children }: AppLayoutProps) {
           : "bg-[#fafafa] text-gray-900"
       }`}
     >
-      {/* Navbar com Menu Hambúrguer, Logo e Busca Centralizada */}
+      {/* Navbar Fixo (Desktop) / Hamburguer (Mobile) */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-md border-b border-neutral-300 dark:border-neutral-800 px-4 md:px-8 py-3">
         <div className="flex items-center justify-between h-16">
-          {/* Menu Hambúrguer e Logo */}
+          
+          {/* Lado Esquerdo: Menu Mobile / Logo / Navegação Desktop */}
           <div className="flex items-center space-x-3">
+            
+            {/* Menu Hamburguer (Mobile Only) */}
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden">
+                <Button variant="ghost" size="sm" className="lg:hidden">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80 bg-white dark:bg-gray-900">
                 <SheetHeader>
-                  <SheetTitle className="text-gray-900 dark:text-white">Menu</SheetTitle>
+                  <SheetTitle className="text-gray-900 dark:text-white">Menu Lumi</SheetTitle>
                 </SheetHeader>
                 <nav className="mt-6 space-y-2">
-                  {/* Itens principais (já na barra inferior, mas úteis no menu) */}
-                  <Link
-                    to="/home"
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Home className="h-5 w-5" />
-                    <span>Início</span>
-                  </Link>
-                  <Link
-                    to="/categories"
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Grid3X3 className="h-5 w-5" />
-                    <span>Categorias</span>
-                  </Link>
-                  <Link
-                    to="/offers"
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Percent className="h-5 w-5" />
-                    <span>Ofertas</span>
-                  </Link>
+                  {/* Links Principais */}
+                  {mainNavLinks.map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.href}
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
                   
-                  {/* Itens Secundários */}
                   <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
                   
-                  {menuItems.map((item) => (
+                  {/* Links de Utilidades */}
+                  {utilityLinks.map((item) => (
                     <Link
                       key={item.label}
                       to={item.href}
@@ -143,10 +113,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   
                   {/* Autenticação */}
                   <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
-                  {user ? (
+                  {isAuthenticated ? (
                     <button
                       onClick={handleLogout}
-                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-gray-900 dark:text-white"
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-gray-800 transition-colors w-full text-left text-red-600 dark:text-red-400"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Sair</span>
@@ -158,21 +128,36 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <User className="h-5 w-5" />
-                      <span>Entrar</span>
+                      <span>Entrar / Cadastrar</span>
                     </Link>
                   )}
                 </nav>
               </SheetContent>
             </Sheet>
 
-            {/* Logo ao lado do menu hambúrguer */}
+            {/* Logo */}
             <Link to="/home" className="flex items-center space-x-2">
               <img src={LOGO_URL} alt="Lumi Logo" className="h-8 w-auto" />
             </Link>
+            
+            {/* Navegação Desktop (Aparece em telas grandes) */}
+            <nav className="hidden lg:flex items-center space-x-6 ml-6">
+              {mainNavLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={`text-sm font-medium transition-colors hover:text-blue-600 dark:hover:text-blue-400 ${
+                    location.pathname === link.href ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
 
-          {/* Busca Centralizada */}
-          <div className="flex-1 max-w-2xl mx-4">
+          {/* Centro: Busca Centralizada */}
+          <div className="flex-1 max-w-xl mx-4 hidden md:block">
             <form onSubmit={(e) => {
               e.preventDefault();
               const searchInput = e.currentTarget.querySelector('input');
@@ -181,19 +166,51 @@ export default function AppLayout({ children }: AppLayoutProps) {
               }
             }}>
               <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <input
                   type="text"
                   placeholder="Buscar produtos, lojas ou marcas..."
-                  className="w-full pl-4 pr-4 py-2 text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
+                  className="w-full pl-10 pr-4 py-2 text-sm text-gray-900 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white dark:border-gray-700"
                 />
               </div>
             </form>
           </div>
 
-          {/* Botões à direita */}
+          {/* Lado Direito: Utilitários e Auth */}
           <div className="flex items-center space-x-3">
+            {/* Busca Mobile (Aparece em telas pequenas) */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="md:hidden"
+              onClick={() => navigate('/search')}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+            
             <HeaderCart />
             <ThemeToggle />
+            
+            {/* Botões de Auth Desktop */}
+            <div className="hidden lg:flex items-center space-x-2">
+              {isAuthenticated ? (
+                <Button asChild variant="ghost" size="sm">
+                  <Link to={profilePath}>
+                    <User className="h-5 w-5 mr-2" />
+                    Conta
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <Button asChild variant="outline" size="sm" className="dark:border-gray-700 dark:hover:bg-gray-700">
+                    <Link to="/login">Entrar</Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link to="/register">Cadastrar</Link>
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -201,6 +218,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Conteúdo principal */}
       <main className="pb-20">{children}</main>
 
+      {/* BottomNavLumi (Mobile Only) */}
       <BottomNavLumi />
     </div>
   );
