@@ -1,49 +1,42 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingCart, Truck, Star, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent } from '@/components/ui/card';
-import { useCart } from '@/context/CartContext';
+import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
 import RelatedProductsSection from '@/components/RelatedProductsSection';
+import { ProductGallery } from '@/components/sales/ProductGallery';
+import { ProductInfo } from '@/components/sales/ProductInfo';
+import { ProductDescription } from '@/components/sales/ProductDescription';
+import { ProductReviews } from '@/components/sales/ProductReviews';
+import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
 
-// Tipos de dados (simplificados)
-interface ProductVariant {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-}
-
+// Tipos de dados (simplificados para a busca)
 interface ProductImage {
   id: string;
   image_url: string;
   sort_order: number;
 }
 
-interface Product {
+interface SupabaseProduct {
   id: string;
   name: string;
   description: string;
   shipping_cost: number;
   store_id: string;
-  store_name: string;
-  category: string; // Adicionado para buscar relacionados
+  category: string;
+  stores: { name: string, active: boolean, created_at: string } | null;
   product_variants: ProductVariant[];
   product_images: ProductImage[];
 }
 
 // Função de busca de produto
-const fetchProduct = async (productId: string): Promise<Product> => {
+const fetchProduct = async (productId: string): Promise<ProductType> => {
   const { data, error } = await supabase
     .from('products')
     .select(
@@ -52,10 +45,10 @@ const fetchProduct = async (productId: string): Promise<Product> => {
       name,
       description,
       shipping_cost,
-      store_id,
       category,
-      stores (name),
-      product_variants (id, name, price, stock),
+      created_at,
+      stores (id, name, active, created_at),
+      product_variants (id, name, price, stock, image_url),
       product_images (id, image_url, sort_order)
     `
     )
@@ -66,121 +59,55 @@ const fetchProduct = async (productId: string): Promise<Product> => {
     throw new Error(error.message);
   }
 
-  // Mapear dados para o formato Product
-  const storeName = (data.stores as { name: string } | null)?.name || 'Loja Desconhecida';
+  const productData = data as SupabaseProduct;
+
+  // Mapeamento completo para o tipo ProductType
+  const storeName = productData.stores?.name || 'Loja Desconhecida';
+  const storeId = productData.stores?.id || 'unknown';
+  
+  const images = productData.product_images ? productData.product_images.sort((a, b) => a.sort_order - b.sort_order).map(img => img.image_url) : [];
+  
+  // Mock de dados complexos (Reviews, Q&A, Specifications)
+  const mockReviews: Review[] = [
+    { id: 1, author: "Maria S.", date: "15/10/2024", rating: 5, comment: "Produto excelente!", helpful: 42, verifiedPurchase: true },
+    { id: 2, author: "João P.", date: "10/10/2024", rating: 4, comment: "Muito bom", helpful: 28, verifiedPurchase: true },
+  ];
+  
+  const mockSpecifications = {
+    "Marca": "Lumi Brand",
+    "Peso líquido": "650g",
+    "Validade": "12 meses",
+    "Origem": "Moçambique",
+  };
 
   return {
-    id: data.id,
-    name: data.name,
-    description: data.description,
-    shipping_cost: data.shipping_cost || 0,
-    store_id: data.store_id,
-    store_name: storeName,
-    category: data.category || 'Outros', // Garantindo que a categoria seja retornada
-    product_variants: data.product_variants || [],
-    product_images: data.product_images ? data.product_images.sort((a, b) => a.sort_order - b.sort_order) : [],
+    id: productData.id,
+    title: productData.name,
+    description: productData.description || 'Sem descrição.',
+    price: productData.product_variants[0]?.price || 0,
+    originalPrice: undefined, // Não temos originalPrice no DB
+    rating: 4.7, // Mocked rating
+    reviewCount: 1247, // Mocked count
+    shop: {
+      id: storeId,
+      name: storeName,
+      rating: 4.7,
+      reviewCount: 1247,
+      isVerified: productData.stores?.active || false,
+      memberSince: productData.stores?.created_at ? new Date(productData.stores.created_at).toLocaleDateString('pt-MZ', { year: 'numeric' }) : 'N/A',
+    },
+    stock: productData.product_variants[0]?.stock || 0,
+    category: productData.category || 'Outros',
+    features: [],
+    specifications: mockSpecifications, // Usando mock
+    deliveryInfo: { city: 'Maputo', fee: productData.shipping_cost || 0, eta: '1-2 dias' },
+    reviews: mockReviews, // Usando mock
+    qa: [],
+    images: images.length > 0 ? images : ['/placeholder.svg'],
+    options: [],
+    variants: productData.product_variants,
+    timeDelivery: '2-5 dias úteis',
   };
-};
-
-// Componente de Carrossel de Imagens
-interface ImageCarouselProps {
-  images: ProductImage[];
-}
-
-const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  const minSwipeDistance = 50; // Distância mínima para considerar um swipe
-
-  if (images.length === 0) {
-    return <div className="w-full h-96 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400">Sem Imagem</div>;
-  }
-
-  const nextImage = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-  };
-
-  const prevImage = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
-  };
-  
-  // Lógica de Swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchEndX.current = 0; // Reset end position
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-
-    const distance = touchStartX.current - touchEndX.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      nextImage();
-    } else if (isRightSwipe) {
-      prevImage();
-    }
-    
-    // Resetar posições
-    touchStartX.current = 0;
-    touchEndX.current = 0;
-  };
-
-
-  return (
-    <div 
-      className="relative w-full aspect-square rounded-lg overflow-hidden shadow-lg cursor-grab"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <img
-        src={images[currentIndex].image_url}
-        alt={`Imagem ${currentIndex + 1}`}
-        className="w-full h-full object-cover transition-opacity duration-300"
-      />
-      
-      {images.length > 1 && (
-        <>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/50 hover:bg-white/70 dark:bg-gray-800/50 dark:hover:bg-gray-800/70"
-            onClick={prevImage}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/50 hover:bg-white/70 dark:bg-gray-800/50 dark:hover:bg-gray-800/70"
-            onClick={nextImage}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </>
-      )}
-
-      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
-        {images.map((_, index) => (
-          <div
-            key={index}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex ? 'bg-blue-500 w-4' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
-            onClick={() => setCurrentIndex(index)}
-          />
-        ))}
-      </div>
-    </div>
-  );
 };
 
 
@@ -188,22 +115,12 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
 export default function SalesPage() {
   const { id: productId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
 
-  const { data: product, isLoading, error } = useQuery<Product, Error>({
+  const { data: product, isLoading, error } = useQuery<ProductType, Error>({
     queryKey: ['product', productId],
     queryFn: () => fetchProduct(productId!),
     enabled: !!productId,
   });
-
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [quantity, setQuantity] = useState(1);
-
-  useEffect(() => {
-    if (product && product.product_variants.length > 0) {
-      setSelectedVariant(product.product_variants[0]);
-    }
-  }, [product]);
 
   if (isLoading) {
     return (
@@ -236,188 +153,44 @@ export default function SalesPage() {
       </div>
     );
   }
-
-  const handleAddToCart = () => {
-    if (!selectedVariant) {
-      toast.error("Por favor, selecione uma variante do produto.");
-      return;
-    }
-    if (quantity <= 0 || quantity > selectedVariant.stock) {
-      toast.error(`Quantidade inválida. Máximo disponível: ${selectedVariant.stock}`);
-      return;
-    }
-
-    // Mapeamento simplificado para o CartContext (que espera o tipo Product)
-    const productForCart = {
-      id: selectedVariant.id, // Usamos o ID da variante como ID do item no carrinho
-      title: product.name,
-      description: product.description,
-      price: selectedVariant.price,
-      originalPrice: undefined,
-      rating: 4.5,
-      reviewCount: 0,
-      shop: {
-        id: product.store_id,
-        name: product.store_name,
-        rating: 4.5,
-        reviewCount: 0,
-        isVerified: true,
-      },
-      stock: selectedVariant.stock,
-      category: product.category, // Usando a categoria real
-      features: [],
-      specifications: {},
-      deliveryInfo: { city: 'Maputo', fee: product.shipping_cost, eta: '1-2 dias' },
-      reviews: [],
-      qa: [],
-      images: product.product_images.map(img => img.image_url),
-      options: [{ name: "Variante", values: [selectedVariant.name] }],
-      variants: product.product_variants,
-      timeDelivery: '2-5 dias úteis',
-    };
-
-    addToCart(productForCart as any, quantity);
-    toast.success(`${quantity}x ${product.name} (${selectedVariant.name}) adicionado ao carrinho!`);
-  };
-
-  const currentPrice = selectedVariant ? selectedVariant.price : (product.product_variants[0]?.price || 0);
-  const currentStock = selectedVariant ? selectedVariant.stock : (product.product_variants[0]?.stock || 0);
-  const isOutOfStock = currentStock <= 0;
+  
+  // Mapeamento de imagens para o formato ProductGallery espera
+  const galleryImages = product.images.map((url, index) => ({
+    id: `img-${index}`,
+    image_url: url,
+    sort_order: index,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Main Content */}
+      {/* Main Product Section */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* Product Images */}
-          <div className="space-y-4">
-            <ImageCarousel images={product.product_images} />
-          </div>
-
-          {/* Product Details */}
-          <div className="space-y-6">
-            <Badge variant="secondary" className="text-xs font-medium dark:bg-blue-900/30 dark:text-blue-300">
-              Vendido por: {product.store_name}
-            </Badge>
-            
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
-            
-            {/* Price and Rating */}
-            <div className="flex items-baseline space-x-4">
-              <p className="text-4xl font-extrabold text-blue-600 dark:text-blue-400">
-                {formatCurrency(currentPrice)}
-              </p>
-              <div className="flex items-center text-yellow-500">
-                <Star className="h-4 w-4 fill-yellow-500" />
-                <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">(4.5)</span>
-              </div>
-            </div>
-
-            <Separator className="dark:bg-gray-700" />
-
-            {/* Variants Selection */}
-            {product.product_variants.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Opções:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.product_variants.map((variant) => (
-                    <Button
-                      key={variant.id}
-                      variant={selectedVariant?.id === variant.id ? 'default' : 'outline'}
-                      className={`
-                        ${selectedVariant?.id === variant.id 
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-neon-blue' 
-                          : 'border-gray-300 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700'
-                        }
-                        ${variant.stock <= 0 && 'opacity-50 cursor-not-allowed line-through'}
-                      `}
-                      onClick={() => variant.stock > 0 && setSelectedVariant(variant)}
-                      disabled={variant.stock <= 0}
-                    >
-                      {variant.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Stock and Quantity */}
-            <div className="flex items-center space-x-6">
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Estoque: 
-                <span className={`ml-1 font-bold ${isOutOfStock ? 'text-red-500' : 'text-green-500'}`}>
-                  {isOutOfStock ? 'Esgotado' : currentStock}
-                </span>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <label htmlFor="quantity" className="text-sm font-medium text-gray-800 dark:text-gray-200">Qtd:</label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min={1}
-                  max={currentStock}
-                  value={quantity}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (value > 0 && value <= currentStock) {
-                      setQuantity(value);
-                    } else if (value > currentStock) {
-                      setQuantity(currentStock);
-                    } else {
-                      setQuantity(1);
-                    }
-                  }}
-                  className="w-16 text-center dark:bg-gray-800 dark:border-gray-700"
-                  disabled={isOutOfStock}
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex space-x-4 pt-4">
-              <Button 
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 text-lg shadow-lg shadow-blue-500/50 dark:shadow-blue-800/50 transition-all duration-300"
-                onClick={handleAddToCart}
-                disabled={isOutOfStock || !selectedVariant}
-              >
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                Adicionar ao Carrinho
-              </Button>
-              <Button variant="outline" size="icon" className="dark:border-gray-700 dark:hover:bg-gray-700">
-                <Heart className="h-5 w-5 text-red-500" />
-              </Button>
-            </div>
-
-            <Separator className="dark:bg-gray-700" />
-
-            {/* Shipping Info */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
-                <Truck className="h-5 w-5 text-blue-500" />
-                <span className="font-medium">Custo de Envio: {formatCurrency(product.shipping_cost)}</span>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                O custo de envio é fixo por loja. O valor final será calculado no checkout.
-              </p>
-            </div>
-
-            {/* Description */}
-            <div className="pt-4">
-              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">Descrição do Produto</h3>
-              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                {product.description || 'Nenhuma descrição detalhada fornecida para este produto.'}
-              </p>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white dark:bg-gray-900 rounded-lg p-6 shadow-lg dark:border dark:border-gray-800">
+          <ProductGallery images={galleryImages} />
+          <ProductInfo product={product} variants={product.variants} />
         </div>
-        
-        {/* Related Products Section */}
-        <RelatedProductsSection 
-          currentProductId={product.id}
-          currentProductCategory={product.category}
-        />
+
+        {/* Product Description & Details */}
+        <div className="mt-6">
+          <ProductDescription product={product} />
+        </div>
+
+        {/* Reviews */}
+        <div className="mt-6">
+          <ProductReviews 
+            reviews={product.reviews} 
+            rating={product.rating} 
+            reviewCount={product.reviewCount} 
+          />
+        </div>
+
+        {/* Related Products */}
+        <div className="mt-8">
+          <RelatedProductsSection 
+            currentProductId={product.id}
+            currentProductCategory={product.category}
+          />
+        </div>
       </div>
     </div>
   );
