@@ -9,6 +9,7 @@ import { Product as ProductType, ProductVariant } from "@/types/product";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import FavoriteButton from "../FavoriteButton";
+import { useNavigate } from "react-router-dom"; // Importação adicionada
 
 interface ProductInfoProps {
   product: ProductType;
@@ -17,6 +18,7 @@ interface ProductInfoProps {
 
 export function ProductInfo({ product, variants }: ProductInfoProps) {
   const { addToCart } = useCart();
+  const navigate = useNavigate(); // Hook adicionado
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
@@ -38,11 +40,11 @@ export function ProductInfo({ product, variants }: ProductInfoProps) {
   const handleAddToCart = () => {
     if (!selectedVariant) {
       toast.error("Por favor, selecione uma variante do produto.");
-      return;
+      return false; // Retorna false se falhar
     }
     if (quantity <= 0 || quantity > currentStock) {
       toast.error(`Quantidade inválida. Máximo disponível: ${currentStock}`);
-      return;
+      return false; // Retorna false se falhar
     }
 
     // Mapeamento para o CartContext (usando o ID da variante como ID do item no carrinho)
@@ -56,13 +58,18 @@ export function ProductInfo({ product, variants }: ProductInfoProps) {
     };
 
     addToCart(productForCart, quantity);
+    return true; // Retorna true se for bem-sucedido
   };
 
   const handleBuyNow = () => {
-    handleAddToCart();
-    // Redirecionar para o checkout (simulação)
-    // Em um fluxo real, você faria um "quick checkout"
-    toast.info("Redirecionando para o carrinho...");
+    // 1. Adiciona ao carrinho (mantendo a lógica de validação)
+    const success = handleAddToCart();
+    
+    if (success) {
+      // 2. Redireciona imediatamente para o checkout
+      toast.info("Redirecionando para o checkout...");
+      navigate("/checkout"); 
+    }
   };
 
   const decrementQuantity = () => {
