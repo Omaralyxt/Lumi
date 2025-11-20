@@ -4,51 +4,93 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card'; // Mantido para o caso de uso futuro, mas não usado no SubCategoryCard
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowRight } from 'lucide-react';
 
-// Componente de Subcategoria com o novo estilo
-interface SubCategoryCardProps {
+// Componente de Subcategoria (mantido, mas estilizado para ser menor)
+interface SubCategoryPillProps {
   name: string;
-  icon: string;
   onClick: () => void;
 }
 
-const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ name, icon, onClick }) => {
+const SubCategoryPill: React.FC<SubCategoryPillProps> = ({ name, onClick }) => {
   return (
-    <div 
-      className="flex flex-col items-center text-center p-3 cursor-pointer rounded-xl transition-all duration-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:shadow-neon-blue-lg hover:border-neon-blue/50"
+    <button 
+      className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
       onClick={onClick}
     >
-      {/* Ícone em círculo visível (Estilo iPhone/iOS) */}
-      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-2 shadow-md">
-        <span className="text-xl">{icon}</span>
+      {name}
+    </button>
+  );
+};
+
+// Componente de Grupo de Categoria (Card principal com imagem)
+interface CategoryGroupCardProps {
+  group: string;
+  imageUrl?: string;
+  categories: string[];
+  handleCategoryClick: (category: string) => void;
+}
+
+const CategoryGroupCard: React.FC<CategoryGroupCardProps> = ({ group, imageUrl, categories, handleCategoryClick }) => {
+  const navigate = useNavigate();
+  
+  // Função para navegar para a página de listagem de produtos da primeira subcategoria
+  const handleViewAll = () => {
+    if (categories.length > 0) {
+      const categorySlug = categories[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      navigate(`/category/${categorySlug}`);
+    }
+  };
+
+  return (
+    <Card className="overflow-hidden dark:bg-gray-800 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <div className="relative h-40">
+        {/* Imagem de fundo */}
+        <img
+          src={imageUrl || '/placeholder.svg'}
+          alt={group}
+          className="w-full h-full object-cover"
+        />
+        {/* Overlay para melhor contraste do texto */}
+        <div className="absolute inset-0 bg-black/40 flex items-end p-4">
+          <h2 className="text-2xl font-title text-white tracking-wide">{group}</h2>
+        </div>
       </div>
-      {/* Nome da subcategoria */}
-      <p className="text-xs font-medium text-gray-800 dark:text-gray-200 line-clamp-2">{name}</p>
-    </div>
+      
+      <CardContent className="p-4 space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {categories.slice(0, 6).map((category) => (
+            <SubCategoryPill
+              key={category}
+              name={category}
+              onClick={() => handleCategoryClick(category)}
+            />
+          ))}
+          {categories.length > 6 && (
+            <span className="text-xs text-gray-500 dark:text-gray-400 self-center ml-1">
+              +{categories.length - 6} mais
+            </span>
+          )}
+        </div>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full dark:border-gray-700 dark:hover:bg-gray-700"
+          onClick={handleViewAll}
+        >
+          Ver todos os produtos em {group}
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
 
 export default function CategoriesPage() {
   const navigate = useNavigate();
-
-  const icons: Record<string, string> = useMemo(() => ({
-    "Moda e Estilo": '👗',
-    "Tecnologia e Eletrônicos": '📱',
-    "Casa e Decoração": '🏠',
-    "Eletrodomésticos": '🧺',
-    "Beleza e Cuidados Pessoais": '💄',
-    "Bebés e Crianças": '🧸',
-    "Ferramentas e Construção": '🔨',
-    "Automóveis e Motos": '🚗',
-    "Papelaria e Escritório": '📚',
-    "Esportes e Lazer": '⚽',
-    "Supermercado e Alimentos": '🛒',
-    "Saúde e Bem-estar": '💊',
-    "Animais de Estimação": '🐾',
-    "Entretenimento e Cultura": '🎬',
-  }), []);
 
   const handleCategoryClick = (category: string) => {
     // Cria um slug a partir do nome da categoria
@@ -63,34 +105,21 @@ export default function CategoriesPage() {
         
         {/* Header */}
         <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-title tracking-wide">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-title tracking-wide">
             Explorar Categorias
           </h1>
         </div>
 
-        {/* Category Groups and Subcategories Grid */}
-        <div className="space-y-8">
+        {/* Category Groups Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {PRODUCT_CATEGORIES.map((groupData) => (
-            <section key={groupData.group}>
-              <h2 className="font-body font-semibold text-xl mb-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-                {groupData.group}
-              </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-                {groupData.categories.map((category) => {
-                  // Usa o ícone do grupo principal para todas as subcategorias
-                  const groupIcon = icons[groupData.group] || '📦';
-                  
-                  return (
-                    <SubCategoryCard
-                      key={category}
-                      name={category}
-                      icon={groupIcon}
-                      onClick={() => handleCategoryClick(category)}
-                    />
-                  );
-                })}
-              </div>
-            </section>
+            <CategoryGroupCard
+              key={groupData.group}
+              group={groupData.group}
+              imageUrl={groupData.image_url}
+              categories={groupData.categories}
+              handleCategoryClick={handleCategoryClick}
+            />
           ))}
         </div>
       </div>
