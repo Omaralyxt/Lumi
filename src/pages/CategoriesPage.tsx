@@ -3,25 +3,34 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
+import { CATEGORY_GROUP_IMAGES } from '@/constants/categoryImages'; // Importação adicionada
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card'; // Mantido para o caso de uso futuro, mas não usado no SubCategoryCard
 
 // Componente de Subcategoria com o novo estilo
 interface SubCategoryCardProps {
   name: string;
-  icon: string;
+  imageUrl: string; // Alterado para imageUrl
   onClick: () => void;
 }
 
-const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ name, icon, onClick }) => {
+const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ name, imageUrl, onClick }) => {
   return (
     <div 
       className="flex flex-col items-center text-center p-3 cursor-pointer rounded-xl transition-all duration-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:shadow-neon-blue-lg hover:border-neon-blue/50"
       onClick={onClick}
     >
-      {/* Ícone em círculo visível (Estilo iPhone/iOS) */}
-      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-2 shadow-md">
-        <span className="text-xl">{icon}</span>
+      {/* Imagem em círculo visível */}
+      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/50 rounded-full flex items-center justify-center mb-2 shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+        <img 
+          src={imageUrl} 
+          alt={name} 
+          className="w-full h-full object-cover" 
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg'; // Fallback
+            e.currentTarget.className = "w-full h-full object-contain p-2";
+          }}
+        />
       </div>
       {/* Nome da subcategoria */}
       <p className="text-xs font-medium text-gray-800 dark:text-gray-200 line-clamp-2">{name}</p>
@@ -32,23 +41,6 @@ const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ name, icon, onClick }
 
 export default function CategoriesPage() {
   const navigate = useNavigate();
-
-  const icons: Record<string, string> = useMemo(() => ({
-    "Moda e Estilo": '👗',
-    "Tecnologia e Eletrônicos": '📱',
-    "Casa e Decoração": '🏠',
-    "Eletrodomésticos": '🧺',
-    "Beleza e Cuidados Pessoais": '💄',
-    "Bebés e Crianças": '🧸',
-    "Ferramentas e Construção": '🔨',
-    "Automóveis e Motos": '🚗',
-    "Papelaria e Escritório": '📚',
-    "Esportes e Lazer": '⚽',
-    "Supermercado e Alimentos": '🛒',
-    "Saúde e Bem-estar": '💊',
-    "Animais de Estimação": '🐾',
-    "Entretenimento e Cultura": '🎬',
-  }), []);
 
   const handleCategoryClick = (category: string) => {
     // Cria um slug a partir do nome da categoria
@@ -77,14 +69,14 @@ export default function CategoriesPage() {
               </h2>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                 {groupData.categories.map((category) => {
-                  // Usa o ícone do grupo principal para todas as subcategorias
-                  const groupIcon = icons[groupData.group] || '📦';
+                  // Usa a imagem do grupo principal para todas as subcategorias
+                  const groupImageUrl = CATEGORY_GROUP_IMAGES[groupData.group] || '/placeholder.svg';
                   
                   return (
                     <SubCategoryCard
                       key={category}
                       name={category}
-                      icon={groupIcon}
+                      imageUrl={groupImageUrl}
                       onClick={() => handleCategoryClick(category)}
                     />
                   );

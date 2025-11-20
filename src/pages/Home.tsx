@@ -12,6 +12,7 @@ import { getBanners, getFeaturedProducts } from '@/api/products';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
+import { CATEGORY_GROUP_IMAGES } from '@/constants/categoryImages'; // Importação adicionada
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/context/CartContext';
 import { Separator } from '@/components/ui/separator';
@@ -94,7 +95,7 @@ const BannerCarousel = ({ banners }: { banners: { id: string | number; image_url
 };
 
 // Componente de Categoria Rápida
-const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
+const QuickCategory = ({ name, imageUrl }: { name: string; imageUrl: string }) => {
   const navigate = useNavigate();
   const handleCategoryClick = () => {
     // Cria um slug a partir do nome do grupo para a URL (usando a rota CategoriesPage para listar subcategorias)
@@ -107,8 +108,16 @@ const QuickCategory = ({ name, icon }: { name: string; icon: string }) => {
       className="flex flex-col items-center text-center cursor-pointer hover:opacity-80 transition-opacity w-full"
       onClick={handleCategoryClick}
     >
-      <div className="text-2xl p-3 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1">
-        {icon}
+      <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-md mb-1 overflow-hidden border border-gray-200 dark:border-gray-700">
+        <img 
+          src={imageUrl} 
+          alt={name} 
+          className="w-full h-full object-cover" 
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg'; // Fallback
+            e.currentTarget.className = "w-full h-full object-contain p-2";
+          }}
+        />
       </div>
       <p className="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-2">{name}</p>
     </div>
@@ -136,27 +145,10 @@ export default function Home() {
 
   // Quick Categories (Agora inclui TODOS os grupos)
   const quickCategories = useMemo(() => {
-    const icons: Record<string, string> = {
-      "Moda e Estilo": '👗',
-      "Tecnologia e Eletrônicos": '📱',
-      "Casa e Decoração": '🏠',
-      "Eletrodomésticos": '🧺',
-      "Beleza e Cuidados Pessoais": '💄',
-      "Bebés e Crianças": '🧸',
-      "Ferramentas e Construção": '🔨',
-      "Automóveis e Motos": '🚗',
-      "Papelaria e Escritório": '📚',
-      "Esportes e Lazer": '⚽',
-      "Supermercado e Alimentos": '🛒',
-      "Saúde e Bem-estar": '💊',
-      "Animais de Estimação": '🐾',
-      "Entretenimento e Cultura": '🎬',
-    };
-    
     // Mapeia todos os grupos de categorias
     return PRODUCT_CATEGORIES.map(group => ({
       name: group.group,
-      icon: icons[group.group] || '📦',
+      imageUrl: CATEGORY_GROUP_IMAGES[group.group] || '/placeholder.svg',
     }));
   }, []);
 
@@ -192,7 +184,7 @@ export default function Home() {
                   // Ajuste para mostrar 5 ou 6 itens em telas pequenas/médias
                   className="basis-1/5 sm:basis-1/6 pl-2"
                 >
-                  <QuickCategory name={category.name} icon={category.icon as string} />
+                  <QuickCategory name={category.name} imageUrl={category.imageUrl} />
                 </CarouselItem>
               ))}
             </CarouselContent>
