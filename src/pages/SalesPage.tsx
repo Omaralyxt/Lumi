@@ -38,7 +38,7 @@ interface SupabaseProduct {
   category: string;
   video_url: string | null; // Adicionado video_url
   specifications: Record<string, string> | null | string | any; // Pode ser objeto, null, string JSON ou array
-  detailed_images: DetailedMediaItem[] | null; // Novo campo
+  detailed_images: DetailedMediaItem[] | null | string | any; // Ajustado para ser mais flexível
   stores: { name: string, active: boolean, created_at: string } | null;
   product_variants: ProductVariant[];
   product_images: ProductImage[];
@@ -85,34 +85,52 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     { id: 2, author: "João P.", date: "10/10/2024", rating: 4, comment: "Muito bom", helpful: 28, verifiedPurchase: true },
   ];
   
-  // --- CORREÇÃO DE PARSEAMENTO DE JSONB PARA ESPECIFICAÇÕES ---
+  // --- PARSEAMENTO DE JSONB PARA ESPECIFICAÇÕES ---
   let specifications: Record<string, string> = {};
   if (productData.specifications) {
     try {
       let rawSpecs = productData.specifications;
       
-      // 1. Se for string, tenta parsear
       if (typeof rawSpecs === 'string') {
         rawSpecs = JSON.parse(rawSpecs);
       }
       
-      // 2. Se for um array (formato que o DB pode retornar), converte para objeto {chave: valor}
       if (Array.isArray(rawSpecs)) {
-        // Usamos 'name' e 'value' que é o formato que o usuário confirmou
         specifications = rawSpecs.reduce((acc, item) => {
-          // Corrigido para usar item.name
           if (item.name && item.value) { 
             acc[item.name] = item.value;
           }
           return acc;
         }, {} as Record<string, string>);
       } else if (typeof rawSpecs === 'object' && rawSpecs !== null) {
-        // 3. Se for um objeto (formato esperado), usa diretamente
         specifications = rawSpecs as Record<string, string>;
       }
     } catch (e) {
       console.error("Error parsing specifications JSONB:", e);
       specifications = {};
+    }
+  }
+  // ----------------------------------------
+  
+  // --- PARSEAMENTO DE JSONB PARA DETAILED IMAGES ---
+  let detailedImages: DetailedMediaItem[] = [];
+  if (productData.detailed_images) {
+    try {
+      let rawMedia = productData.detailed_images;
+      
+      if (typeof rawMedia === 'string') {
+        rawMedia = JSON.parse(rawMedia);
+      }
+      
+      if (Array.isArray(rawMedia)) {
+        // Filtra e mapeia para garantir que cada item tenha 'url' e 'type' válidos
+        detailedImages = rawMedia.filter(item => 
+          item && typeof item.url === 'string' && (item.type === 'image' || item.type === 'video')
+        ) as DetailedMediaItem[];
+      }
+    } catch (e) {
+      console.error("Error parsing detailed_images JSONB:", e);
+      detailedImages = [];
     }
   }
   // ----------------------------------------
@@ -145,7 +163,7 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     variants: productData.product_variants,
     timeDelivery: '2-5 dias úteis',
     videoUrl: productData.video_url, // Adicionando videoUrl
-    detailedImages: productData.detailed_images || [], // Adicionando detailedImages
+    detailedImages: detailedImages, // Usando dados processados
   } as ProductType;
 };
 
