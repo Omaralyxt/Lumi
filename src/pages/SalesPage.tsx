@@ -30,6 +30,8 @@ interface SupabaseProduct {
   shipping_cost: number;
   store_id: string;
   category: string;
+  video_url: string | null; // Adicionado video_url
+  specifications: Record<string, string> | null; // Adicionado specifications
   stores: { name: string, active: boolean, created_at: string } | null;
   product_variants: ProductVariant[];
   product_images: ProductImage[];
@@ -47,6 +49,8 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
       shipping_cost,
       category,
       created_at,
+      video_url,
+      specifications,
       stores (id, name, active, created_at),
       product_variants (id, name, price, stock, image_url),
       product_images (id, image_url, sort_order)
@@ -67,18 +71,14 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
   
   const images = productData.product_images ? productData.product_images.sort((a, b) => a.sort_order - b.sort_order).map(img => img.image_url) : [];
   
-  // Mock de dados complexos (Reviews, Q&A, Specifications)
+  // Mock de dados complexos (Reviews, Q&A)
   const mockReviews: Review[] = [
     { id: 1, author: "Maria S.", date: "15/10/2024", rating: 5, comment: "Produto excelente!", helpful: 42, verifiedPurchase: true },
     { id: 2, author: "João P.", date: "10/10/2024", rating: 4, comment: "Muito bom", helpful: 28, verifiedPurchase: true },
   ];
   
-  const mockSpecifications = {
-    "Marca": "Lumi Brand",
-    "Peso líquido": "650g",
-    "Validade": "12 meses",
-    "Origem": "Moçambique",
-  };
+  // Usando specifications do DB, com fallback para objeto vazio
+  const specifications = productData.specifications || {};
 
   return {
     id: productData.id,
@@ -99,7 +99,7 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     stock: productData.product_variants[0]?.stock || 0,
     category: productData.category || 'Outros',
     features: [],
-    specifications: mockSpecifications, // Usando mock
+    specifications: specifications, // Usando dados do DB
     deliveryInfo: { city: 'Maputo', fee: productData.shipping_cost || 0, eta: '1-2 dias' },
     reviews: mockReviews, // Usando mock
     qa: [],
@@ -107,7 +107,8 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     options: [],
     variants: productData.product_variants,
     timeDelivery: '2-5 dias úteis',
-  };
+    videoUrl: productData.video_url, // Adicionando videoUrl
+  } as ProductType;
 };
 
 
@@ -155,18 +156,29 @@ export default function SalesPage() {
   }
   
   // Mapeamento de imagens para o formato ProductGallery espera
-  const galleryImages = product.images.map((url, index) => ({
+  const galleryItems = product.images.map((url, index) => ({
     id: `img-${index}`,
     image_url: url,
     sort_order: index,
+    type: 'image' as const,
   }));
+  
+  // Adicionar vídeo se existir
+  if (product.videoUrl) {
+    galleryItems.unshift({
+      id: 'video-0',
+      image_url: product.videoUrl, // Usamos image_url para armazenar o URL do vídeo temporariamente
+      sort_order: -1,
+      type: 'video' as const,
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Main Product Section */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white dark:bg-gray-900 rounded-lg p-6 shadow-lg dark:border dark:border-gray-800">
-          <ProductGallery images={galleryImages} />
+          <ProductGallery images={galleryItems} />
           <ProductInfo product={product} variants={product.variants} />
         </div>
 

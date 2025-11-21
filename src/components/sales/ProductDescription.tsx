@@ -42,7 +42,7 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
             </div>
           ) : (
             <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-              Sem nenhuma especificação do produto.
+              Sem nenhuma especificação do producto.
             </p>
           )}
         </TabsContent>

@@ -14,7 +14,8 @@ import {
   Minus,
   Plus as PlusIcon,
   Save,
-  AlertCircle
+  AlertCircle,
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,11 +62,21 @@ export default function CreateProduct() {
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [category, setCategory] = useState("");
   const [type, setType] = useState<"product" | "service">("product");
+  const [videoUrl, setVideoUrl] = useState(""); // Novo estado para URL do vídeo
   
   const [variants, setVariants] = useState<VariantInput[]>([initialVariant]);
   const [images, setImages] = useState<ImageInput[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Simulação de Especificações
+  const [specifications, setSpecifications] = useState<{key: string, value: string}[]>([{key: "", value: ""}]);
+  const addSpecification = () => setSpecifications(prev => [...prev, {key: "", value: ""}]);
+  const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
+    setSpecifications(prev => prev.map((spec, i) => i === index ? {...spec, [field]: value} : spec));
+  };
+  const removeSpecification = (index: number) => setSpecifications(prev => prev.filter((_, i) => i !== index));
+
 
   // Simulação de carregamento do Store ID do usuário logado
   useEffect(() => {
@@ -186,6 +197,15 @@ export default function CreateProduct() {
         ...img,
         sort_order: index,
       }));
+      
+      // Mapear especificações para JSONB
+      const specificationsJsonb = specifications.reduce((acc, spec) => {
+        if (spec.key && spec.value) {
+          acc[spec.key] = spec.value;
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
 
       const { data, error: rpcError } = await supabase.rpc('upsert_product_full', {
         p_product_id: productId,
@@ -196,6 +216,8 @@ export default function CreateProduct() {
         p_category: category,
         p_variants: rpcVariants,
         p_images: rpcImages,
+        p_specifications: specificationsJsonb, // Passando JSONB
+        p_video_url: videoUrl || null, // Passando URL do vídeo
       });
 
       if (rpcError) {
@@ -219,14 +241,6 @@ export default function CreateProduct() {
       setLoading(false);
     }
   };
-
-  // Simulação de Especificações (mantida simples)
-  const [specifications, setSpecifications] = useState<{key: string, value: string}[]>([{key: "", value: ""}]);
-  const addSpecification = () => setSpecifications(prev => [...prev, {key: "", value: ""}]);
-  const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
-    setSpecifications(prev => prev.map((spec, i) => i === index ? {...spec, [field]: value} : spec));
-  };
-  const removeSpecification = (index: number) => setSpecifications(prev => prev.filter((_, i) => i !== index));
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -432,54 +446,78 @@ export default function CreateProduct() {
             </CardContent>
           </Card>
 
-          {/* Product Images */}
+          {/* Product Images & Video */}
           <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
               <CardTitle className="flex items-center text-gray-900 dark:text-white">
                 <Package2 className="h-5 w-5 mr-2" />
-                Imagens do Produto *
+                Mídia do Produto *
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <img 
-                      src={image.image_url} 
-                      alt={`Product ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-                
-                <label className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors dark:border-gray-600">
-                  <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Adicionar imagem</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={loading}
-                  />
-                </label>
+            <CardContent className="space-y-6">
+              {/* Video URL Input */}
+              <div className="space-y-2">
+                <Label htmlFor="videoUrl" className="flex items-center">
+                  <Video className="h-4 w-4 mr-2" />
+                  URL do Vídeo (Opcional)
+                </Label>
+                <Input
+                  id="videoUrl"
+                  placeholder="Ex: https://seuservidor.com/video.mp4"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  Use um link direto para o arquivo de vídeo (MP4, WebM, etc.).
+                </p>
               </div>
               
-              <p className="text-sm text-gray-500">
-                Adicione pelo menos 1 imagem. Formatos: JPG, PNG. Máx: 5MB por imagem.
-              </p>
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label className="flex items-center">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Imagens (Mínimo 1)
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={image.image_url} 
+                        alt={`Product ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  <label className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors dark:border-gray-600">
+                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Adicionar imagem</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={loading}
+                    />
+                  </label>
+                </div>
+                
+                <p className="text-sm text-gray-500">
+                  Adicione pelo menos 1 imagem.
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Technical Specifications (Mantido simples) */}
+          {/* Technical Specifications */}
           <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
               <CardTitle className="flex items-center text-gray-900 dark:text-white">

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { ProductImage } from "@/types/product";
-import { ImageWithFallback } from "@/components/figma/ImageWithFallback"; // Corrigido o caminho
+import { ProductGalleryItem } from "@/types/product"; // Usando o novo tipo
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import {
   Carousel,
   CarouselContent,
@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface ProductGalleryProps {
-  images: ProductImage[];
+  images: ProductGalleryItem[];
 }
 
 export function ProductGallery({ images }: ProductGalleryProps) {
@@ -29,14 +29,25 @@ export function ProductGallery({ images }: ProductGalleryProps) {
     <div className="w-full">
       <Carousel className="w-full relative">
         <CarouselContent>
-          {images.map((image, index) => (
-            <CarouselItem key={index}>
+          {images.map((item, index) => (
+            <CarouselItem key={item.id}>
               <div className="aspect-square overflow-hidden rounded-lg shadow-lg">
-                <ImageWithFallback
-                  src={image.image_url}
-                  alt={`Produto ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                />
+                {item.type === 'video' ? (
+                  <video 
+                    src={item.image_url} 
+                    controls 
+                    className="w-full h-full object-cover bg-black"
+                    poster={item.image_url.replace(/\.(mp4|mov|avi|webm)$/i, '.jpg')} // Simulação de poster
+                  >
+                    Seu navegador não suporta a tag de vídeo.
+                  </video>
+                ) : (
+                  <ImageWithFallback
+                    src={item.image_url}
+                    alt={`Produto ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  />
+                )}
               </div>
             </CarouselItem>
           ))}

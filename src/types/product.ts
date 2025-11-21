@@ -29,6 +29,14 @@ export interface Option {
   values: string[];
 }
 
+// Nova interface para itens da galeria (Imagens ou Vídeos)
+export interface ProductGalleryItem {
+  id: string;
+  image_url: string; // URL da imagem ou do vídeo
+  sort_order: number;
+  type: 'image' | 'video';
+}
+
 // Novas interfaces para Reviews e Q&A
 export interface Review {
   id: string | number;
@@ -69,4 +77,5 @@ export interface Product {
   timeDelivery: string;
   reviews: Review[]; // Adicionado
   qa: QA[]; // Adicionado
+  videoUrl?: string | null; // Adicionado URL do vídeo
 }
