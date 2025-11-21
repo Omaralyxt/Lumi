@@ -35,8 +35,8 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
             <div className="space-y-3">
               {specificationsArray.map(({ key, value }) => (
                 <div key={key} className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-2">
-                  <span className="text-gray-600 dark:text-gray-400 font-medium flex-1">{key}</span>
-                  <span className="text-gray-900 dark:text-white font-semibold flex-1 text-right">{value}</span>
+                  <span className="text-gray-600 dark:text-gray-400 font-medium flex-1">{String(key)}</span>
+                  <span className="text-gray-900 dark:text-white font-semibold flex-1 text-right">{String(value)}</span>
                 </div>
               ))}
             </div>
