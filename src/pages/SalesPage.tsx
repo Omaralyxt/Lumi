@@ -15,7 +15,7 @@ import { ProductInfo } from '@/components/sales/ProductInfo';
 import { ProductDescription } from '@/components/sales/ProductDescription';
 import { ProductReviews } from '@/components/sales/ProductReviews';
 import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
-import { ProductDetailedMedia } from '@/components/sales/ProductDetailedMedia'; // Importando o novo componente
+// import { ProductDetailedMedia } from '@/components/sales/ProductDetailedMedia'; // Removido
 
 // Tipos de dados (simplificados para a busca)
 interface ProductImage {
@@ -137,6 +137,16 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
       console.error("Error parsing detailed_images JSONB:", e);
       detailedImages = [];
     }
+  }
+  
+  // --- MOCK DE DADOS DETALHADOS SE ESTIVER VAZIO (PARA TESTE) ---
+  if (detailedImages.length === 0) {
+      console.warn("Detailed images were empty. Using mock data for testing rendering.");
+      detailedImages = [
+          { url: "/placeholder.svg", type: 'image' },
+          { url: "/placeholder.svg", type: 'image' },
+          { url: "/placeholder.svg", type: 'image' },
+      ];
   }
   // ----------------------------------------
 
