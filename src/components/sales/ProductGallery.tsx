@@ -16,6 +16,14 @@ interface ProductGalleryProps {
   images: ProductGalleryItem[];
 }
 
+// Função auxiliar para determinar o tipo MIME básico
+const getMimeType = (url: string) => {
+  if (url.endsWith('.mp4')) return 'video/mp4';
+  if (url.endsWith('.webm')) return 'video/webm';
+  if (url.endsWith('.ogg')) return 'video/ogg';
+  return 'video/mp4'; // Default para o formato mais comum
+};
+
 export function ProductGallery({ images }: ProductGalleryProps) {
   if (!images || images.length === 0) {
     return (
@@ -34,11 +42,12 @@ export function ProductGallery({ images }: ProductGalleryProps) {
               <div className="aspect-square overflow-hidden rounded-lg shadow-lg">
                 {item.type === 'video' ? (
                   <video 
-                    src={item.image_url} 
                     controls 
+                    playsInline // Importante para mobile
                     className="w-full h-full object-cover bg-black"
-                    poster={item.image_url.replace(/\.(mp4|mov|avi|webm)$/i, '.jpg')} // Simulação de poster
+                    // Removendo o poster, pois ele pode ser a causa da tela preta se o URL for inválido
                   >
+                    <source src={item.image_url} type={getMimeType(item.image_url)} />
                     Seu navegador não suporta a tag de vídeo.
                   </video>
                 ) : (
