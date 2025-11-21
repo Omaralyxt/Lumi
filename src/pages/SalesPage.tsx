@@ -13,7 +13,6 @@ import RelatedProductsSection from '@/components/RelatedProductsSection';
 import { ProductGallery } from '@/components/sales/ProductGallery';
 import { ProductInfo } from '@/components/sales/ProductInfo';
 import { ProductDescription } from '@/components/sales/ProductDescription';
-import { ProductReviews } from '@/components/sales/ProductReviews';
 import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
 
 // Tipos de dados (simplificados para a busca)
@@ -31,7 +30,7 @@ interface SupabaseProduct {
   store_id: string;
   category: string;
   video_url: string | null; // Adicionado video_url
-  specifications: Record<string, string> | null | string; // Pode ser objeto, null ou string JSON
+  specifications: Record<string, string> | null | string | any; // Pode ser objeto, null, string JSON ou array
   stores: { name: string, active: boolean, created_at: string } | null;
   product_variants: ProductVariant[];
   product_images: ProductImage[];
@@ -77,23 +76,29 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     { id: 2, author: "João P.", date: "10/10/2024", rating: 4, comment: "Muito bom", helpful: 28, verifiedPurchase: true },
   ];
   
-  // --- CORREÇÃO DE PARSEAMENTO DE JSONB ---
+  // --- CORREÇÃO DE PARSEAMENTO DE JSONB PARA ESPECIFICAÇÕES ---
   let specifications: Record<string, string> = {};
   if (productData.specifications) {
     try {
-      // Se for uma string (o que pode acontecer com JSONB), tenta fazer o parse
-      if (typeof productData.specifications === 'string') {
-        // O JSONB vazio é frequentemente retornado como '[]' ou '{}'
-        const parsed = JSON.parse(productData.specifications);
-        if (Array.isArray(parsed)) {
-            // Se for um array (o que não é o formato esperado), ignoramos ou logamos
-            console.warn("Specifications came as an array, expecting object.");
-        } else if (typeof parsed === 'object' && parsed !== null) {
-            specifications = parsed as Record<string, string>;
-        }
-      } else if (typeof productData.specifications === 'object' && productData.specifications !== null) {
-        // Se já for um objeto (comum em ambientes JS/TS), usa diretamente
-        specifications = productData.specifications as Record<string, string>;
+      let rawSpecs = productData.specifications;
+      
+      // 1. Se for string, tenta parsear
+      if (typeof rawSpecs === 'string') {
+        rawSpecs = JSON.parse(rawSpecs);
+      }
+      
+      // 2. Se for um array (formato antigo ou erro de salvamento), converte para objeto {chave: valor}
+      if (Array.isArray(rawSpecs)) {
+        // Se o array for do tipo [{key: 'Marca', value: 'Lumi Test'}], converte
+        specifications = rawSpecs.reduce((acc, item) => {
+          if (item.key && item.value) {
+            acc[item.key] = item.value;
+          }
+          return acc;
+        }, {} as Record<string, string>);
+      } else if (typeof rawSpecs === 'object' && rawSpecs !== null) {
+        // 3. Se for um objeto (formato esperado), usa diretamente
+        specifications = rawSpecs as Record<string, string>;
       }
     } catch (e) {
       console.error("Error parsing specifications JSONB:", e);
