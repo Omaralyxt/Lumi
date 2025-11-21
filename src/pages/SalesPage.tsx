@@ -114,6 +114,10 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
   
   // --- PARSEAMENTO DE JSONB PARA DETAILED IMAGES ---
   let detailedImages: DetailedMediaItem[] = [];
+  
+  // Adicionando log para depuração
+  console.log("Raw detailed_images from Supabase:", productData.detailed_images);
+  
   if (productData.detailed_images) {
     try {
       let rawMedia = productData.detailed_images;
