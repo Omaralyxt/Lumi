@@ -15,7 +15,9 @@ import {
   Plus as PlusIcon,
   Save,
   AlertCircle,
-  Video
+  Video,
+  ArrowLeftCircle,
+  ArrowRightCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,10 +109,11 @@ export default function CreateProduct() {
     setDescription("Este é um produto de teste criado para verificar o fluxo de dados e a exibição de especificações.");
     setShippingCost(200);
     setCategory("Smartphones e tablets"); // Categoria válida
-    setVideoUrl("");
+    setVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ"); // Exemplo de URL do YouTube
     setVariants([{ id: null, name: "Padrão", price: 5000, stock: 10 }]);
     setImages([
-      { id: null, image_url: '/placeholder.svg', sort_order: 0, is_deleted: false },
+      { id: null, image_url: 'https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/Banners/previewscategoria/moda.png', sort_order: 0, is_deleted: false },
+      { id: null, image_url: 'https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/Banners/previewscategoria/casaedecoracao.png', sort_order: 1, is_deleted: false },
     ]);
     setSpecifications([
       { key: "Marca", value: "Lumi Test" },
@@ -169,6 +172,23 @@ export default function CreateProduct() {
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
+  
+  // Função para reordenar imagens
+  const moveImage = (index: number, direction: 'left' | 'right') => {
+    setImages(prevImages => {
+      const newImages = [...prevImages];
+      const targetIndex = direction === 'left' ? index - 1 : index + 1;
+
+      if (targetIndex >= 0 && targetIndex < newImages.length) {
+        // Troca as posições
+        [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
+        
+        // Atualiza o sort_order (embora o RPC recalcule, é bom manter o estado limpo)
+        return newImages.map((img, i) => ({ ...img, sort_order: i }));
+      }
+      return prevImages;
+    });
+  };
 
   const handleVariantChange = (index: number, field: keyof VariantInput, value: string | number) => {
     setVariants(prev => prev.map((v, i) => 
@@ -211,10 +231,10 @@ export default function CreateProduct() {
         stock: Number(v.stock),
       }));
       
-      // Mapear imagens para o formato RPC (assumindo que nenhuma foi deletada ainda)
+      // Mapear imagens para o formato RPC (garantindo que o sort_order esteja correto)
       const rpcImages: ImageInput[] = images.map((img, index) => ({
         ...img,
-        sort_order: index,
+        sort_order: index, // Reordenando com base na posição atual no array
       }));
       
       // Mapear especificações para JSONB
@@ -400,8 +420,8 @@ export default function CreateProduct() {
             </CardHeader>
             <CardContent className="space-y-4">
               {variants.map((variant, index) => (
-                <div key={index} className="grid grid-cols-4 gap-3 items-end border-b pb-4 last:border-b-0">
-                  <div className="col-span-4 md:col-span-2 space-y-2">
+                <div key={index} className="grid grid-cols-6 gap-3 items-end border-b pb-4 last:border-b-0">
+                  <div className="col-span-6 md:col-span-2 space-y-2">
                     <Label className="text-sm">Nome da Variante</Label>
                     <Input
                       placeholder="Ex: Cor Azul, Tamanho M"
@@ -410,7 +430,7 @@ export default function CreateProduct() {
                       required
                     />
                   </div>
-                  <div className="col-span-2 md:col-span-1 space-y-2">
+                  <div className="col-span-3 md:col-span-1 space-y-2">
                     <Label className="text-sm">Preço (MZN)</Label>
                     <Input
                       type="number"
@@ -421,43 +441,41 @@ export default function CreateProduct() {
                       min={1}
                     />
                   </div>
+                  {/* Novo campo cut_price */}
+                  <div className="col-span-3 md:col-span-1 space-y-2">
+                    <Label className="text-sm">Preço Original</Label>
+                    <Input
+                      type="number"
+                      placeholder="15000 (Opcional)"
+                      value={variant.cutPrice || ''}
+                      onChange={(e) => handleVariantChange(index, 'cutPrice', Number(e.target.value))}
+                      min={0}
+                    />
+                  </div>
                   {type === "product" && (
-                    <div className="col-span-2 md:col-span-1 space-y-2">
+                    <div className="col-span-4 md:col-span-1 space-y-2">
                       <Label className="text-sm">Estoque</Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          placeholder="15"
-                          value={variant.stock}
-                          onChange={(e) => handleVariantChange(index, 'stock', Number(e.target.value))}
-                          required
-                          min={0}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeVariant(index)}
-                          disabled={variants.length === 1}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Input
+                        type="number"
+                        placeholder="15"
+                        value={variant.stock}
+                        onChange={(e) => handleVariantChange(index, 'stock', Number(e.target.value))}
+                        required
+                        min={0}
+                      />
                     </div>
                   )}
-                  {type === "service" && (
-                    <div className="col-span-4 md:col-span-1 flex justify-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeVariant(index)}
-                        disabled={variants.length === 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="col-span-2 md:col-span-1 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeVariant(index)}
+                      disabled={variants.length === 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
               
@@ -490,12 +508,12 @@ export default function CreateProduct() {
                 </Label>
                 <Input
                   id="videoUrl"
-                  placeholder="Ex: https://seuservidor.com/video.mp4"
+                  placeholder="Ex: https://www.youtube.com/watch?v=..."
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                 />
                 <p className="text-xs text-gray-500">
-                  Use um link direto para o arquivo de vídeo (MP4, WebM, etc.).
+                  Insira o link de compartilhamento do YouTube, TikTok ou link direto do arquivo.
                 </p>
               </div>
               
@@ -503,7 +521,7 @@ export default function CreateProduct() {
               <div className="space-y-2">
                 <Label className="flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
-                  Imagens (Mínimo 1)
+                  Imagens (Mínimo 1) - A primeira imagem é a miniatura principal.
                 </Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {images.map((image, index) => (
@@ -513,17 +531,46 @@ export default function CreateProduct() {
                         alt={`Product ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg"
                       />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                        <div className="flex space-x-2 mb-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => moveImage(index, 'left')}
+                            disabled={index === 0}
+                            className="bg-white/80 hover:bg-white"
+                          >
+                            <ArrowLeftCircle className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => moveImage(index, 'right')}
+                            disabled={index === images.length - 1}
+                            className="bg-white/80 hover:bg-white"
+                          >
+                            <ArrowRightCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Remover
+                        </Button>
+                      </div>
+                      {index === 0 && (
+                        <Badge className="absolute top-2 left-2 bg-blue-600 text-white text-xs">Miniatura</Badge>
+                      )}
                     </div>
                   ))}
                   
-                  <label className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors dark:border-gray-600">
+                  <label className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors dark:border-gray-600 h-32">
                     <Upload className="h-8 w-8 text-gray-400 mb-2" />
                     <span className="text-sm text-gray-600 dark:text-gray-400">Adicionar imagem</span>
                     <input
