@@ -17,7 +17,8 @@ import {
   AlertCircle,
   Video,
   ArrowLeftCircle,
-  ArrowRightCircle
+  ArrowRightCircle,
+  Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,11 @@ interface ImageInput {
   is_deleted: boolean;
 }
 
+interface DetailedMediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
+
 // Obter a lista plana de categorias
 const flatCategories = getFlatCategories();
 
@@ -66,13 +72,17 @@ export default function CreateProduct() {
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [category, setCategory] = useState("");
   const [type, setType] = useState<"product" | "service">("product");
-  const [videoUrl, setVideoUrl] = useState(""); // Novo estado para URL do vídeo
-  const [isActive, setIsActive] = useState(true); // Novo estado para is_active
+  const [videoUrl, setVideoUrl] = useState(""); // URL do vídeo principal
+  const [isActive, setIsActive] = useState(true); // Status de ativo
   
   const [variants, setVariants] = useState<VariantInput[]>([initialVariant]);
   const [images, setImages] = useState<ImageInput[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Novo estado para imagens e vídeos detalhados
+  const [detailedImages, setDetailedImages] = useState<string[]>(['', '', '']); // 3 URLs de imagem
+  const [detailedVideos, setDetailedVideos] = useState<string[]>(['', '', '']); // 3 URLs de vídeo
 
   // Simulação de Especificações
   const [specifications, setSpecifications] = useState<{key: string, value: string}[]>([{key: "", value: ""}]);
@@ -124,6 +134,8 @@ export default function CreateProduct() {
       { key: "Modelo", value: "V1.0" },
       { key: "Garantia", value: "1 Ano" },
     ]);
+    setDetailedImages(['https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/Banners/previewscategoria/ferramentasdeconstrucao.png', '', '']);
+    setDetailedVideos(['https://www.youtube.com/watch?v=dQw4w9WgXcQ', '', '']);
     toast.info("Dados de teste preenchidos. Clique em Publicar.");
   };
 
@@ -248,6 +260,15 @@ export default function CreateProduct() {
         }
         return acc;
       }, {} as Record<string, string>);
+      
+      // Mapear detailed_images para JSONB (filtrando URLs vazias)
+      const detailedMedia: DetailedMediaItem[] = [
+        ...detailedImages.filter(url => url.trim()).map(url => ({ url, type: 'image' as const })),
+        ...detailedVideos.filter(url => url.trim()).map(url => ({ url, type: 'video' as const })),
+      ];
+      
+      // O JSONB deve ser um array de objetos {url, type}
+      const detailedImagesJsonb = detailedMedia.length > 0 ? detailedMedia : null;
 
 
       const { data, error: rpcError } = await supabase.rpc('upsert_product_full', {
@@ -261,6 +282,7 @@ export default function CreateProduct() {
         p_images: rpcImages,
         p_specifications: specificationsJsonb, // Passando JSONB
         p_video_url: videoUrl || null, // Passando URL do vídeo
+        p_detailed_images: detailedImagesJsonb, // Passando o novo JSONB de mídia detalhada
         p_is_active: isActive, // Passando o novo status de ativo
       });
 
@@ -526,7 +548,7 @@ export default function CreateProduct() {
               <div className="space-y-2">
                 <Label htmlFor="videoUrl" className="flex items-center">
                   <Video className="h-4 w-4 mr-2" />
-                  URL do Vídeo (Opcional)
+                  URL do Vídeo Principal (Opcional)
                 </Label>
                 <Input
                   id="videoUrl"
@@ -543,7 +565,7 @@ export default function CreateProduct() {
               <div className="space-y-2">
                 <Label className="flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
-                  Imagens (Mínimo 1) - A primeira imagem é a miniatura principal.
+                  Imagens Principais (Mínimo 1) - A primeira imagem é a miniatura.
                 </Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {images.map((image, index) => (
@@ -609,6 +631,46 @@ export default function CreateProduct() {
                 <p className="text-sm text-gray-500">
                   Adicione pelo menos 1 imagem.
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Detailed Media (New Section) */}
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-gray-900 dark:text-white">
+                <Image className="h-5 w-5 mr-2" />
+                Mídia Detalhada (Descrição)
+              </CardTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Adicione até 3 imagens e 3 vídeos para enriquecer a descrição do produto.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Detailed Images */}
+              <div className="space-y-2">
+                <Label>URLs de Imagens Detalhadas (Máx. 3)</Label>
+                {detailedImages.map((url, index) => (
+                  <Input
+                    key={`d-img-${index}`}
+                    placeholder={`URL da Imagem ${index + 1}`}
+                    value={url}
+                    onChange={(e) => setDetailedImages(prev => prev.map((u, i) => i === index ? e.target.value : u))}
+                  />
+                ))}
+              </div>
+              
+              {/* Detailed Videos */}
+              <div className="space-y-2">
+                <Label>URLs de Vídeos Detalhados (Máx. 3)</Label>
+                {detailedVideos.map((url, index) => (
+                  <Input
+                    key={`d-vid-${index}`}
+                    placeholder={`URL do Vídeo ${index + 1}`}
+                    value={url}
+                    onChange={(e) => setDetailedVideos(prev => prev.map((u, i) => i === index ? e.target.value : u))}
+                  />
+                ))}
               </div>
             </CardContent>
           </Card>

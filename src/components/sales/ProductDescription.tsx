@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product as ProductType } from "@/types/product";
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ProductDetailedMedia } from "./ProductDetailedMedia"; // Importando o novo componente
 
 interface ProductDescriptionProps {
   product: ProductType;
@@ -16,8 +17,8 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
     value,
   }));
   
-  console.log("ProductDescription received specifications:", product.specifications);
-  console.log("Specifications Array for rendering:", specificationsArray);
+  // Mapeia detailedImages para o formato esperado pelo ProductDetailedMedia
+  const detailedMedia = (product.detailedImages || []).filter(item => item.url && item.type);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm dark:border dark:border-gray-700">
@@ -31,6 +32,11 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
             {product.description || "Nenhuma descrição detalhada fornecida para este produto."}
           </p>
+          
+          {/* Novo bloco de mídia detalhada */}
+          {detailedMedia.length > 0 && (
+            <ProductDetailedMedia media={detailedMedia} />
+          )}
         </TabsContent>
 
         <TabsContent value="specifications" className="mt-6">

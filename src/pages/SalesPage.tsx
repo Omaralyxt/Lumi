@@ -15,12 +15,18 @@ import { ProductInfo } from '@/components/sales/ProductInfo';
 import { ProductDescription } from '@/components/sales/ProductDescription';
 import { ProductReviews } from '@/components/sales/ProductReviews';
 import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
+import { ProductDetailedMedia } from '@/components/sales/ProductDetailedMedia'; // Importando o novo componente
 
 // Tipos de dados (simplificados para a busca)
 interface ProductImage {
   id: string;
   image_url: string;
   sort_order: number;
+}
+
+interface DetailedMediaItem {
+  url: string;
+  type: 'image' | 'video';
 }
 
 interface SupabaseProduct {
@@ -32,6 +38,7 @@ interface SupabaseProduct {
   category: string;
   video_url: string | null; // Adicionado video_url
   specifications: Record<string, string> | null | string | any; // Pode ser objeto, null, string JSON ou array
+  detailed_images: DetailedMediaItem[] | null; // Novo campo
   stores: { name: string, active: boolean, created_at: string } | null;
   product_variants: ProductVariant[];
   product_images: ProductImage[];
@@ -51,8 +58,9 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
       created_at,
       video_url,
       specifications,
+      detailed_images,
       stores (id, name, active, created_at),
-      product_variants (id, name, price, stock, image_url),
+      product_variants (id, name, price, stock, image_url, cut_price),
       product_images (id, image_url, sort_order)
     `
     )
@@ -137,6 +145,7 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     variants: productData.product_variants,
     timeDelivery: '2-5 dias úteis',
     videoUrl: productData.video_url, // Adicionando videoUrl
+    detailedImages: productData.detailed_images || [], // Adicionando detailedImages
   } as ProductType;
 };
 

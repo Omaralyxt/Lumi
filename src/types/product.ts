@@ -38,6 +38,12 @@ export interface ProductGalleryItem {
   type: 'image' | 'video';
 }
 
+// Nova interface para mídia detalhada (usada no JSONB)
+export interface DetailedMediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
+
 // Novas interfaces para Reviews e Q&A
 export interface Review {
   id: string | number;
@@ -79,4 +85,5 @@ export interface Product {
   reviews: Review[]; // Adicionado
   qa: QA[]; // Adicionado
   videoUrl?: string | null; // Adicionado URL do vídeo
+  detailedImages?: DetailedMediaItem[]; // Novo campo para mídia detalhada
 }
