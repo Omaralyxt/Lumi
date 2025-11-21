@@ -112,16 +112,14 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
   }
   // ----------------------------------------
   
-  // --- PARSEAMENTO DE JSONB PARA DETAILED IMAGES ---
+  // --- PARSEAMENTO DE JSONB PARA DETAILED IMAGES (MAIS ROBUSTO) ---
   let detailedImages: DetailedMediaItem[] = [];
-  
-  // Adicionando log para depuração
-  console.log("Raw detailed_images from Supabase:", productData.detailed_images);
   
   if (productData.detailed_images) {
     try {
       let rawMedia = productData.detailed_images;
       
+      // Tenta parsear se for uma string (caso comum com JSONB)
       if (typeof rawMedia === 'string') {
         rawMedia = JSON.parse(rawMedia);
       }
@@ -130,7 +128,10 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
         // Filtra e mapeia para garantir que cada item tenha 'url' e 'type' válidos
         detailedImages = rawMedia.filter(item => 
           item && typeof item.url === 'string' && (item.type === 'image' || item.type === 'video')
-        ) as DetailedMediaItem[];
+        ).map(item => ({
+          url: item.url,
+          type: item.type,
+        })) as DetailedMediaItem[];
       }
     } catch (e) {
       console.error("Error parsing detailed_images JSONB:", e);
