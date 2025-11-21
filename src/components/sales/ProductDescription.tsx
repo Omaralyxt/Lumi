@@ -16,6 +16,7 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
     value,
   }));
   
+  console.log("ProductDescription received specifications:", product.specifications);
   console.log("Specifications Array for rendering:", specificationsArray);
 
   return (
