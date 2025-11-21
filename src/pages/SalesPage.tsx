@@ -13,7 +13,7 @@ import RelatedProductsSection from '@/components/RelatedProductsSection';
 import { ProductGallery } from '@/components/sales/ProductGallery';
 import { ProductInfo } from '@/components/sales/ProductInfo';
 import { ProductDescription } from '@/components/sales/ProductDescription';
-import { ProductReviews } from '@/components/sales/ProductReviews'; // <-- Importação adicionada
+import { ProductReviews } from '@/components/sales/ProductReviews';
 import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
 
 // Tipos de dados (simplificados para a busca)
@@ -31,7 +31,7 @@ interface SupabaseProduct {
   store_id: string;
   category: string;
   video_url: string | null; // Adicionado video_url
-  specifications: Record<string, string> | null; // Adicionado specifications
+  specifications: Record<string, string> | null | string; // Pode ser objeto, null ou string JSON
   stores: { name: string, active: boolean, created_at: string } | null;
   product_variants: ProductVariant[];
   product_images: ProductImage[];
@@ -65,9 +65,6 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
 
   const productData = data as SupabaseProduct;
   
-  // DEBUG: Logar o valor bruto das especificações
-  console.log("Raw Specifications from DB:", productData.specifications);
-
   // Mapeamento completo para o tipo ProductType
   const storeName = productData.stores?.name || 'Loja Desconhecida';
   const storeId = productData.stores?.id || 'unknown';
@@ -80,20 +77,30 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     { id: 2, author: "João P.", date: "10/10/2024", rating: 4, comment: "Muito bom", helpful: 28, verifiedPurchase: true },
   ];
   
-  // Usando specifications do DB, com fallback para objeto vazio
-  // Se o Supabase retornar specifications como uma string JSON (o que pode acontecer com JSONB), precisamos fazer o parse.
+  // --- CORREÇÃO DE PARSEAMENTO DE JSONB ---
   let specifications: Record<string, string> = {};
   if (productData.specifications) {
     try {
-      // Tenta fazer o parse se for uma string (caso o PostgREST não tenha feito automaticamente)
-      specifications = typeof productData.specifications === 'string' 
-        ? JSON.parse(productData.specifications) 
-        : productData.specifications;
+      // Se for uma string (o que pode acontecer com JSONB), tenta fazer o parse
+      if (typeof productData.specifications === 'string') {
+        // O JSONB vazio é frequentemente retornado como '[]' ou '{}'
+        const parsed = JSON.parse(productData.specifications);
+        if (Array.isArray(parsed)) {
+            // Se for um array (o que não é o formato esperado), ignoramos ou logamos
+            console.warn("Specifications came as an array, expecting object.");
+        } else if (typeof parsed === 'object' && parsed !== null) {
+            specifications = parsed as Record<string, string>;
+        }
+      } else if (typeof productData.specifications === 'object' && productData.specifications !== null) {
+        // Se já for um objeto (comum em ambientes JS/TS), usa diretamente
+        specifications = productData.specifications as Record<string, string>;
+      }
     } catch (e) {
       console.error("Error parsing specifications JSONB:", e);
       specifications = {};
     }
   }
+  // ----------------------------------------
 
   return {
     id: productData.id,
