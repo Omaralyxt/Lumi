@@ -100,6 +100,25 @@ export default function CreateProduct() {
     };
     fetchStoreId();
   }, []);
+  
+  // Função de preenchimento de teste
+  const fillTestData = () => {
+    setTitle("Produto de Teste com Especificações");
+    setDescription("Este é um produto de teste criado para verificar o fluxo de dados e a exibição de especificações.");
+    setShippingCost(200);
+    setCategory("Smartphones e tablets"); // Categoria válida
+    setVideoUrl("");
+    setVariants([{ id: null, name: "Padrão", price: 5000, stock: 10 }]);
+    setImages([
+      { id: null, image_url: '/placeholder.svg', sort_order: 0, is_deleted: false },
+    ]);
+    setSpecifications([
+      { key: "Marca", value: "Lumi Test" },
+      { key: "Modelo", value: "V1.0" },
+      { key: "Garantia", value: "1 Ano" },
+    ]);
+    toast.info("Dados de teste preenchidos. Clique em Publicar.");
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -257,6 +276,14 @@ export default function CreateProduct() {
               </h1>
             </div>
             <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={fillTestData}
+                className="text-xs"
+              >
+                Preencher Teste
+              </Button>
               <Button size="sm" onClick={handleSubmit} disabled={loading || !storeId}>
                 <Save className="h-4 w-4 mr-2" />
                 {loading ? "Publicando..." : "Publicar"}
