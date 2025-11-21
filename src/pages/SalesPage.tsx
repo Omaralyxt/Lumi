@@ -13,7 +13,6 @@ import RelatedProductsSection from '@/components/RelatedProductsSection';
 import { ProductGallery } from '@/components/sales/ProductGallery';
 import { ProductInfo } from '@/components/sales/ProductInfo';
 import { ProductDescription } from '@/components/sales/ProductDescription';
-import { ProductReviews } from '@/components/sales/ProductReviews';
 import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
 
 // Tipos de dados (simplificados para a busca)
@@ -64,6 +63,9 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
   }
 
   const productData = data as SupabaseProduct;
+  
+  // DEBUG: Logar o valor bruto das especificações
+  console.log("Raw Specifications from DB:", productData.specifications);
 
   // Mapeamento completo para o tipo ProductType
   const storeName = productData.stores?.name || 'Loja Desconhecida';
@@ -78,7 +80,19 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
   ];
   
   // Usando specifications do DB, com fallback para objeto vazio
-  const specifications = productData.specifications || {};
+  // Se o Supabase retornar specifications como uma string JSON (o que pode acontecer com JSONB), precisamos fazer o parse.
+  let specifications: Record<string, string> = {};
+  if (productData.specifications) {
+    try {
+      // Tenta fazer o parse se for uma string (caso o PostgREST não tenha feito automaticamente)
+      specifications = typeof productData.specifications === 'string' 
+        ? JSON.parse(productData.specifications) 
+        : productData.specifications;
+    } catch (e) {
+      console.error("Error parsing specifications JSONB:", e);
+      specifications = {};
+    }
+  }
 
   return {
     id: productData.id,
@@ -99,7 +113,7 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     stock: productData.product_variants[0]?.stock || 0,
     category: productData.category || 'Outros',
     features: [],
-    specifications: specifications, // Usando dados do DB
+    specifications: specifications, // Usando dados processados
     deliveryInfo: { city: 'Maputo', fee: productData.shipping_cost || 0, eta: '1-2 dias' },
     reviews: mockReviews, // Usando mock
     qa: [],
