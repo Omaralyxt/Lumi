@@ -119,15 +119,18 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
     try {
       let rawMedia = productData.detailed_images;
       
-      // Tenta parsear se for uma string (caso comum com JSONB)
+      // 1. Tenta parsear se for uma string (caso comum com JSONB)
       if (typeof rawMedia === 'string') {
         rawMedia = JSON.parse(rawMedia);
       }
       
+      // 2. Verifica se é um array
       if (Array.isArray(rawMedia)) {
-        // Filtra e mapeia para garantir que cada item tenha 'url' e 'type' válidos
+        // 3. Filtra e mapeia para garantir que cada item tenha 'url' e 'type' válidos
         detailedImages = rawMedia.filter(item => 
-          item && typeof item.url === 'string' && (item.type === 'image' || item.type === 'video')
+          item && 
+          typeof item.url === 'string' && 
+          (item.type === 'image' || item.type === 'video')
         ).map(item => ({
           url: item.url,
           type: item.type,
@@ -137,16 +140,6 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
       console.error("Error parsing detailed_images JSONB:", e);
       detailedImages = [];
     }
-  }
-  
-  // --- MOCK DE DADOS DETALHADOS SE ESTIVER VAZIO (PARA TESTE) ---
-  if (detailedImages.length === 0) {
-      console.warn("Detailed images were empty. Using mock data for testing rendering.");
-      detailedImages = [
-          { url: "/placeholder.svg", type: 'image' },
-          { url: "/placeholder.svg", type: 'image' },
-          { url: "/placeholder.svg", type: 'image' },
-      ];
   }
   // ----------------------------------------
 
