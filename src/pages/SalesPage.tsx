@@ -13,7 +13,7 @@ import RelatedProductsSection from '@/components/RelatedProductsSection';
 import { ProductGallery } from '@/components/sales/ProductGallery';
 import { ProductInfo } from '@/components/sales/ProductInfo';
 import { ProductDescription } from '@/components/sales/ProductDescription';
-import { ProductReviews } from '@/components/sales/ProductReviews'; // Importação adicionada
+import { ProductReviews } from '@/components/sales/ProductReviews';
 import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
 
 // Tipos de dados (simplificados para a busca)
@@ -88,12 +88,13 @@ const fetchProduct = async (productId: string): Promise<ProductType> => {
         rawSpecs = JSON.parse(rawSpecs);
       }
       
-      // 2. Se for um array (formato antigo ou erro de salvamento), converte para objeto {chave: valor}
+      // 2. Se for um array (formato que o DB pode retornar), converte para objeto {chave: valor}
       if (Array.isArray(rawSpecs)) {
-        // Se o array for do tipo [{key: 'Marca', value: 'Lumi Test'}], converte
+        // Usamos 'name' e 'value' que é o formato que o usuário confirmou
         specifications = rawSpecs.reduce((acc, item) => {
-          if (item.key && item.value) {
-            acc[item.key] = item.value;
+          // Corrigido para usar item.name
+          if (item.name && item.value) { 
+            acc[item.name] = item.value;
           }
           return acc;
         }, {} as Record<string, string>);
