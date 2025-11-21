@@ -4,11 +4,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product as ProductType } from "@/types/product";
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ProductDetailedMedia } from "./ProductDetailedMedia"; // Importando o novo componente
+// import { ProductDetailedMedia } from "./ProductDetailedMedia"; // Removido, pois a mídia será renderizada inline
+
+interface DetailedMediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
 
 interface ProductDescriptionProps {
   product: ProductType;
 }
+
+// Componente auxiliar para renderizar uma única mídia detalhada (imagem ou vídeo)
+const MediaRenderer = ({ item }: { item: DetailedMediaItem }) => {
+  if (item.type === 'video') {
+    return (
+      <div className="my-6 w-full max-w-xl mx-auto border rounded-lg overflow-hidden dark:border-gray-700">
+        <video controls className="w-full h-auto">
+          <source src={item.url} type="video/mp4" />
+          Seu navegador não suporta a tag de vídeo.
+        </video>
+      </div>
+    );
+  }
+  
+  // Default to image
+  return (
+    <div className="my-6 w-full max-w-xl mx-auto">
+      <img 
+        src={item.url} 
+        alt="Detalhe do Produto" 
+        className="w-full h-auto object-cover rounded-lg shadow-md" 
+      />
+    </div>
+  );
+};
+
 
 export function ProductDescription({ product }: ProductDescriptionProps) {
   // Converte o objeto specifications em um array de pares chave-valor
@@ -17,8 +48,25 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
     value,
   }));
   
-  // Mapeia detailedImages para o formato esperado pelo ProductDetailedMedia
-  const detailedMedia = (product.detailedImages || []).filter(item => item.url && item.type);
+  // Filtra e prepara a mídia detalhada
+  const detailedMedia: DetailedMediaItem[] = (product.detailedImages || []).filter(item => item.url && item.type) as DetailedMediaItem[];
+
+  const descriptionText = product.description || "Nenhuma descrição detalhada fornecida para este produto.";
+  
+  // Lógica para dividir o texto e intercalar a mídia
+  let textPart1 = descriptionText;
+  let textPart2 = '';
+  
+  const media1 = detailedMedia[0];
+  const media2 = detailedMedia[1];
+  const media3 = detailedMedia[2];
+  
+  // Se tivermos pelo menos 2 mídias, dividimos o texto em duas partes para inserir a mídia 2 no meio.
+  if (media2 && descriptionText.length > 100) {
+    const splitIndex = Math.floor(descriptionText.length / 2);
+    textPart1 = descriptionText.substring(0, splitIndex);
+    textPart2 = descriptionText.substring(splitIndex);
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm dark:border dark:border-gray-700">
@@ -29,14 +77,30 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
         </TabsList>
 
         <TabsContent value="description" className="mt-6">
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-            {product.description || "Nenhuma descrição detalhada fornecida para este produto."}
+          
+          {/* 1. Primeira Imagem (se existir) */}
+          {media1 && <MediaRenderer item={media1} />}
+
+          {/* 2. Primeira Parte do Texto */}
+          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mt-4">
+            {textPart1}
           </p>
           
-          {/* Novo bloco de mídia detalhada */}
-          {detailedMedia.length > 0 && (
-            <ProductDetailedMedia media={detailedMedia} />
+          {/* 3. Imagem do Meio (se existir) */}
+          {media2 && <MediaRenderer item={media2} />}
+          
+          {/* 4. Segunda Parte do Texto (se existir) */}
+          {textPart2 && (
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mt-4">
+              {textPart2}
+            </p>
           )}
+
+          {/* 5. Imagem Final (se existir) */}
+          {media3 && <MediaRenderer item={media3} />}
+          
+          {/* Se houver mais mídias, elas não serão exibidas com este layout. */}
+          
         </TabsContent>
 
         <TabsContent value="specifications" className="mt-6">
@@ -55,8 +119,6 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
             </p>
           )}
         </TabsContent>
-        
-        {/* Conteúdo 'shop' removido conforme solicitado */}
       </Tabs>
     </div>
   );
