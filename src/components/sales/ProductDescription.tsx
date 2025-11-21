@@ -15,6 +15,8 @@ export function ProductDescription({ product }: ProductDescriptionProps) {
     key,
     value,
   }));
+  
+  console.log("Specifications Array for rendering:", specificationsArray);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm dark:border dark:border-gray-700">
