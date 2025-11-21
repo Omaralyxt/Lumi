@@ -13,6 +13,7 @@ import RelatedProductsSection from '@/components/RelatedProductsSection';
 import { ProductGallery } from '@/components/sales/ProductGallery';
 import { ProductInfo } from '@/components/sales/ProductInfo';
 import { ProductDescription } from '@/components/sales/ProductDescription';
+import { ProductReviews } from '@/components/sales/ProductReviews'; // <-- Importação adicionada
 import { Product as ProductType, ProductVariant, Review } from '@/types/product'; // Importando tipos completos
 
 // Tipos de dados (simplificados para a busca)
