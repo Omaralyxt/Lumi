@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { ProductVariant } from "@/types/product";
 import { getFlatCategories } from "@/constants/categories"; // Importar a nova função
+import { Switch } from "@/components/ui/switch"; // Importar Switch
 
 // Tipos de entrada para a função RPC
 interface VariantInput {
@@ -36,6 +37,7 @@ interface VariantInput {
   name: string;
   price: number;
   stock: number;
+  cutPrice?: number; // Adicionado cutPrice
 }
 
 interface ImageInput {
@@ -65,6 +67,7 @@ export default function CreateProduct() {
   const [category, setCategory] = useState("");
   const [type, setType] = useState<"product" | "service">("product");
   const [videoUrl, setVideoUrl] = useState(""); // Novo estado para URL do vídeo
+  const [isActive, setIsActive] = useState(true); // Novo estado para is_active
   
   const [variants, setVariants] = useState<VariantInput[]>([initialVariant]);
   const [images, setImages] = useState<ImageInput[]>([]);
@@ -110,7 +113,8 @@ export default function CreateProduct() {
     setShippingCost(200);
     setCategory("Smartphones e tablets"); // Categoria válida
     setVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ"); // Exemplo de URL do YouTube
-    setVariants([{ id: null, name: "Padrão", price: 5000, stock: 10 }]);
+    setIsActive(true);
+    setVariants([{ id: null, name: "Padrão", price: 5000, stock: 10, cutPrice: 6000 }]);
     setImages([
       { id: null, image_url: 'https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/Banners/previewscategoria/moda.png', sort_order: 0, is_deleted: false },
       { id: null, image_url: 'https://kxvyveizgrnieetbttjx.supabase.co/storage/v1/object/public/Banners%20and%20Logos/Banners/previewscategoria/casaedecoracao.png', sort_order: 1, is_deleted: false },
@@ -257,6 +261,7 @@ export default function CreateProduct() {
         p_images: rpcImages,
         p_specifications: specificationsJsonb, // Passando JSONB
         p_video_url: videoUrl || null, // Passando URL do vídeo
+        p_is_active: isActive, // Passando o novo status de ativo
       });
 
       if (rpcError) {
@@ -405,6 +410,23 @@ export default function CreateProduct() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
                   required
+                />
+              </div>
+              
+              {/* Status Ativo */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600">
+                <div className="space-y-1">
+                  <Label htmlFor="is-active" className="text-base font-semibold">
+                    Status do Produto
+                  </Label>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {isActive ? "Ativo: O produto está visível na loja." : "Inativo: O produto está oculto para os compradores."}
+                  </p>
+                </div>
+                <Switch
+                  id="is-active"
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
                 />
               </div>
             </CardContent>

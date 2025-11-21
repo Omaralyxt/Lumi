@@ -62,6 +62,7 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     options: options, // Usando as variantes como opções
     variants: variants, // Adicionando todas as variantes
     timeDelivery: '2-5 dias úteis', // Mocked
+    isActive: product.is_active ?? true, // Adicionando is_active
   } as Product;
 };
 
@@ -110,6 +111,7 @@ export const searchProducts = async (
       description, 
       image_url, 
       category,
+      is_active,
       stores (id, name, active),
       product_variants (id, name, price, stock, image_url, cut_price),
       product_images (image_url, sort_order)

@@ -78,6 +78,7 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     options: options, // Usando as variantes como opções
     variants: variants, // Adicionando todas as variantes
     timeDelivery: '2-5 dias úteis', // Mocked
+    isActive: product.is_active ?? true, // Adicionando is_active
   } as Product;
 };
 
@@ -91,6 +92,7 @@ const baseProductQuery = () => supabase
     image_url, 
     category,
     created_at,
+    is_active,
     stores (id, name, active, created_at),
     product_variants (id, name, price, stock, image_url, cut_price),
     product_images (image_url, sort_order)
@@ -208,7 +210,6 @@ export const getProductById = async (id: string): Promise<Product> => {
 export const getSimilarProducts = async (category: string, excludeId?: string | number): Promise<Product[]> => {
   const { data, error } = await baseProductQuery()
     .eq('category', category)
-    .neq('id', excludeId)
     .limit(4);
     
   if (error) {
