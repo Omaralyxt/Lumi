@@ -8,6 +8,7 @@ import FavoriteButton from "./FavoriteButton";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/utils"; // Importação adicionada
+import { Badge } from "./ui/badge"; // Importação adicionada
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +16,14 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  
+  // O preço de corte é mapeado para product.originalPrice
+  const currentPrice = product.price;
+  const originalPrice = product.originalPrice;
+  
+  const discountPercentage = originalPrice && originalPrice > currentPrice
+    ? Math.round((1 - currentPrice / originalPrice) * 100)
+    : 0;
 
   const handleBuy = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -31,6 +40,16 @@ export default function ProductCard({ product }: ProductCardProps) {
       whileHover={{ y: -3, boxShadow: '0 0 15px rgba(0, 170, 255, 0.4)' }}
       className="relative group bg-white/80 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl overflow-hidden border border-transparent shadow-[0_0_15px_rgba(0,170,255,0.1)] hover:shadow-neon-blue-lg transition-all duration-300 dark:border-neon-blue/30 dark:hover:border-neon-blue"
     >
+      {/* Badge de Oferta */}
+      {discountPercentage > 0 && (
+        <Badge 
+          variant="destructive" 
+          className="absolute top-2 left-2 z-10 text-xs font-bold"
+        >
+          -{discountPercentage}% OFF
+        </Badge>
+      )}
+      
       {/* Imagem - Clicável para página de vendas */}
       <Link to={`/sales/${product.id}`}>
         <img
@@ -54,9 +73,16 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="text-xs text-gray-600 dark:text-gray-400">{product.rating.toFixed(1)}</span>
         </div>
 
-        <p className="text-lg font-bold mt-2 text-gray-800 dark:text-gray-200">
-          {formatCurrency(product.price)}
-        </p>
+        <div className="mt-2">
+          {originalPrice && discountPercentage > 0 && (
+            <p className="text-xs text-gray-500 line-through">
+              {formatCurrency(originalPrice)}
+            </p>
+          )}
+          <p className="text-lg font-bold text-gray-800 dark:text-gray-200">
+            {formatCurrency(currentPrice)}
+          </p>
+        </div>
 
         <div className="flex justify-between items-center mt-3">
           {/* Botão de Compra Principal */}

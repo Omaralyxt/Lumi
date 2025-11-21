@@ -22,6 +22,7 @@ export interface ProductVariant {
   stock: number;
   image_url?: string; // Imagem única para esta variante
   options: Record<string, string>; // Ex: { Cor: "Vermelho", Armazenamento: "128GB" }
+  cutPrice?: number; // Novo campo para o preço original/de corte
 }
 
 export interface Option {
@@ -62,7 +63,7 @@ export interface Product {
   title: string;
   description: string;
   price: number;
-  originalPrice?: number;
+  originalPrice?: number; // Mantido para compatibilidade, mas será calculado a partir da variante principal
   rating: number;
   reviewCount: number;
   shop: Shop;

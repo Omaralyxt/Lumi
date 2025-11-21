@@ -26,23 +26,43 @@ export default function OffersPage() {
     const fetchOffers = async () => {
       setLoading(true);
       try {
-        // Buscar todos os produtos e simular que são ofertas
+        // Buscar todos os produtos
         const allProducts = await searchProducts("", undefined, undefined, 0); 
         
-        // Simular desconto e tempo restante
-        const simulatedOffers: OfferProduct[] = allProducts.slice(0, 8).map(p => {
-          const discount = Math.floor(Math.random() * 30) + 10; // 10% a 40%
-          const originalPrice = p.price / (1 - discount / 100);
-          
-          return {
-            ...p,
-            originalPrice: parseFloat(originalPrice.toFixed(2)),
-            discount: discount,
-            timeLeft: `${Math.floor(Math.random() * 23) + 1}h ${Math.floor(Math.random() * 59) + 1}m`,
-          };
-        });
+        // 1. Filtrar produtos que têm pelo menos uma variante com cutPrice > price
+        const filteredOffers: OfferProduct[] = allProducts
+          .filter(p => 
+            p.variants.some(v => v.cutPrice && v.cutPrice > v.price)
+          )
+          .map(p => {
+            // Encontrar a variante com o maior desconto para exibição na grade
+            const bestVariant = p.variants.reduce((best, current) => {
+              const currentDiscount = current.cutPrice && current.cutPrice > current.price 
+                ? (current.cutPrice - current.price) / current.cutPrice 
+                : 0;
+              
+              const bestDiscount = best.cutPrice && best.cutPrice > best.price 
+                ? (best.cutPrice - best.price) / best.cutPrice 
+                : 0;
+                
+              return currentDiscount > bestDiscount ? current : best;
+            }, p.variants[0]);
+            
+            const discount = bestVariant.cutPrice && bestVariant.cutPrice > bestVariant.price
+              ? Math.round((1 - bestVariant.price / bestVariant.cutPrice) * 100)
+              : 0;
+              
+            return {
+              ...p,
+              // Atualiza o preço principal do produto para refletir o preço da variante com melhor oferta
+              price: bestVariant.price,
+              originalPrice: bestVariant.cutPrice,
+              discount: discount,
+              timeLeft: `${Math.floor(Math.random() * 23) + 1}h ${Math.floor(Math.random() * 59) + 1}m`,
+            };
+          });
         
-        setOffers(simulatedOffers);
+        setOffers(filteredOffers);
       } catch (e) {
         console.error("Failed to fetch offers:", e);
         setOffers([]);

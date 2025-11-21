@@ -24,17 +24,19 @@ export function ProductInfo({ product, variants }: ProductInfoProps) {
 
   useEffect(() => {
     if (variants.length > 0) {
+      // Tenta selecionar a variante que foi definida como principal no mapeamento (primeira)
       setSelectedVariant(variants[0]);
     }
   }, [variants]);
 
   const currentPrice = selectedVariant ? selectedVariant.price : product.price;
+  const currentCutPrice = selectedVariant?.cutPrice;
   const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
   const isOutOfStock = currentStock <= 0;
   
-  // Simulação de desconto (se houver originalPrice)
-  const discountPercentage = product.originalPrice && product.originalPrice > currentPrice
-    ? Math.round((1 - currentPrice / product.originalPrice) * 100)
+  // Calcular desconto baseado no cutPrice da variante selecionada
+  const discountPercentage = currentCutPrice && currentCutPrice > currentPrice
+    ? Math.round((1 - currentPrice / currentCutPrice) * 100)
     : 0;
 
   const handleAddToCart = () => {
@@ -111,10 +113,10 @@ export function ProductInfo({ product, variants }: ProductInfoProps) {
 
       {/* Price */}
       <div className="border-t border-b py-4 dark:border-gray-700">
-        {discountPercentage > 0 && product.originalPrice && (
+        {discountPercentage > 0 && currentCutPrice && (
           <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-gray-500 line-through">{formatCurrency(product.originalPrice)}</span>
-            <Badge variant="destructive">-{discountPercentage}%</Badge>
+            <span className="text-gray-500 line-through">{formatCurrency(currentCutPrice)}</span>
+            <Badge variant="destructive">-{discountPercentage}% OFF</Badge>
           </div>
         )}
         <div className="flex items-baseline gap-2">
@@ -123,8 +125,12 @@ export function ProductInfo({ product, variants }: ProductInfoProps) {
           </span>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          {/* Simulação de desconto M-Pesa */}
-          ou <span className="text-green-600 font-semibold">{formatCurrency(currentPrice * 0.95)}</span> via M-Pesa (5% de desconto)
+          {/* Nota de oferta sutil */}
+          {discountPercentage > 0 ? (
+            <span className="text-red-600 font-semibold">Oferta por tempo limitado!</span>
+          ) : (
+            'Preço excelente!'
+          )}
         </p>
       </div>
       

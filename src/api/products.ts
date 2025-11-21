@@ -19,6 +19,7 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     price: v.price,
     stock: v.stock,
     image_url: v.image_url, // Novo campo
+    cutPrice: v.cut_price || undefined, // Novo campo
     options: {
       // Simulação de extração de opções do nome da variante (ex: "Cor: Vermelho")
       // Em um sistema real, haveria uma tabela de opções separada.
@@ -30,6 +31,7 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
   const initialVariant = variants[0];
   const basePrice = initialVariant ? initialVariant.price : 0;
   const baseStock = initialVariant ? initialVariant.stock : 0;
+  const baseOriginalPrice = initialVariant ? initialVariant.cutPrice : undefined;
 
   // Extrair URLs de imagem da nova relação product_images
   const images = (product.product_images || [])
@@ -53,7 +55,7 @@ const mapSupabaseProductToFrontend = (product: any): Product => {
     title: product.name,
     description: product.description || 'Sem descrição.',
     price: basePrice,
-    originalPrice: undefined,
+    originalPrice: baseOriginalPrice, // Usando o cutPrice da variante principal
     rating: 4.5, // Mocked rating
     reviewCount: 0, // Mocked count
     shop: {
@@ -90,7 +92,7 @@ const baseProductQuery = () => supabase
     category,
     created_at,
     stores (id, name, active, created_at),
-    product_variants (id, name, price, stock, image_url),
+    product_variants (id, name, price, stock, image_url, cut_price),
     product_images (image_url, sort_order)
   `);
 
