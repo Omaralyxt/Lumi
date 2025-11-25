@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Geolocation } from '@capacitor/geolocation';
-import { isPlatform } from '@capacitor/core';
 
 interface LocationPickerProps {
   initialLat?: number | null;
@@ -17,59 +15,35 @@ interface LocationPickerProps {
   onClose: () => void;
 }
 
-// Verifica se estamos em um ambiente nativo
-const isNative = isPlatform('ios') || isPlatform('android');
-
 export default function LocationPicker({ initialLat, initialLng, onSave, onClose }: LocationPickerProps) {
   const [latitude, setLatitude] = useState<number | null>(initialLat || null);
   const [longitude, setLongitude] = useState<number | null>(initialLng || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLocateMe = useCallback(async () => {
+  const handleLocateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      setError("Geolocalização não é suportada pelo seu navegador.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
-    try {
-      let position;
-      
-      if (isNative) {
-        // Usar Capacitor Geolocation
-        position = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        });
-      } else if (navigator.geolocation) {
-        // Fallback para Web Geolocation API
-        position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0,
-          });
-        });
-      } else {
-        throw new Error("Geolocalização não é suportada pelo seu navegador/plataforma.");
-      }
-
-      setLatitude(position.coords.latitude);
-      setLongitude(position.coords.longitude);
-      toast.success("Localização atualizada via GPS!");
-    } catch (err: any) {
-      console.error(err);
-      let errorMessage = "Falha ao obter a localização.";
-      if (err.message.includes('denied')) {
-        errorMessage = "Permissão de localização negada. Por favor, habilite nas configurações do dispositivo.";
-      } else if (err.message.includes('timeout')) {
-        errorMessage = "Tempo esgotado ao buscar localização.";
-      } else {
-        errorMessage = err.message;
-      }
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude);
+        setLongitude(position.coords.longitude);
+        setLoading(false);
+        toast.success("Localização atualizada via GPS!");
+      },
+      (err) => {
+        console.error(err);
+        setError("Permissão de localização negada ou falha ao obter a localização.");
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
   }, []);
 
   const handleSave = () => {

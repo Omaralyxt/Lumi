@@ -5,7 +5,7 @@ import { Fingerprint, ScanFace, Shield, CheckCircle, XCircle } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useNativeBiometrics } from "@/hooks/useNativeBiometrics"; // Usando o novo hook
+import { authenticateBiometric, isBiometricAvailable } from "@/utils/biometricAuth";
 
 interface BiometricLoginProps {
   onSuccess?: () => void;
@@ -18,19 +18,21 @@ export default function BiometricLogin({
   onError, 
   onFallback 
 }: BiometricLoginProps) {
-  const { 
-    isAvailable, 
-    loading: isCheckingAvailability, 
-    authenticate, 
-    error: biometricsError 
-  } = useNativeBiometrics();
-  
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
 
-  // Combina erros do hook e erros locais
-  const displayError = error || biometricsError;
+  const checkBiometricAvailability = async () => {
+    try {
+      const available = await isBiometricAvailable();
+      setIsAvailable(available);
+      return available;
+    } catch (err) {
+      setIsAvailable(false);
+      return false;
+    }
+  };
 
   const handleBiometricLogin = async () => {
     setIsAuthenticating(true);
@@ -38,10 +40,9 @@ export default function BiometricLogin({
     setIsSuccess(false);
 
     try {
-      const result = await authenticate("Use sua biometria para acessar o Lumi Market");
+      const result = await authenticateBiometric();
 
       if (result.success) {
-        // Simulação de login bem-sucedido (em um app real, isso viria de uma API)
         setIsSuccess(true);
         onSuccess?.();
       } else {
@@ -58,16 +59,27 @@ export default function BiometricLogin({
   };
 
   const getPlatformIcon = () => {
-    // Capacitor Biometrics lida com Face ID/Touch ID/Fingerprint automaticamente
-    return <ScanFace className="h-6 w-6 text-blue-600" />;
+    if (navigator.userAgent.includes('Android')) {
+      return <Fingerprint className="h-6 w-6 text-blue-600" />;
+    } else {
+      return <ScanFace className="h-6 w-6 text-blue-600" />;
+    }
   };
 
   const getPlatformName = () => {
-    // Nome genérico para cobrir todas as biometrias
-    return 'Biometria (Face ID / Touch ID / Fingerprint)';
+    if (navigator.userAgent.includes('Android')) {
+      return 'Fingerprint';
+    } else {
+      return 'Face ID / Touch ID';
+    }
   };
 
-  if (isCheckingAvailability) {
+  // Check availability on component mount
+  React.useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  if (isAvailable === null) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -80,12 +92,12 @@ export default function BiometricLogin({
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="p-6 text-center">
           <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="font-semibold text-lg mb-2">Biometria Não Disponível</h3>
+          <h3 className="font-semibold text-lg mb-2">Biometric Not Available</h3>
           <p className="text-gray-600 mb-4">
-            Seu dispositivo não suporta ou a biometria não está configurada.
+            Your device doesn't support {getPlatformName()} or it's not enabled.
           </p>
           <Button onClick={onFallback} variant="outline">
-            Usar Senha
+            Use Password Instead
           </Button>
         </CardContent>
       </Card>
@@ -105,9 +117,9 @@ export default function BiometricLogin({
           <div className="flex justify-center mb-4">
             {getPlatformIcon()}
           </div>
-          <h3 className="font-semibold text-lg">Login com Biometria</h3>
+          <h3 className="font-semibold text-lg">Login with {getPlatformName()}</h3>
           <p className="text-sm text-gray-600 mt-2">
-            Use sua biometria para rapidamente e seguramente acessar sua conta.
+            Use your {getPlatformName()} to quickly and securely access your account.
           </p>
         </div>
 
@@ -118,10 +130,10 @@ export default function BiometricLogin({
           </div>
         )}
 
-        {displayError && (
+        {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
             <XCircle className="h-5 w-5 text-red-600 mr-2" />
-            <span className="text-red-800">{displayError}</span>
+            <span className="text-red-800">{error}</span>
           </div>
         )}
 
@@ -133,10 +145,10 @@ export default function BiometricLogin({
           {isAuthenticating ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Autenticando...
+              Authenticating...
             </>
           ) : (
-            `Login com Biometria`
+            `Login with ${getPlatformName()}`
           )}
         </Button>
 
@@ -147,13 +159,13 @@ export default function BiometricLogin({
             size="sm"
             className="text-blue-600 hover:text-blue-700"
           >
-            Usar Senha
+            Use Password Instead
           </Button>
         </div>
 
         <div className="text-center">
           <Badge variant="outline" className="text-xs">
-            Login seguro
+            Secure login with {getPlatformName()}
           </Badge>
         </div>
       </CardContent>

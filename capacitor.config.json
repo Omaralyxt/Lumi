@@ -1,9 +1,0 @@
-{
-  "appId": "com.lumi.market",
-  "appName": "LumiMarket",
-  "webDir": "build",
-  "server": {
-    "url": "https://lumi-delta.vercel.app",
-    "cleartext": false
-  }
-}
