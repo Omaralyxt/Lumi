@@ -219,7 +219,7 @@ export default function SalesPage() {
     );
   }
   
-  // Mapeamento de imagens para o formato ProductGallery espera
+  // 1. Mapeamento de imagens estáticas
   const galleryItems = product.images.map((url, index) => ({
     id: `img-${index}`,
     image_url: url,
@@ -227,14 +227,22 @@ export default function SalesPage() {
     type: 'image' as const,
   }));
   
-  // Adicionar vídeo se existir
+  // 2. Adicionar vídeo na posição 1 (depois da primeira imagem) se existir e houver pelo menos 1 imagem
   if (product.videoUrl) {
-    galleryItems.unshift({
+    const videoItem = {
       id: 'video-0',
-      image_url: product.videoUrl, // Usamos image_url para armazenar o URL do vídeo temporariamente
-      sort_order: -1,
+      image_url: product.videoUrl,
+      sort_order: -1, // Ordem irrelevante, pois estamos forçando a posição
       type: 'video' as const,
-    });
+    };
+    
+    if (galleryItems.length > 0) {
+      // Insere na posição 1 (segundo item)
+      galleryItems.splice(1, 0, videoItem);
+    } else {
+      // Se não houver imagens, o vídeo pode ser o primeiro
+      galleryItems.push(videoItem);
+    }
   }
 
   return (
