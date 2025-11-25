@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Fingerprint, ScanFace, Shield, CheckCircle, XCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Fingerprint, ScanFace, Shield, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { registerBiometric } from "@/utils/biometricAuth";
+import { useNativeBiometrics } from "@/hooks/useNativeBiometrics"; // Usando o novo hook
 
 interface BiometricRegistrationProps {
   userId: string;
@@ -20,22 +20,38 @@ export default function BiometricRegistration({
   onSuccess, 
   onError 
 }: BiometricRegistrationProps) {
+  const { 
+    isAvailable, 
+    loading: isCheckingAvailability, 
+    authenticate, 
+    error: biometricsError 
+  } = useNativeBiometrics();
+  
   const [isRegistering, setIsRegistering] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async () => {
+    // No Capacitor Biometrics, "registrar" é apenas verificar se o usuário pode autenticar
+    // e, se sim, salvar uma flag localmente (ou no Supabase) de que a biometria está ATIVA.
+    
+    if (!isAvailable) {
+      setError("Biometria não disponível no dispositivo.");
+      return;
+    }
+    
     setIsRegistering(true);
     setError(null);
     setIsSuccess(false);
 
     try {
-      const result = await registerBiometric({
-        userId,
-        email,
-      });
+      // Simula a autenticação para garantir que o usuário pode usar a biometria
+      const result = await authenticate("Confirme para ativar o login biométrico");
 
       if (result.success) {
+        // Aqui você faria uma chamada à API para salvar que o usuário ativou a biometria
+        // Ex: await supabase.from('profiles').update({ biometric_enabled: true }).eq('id', userId);
+        
         setIsSuccess(true);
         onSuccess?.();
       } else {
@@ -52,20 +68,34 @@ export default function BiometricRegistration({
   };
 
   const getPlatformIcon = () => {
-    if (navigator.userAgent.includes('Android')) {
-      return <Fingerprint className="h-6 w-6 text-blue-600" />;
-    } else {
-      return <ScanFace className="h-6 w-6 text-blue-600" />;
-    }
+    return <ScanFace className="h-6 w-6 text-blue-600" />;
   };
 
   const getPlatformName = () => {
-    if (navigator.userAgent.includes('Android')) {
-      return 'Fingerprint';
-    } else {
-      return 'Face ID / Touch ID';
-    }
+    return 'Biometria (Face ID / Touch ID / Fingerprint)';
   };
+  
+  if (isCheckingAvailability) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+  
+  if (!isAvailable) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="p-6 text-center">
+          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="font-semibold text-lg mb-2">Biometria Não Suportada</h3>
+          <p className="text-gray-600 mb-4">
+            Esta funcionalidade só está disponível em aplicativos nativos com biometria configurada.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -80,26 +110,26 @@ export default function BiometricRegistration({
           <div className="flex justify-center mb-4">
             {getPlatformIcon()}
           </div>
-          <h3 className="font-semibold text-lg">Enable {getPlatformName()}</h3>
+          <h3 className="font-semibold text-lg">Enable Biometria</h3>
           <p className="text-sm text-gray-600 mt-2">
-            Add an extra layer of security to your account using {getPlatformName()}.
+            Adicione uma camada extra de segurança à sua conta usando {getPlatformName()}.
           </p>
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Benefits:</h4>
+          <h4 className="font-medium text-blue-900 mb-2">Benefícios:</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li className="flex items-center">
               <CheckCircle className="h-3 w-3 mr-2" />
-              Quick and secure login
+              Login rápido e seguro
             </li>
             <li className="flex items-center">
               <CheckCircle className="h-3 w-3 mr-2" />
-              No need to remember passwords
+              Não precisa de senha
             </li>
             <li className="flex items-center">
               <CheckCircle className="h-3 w-3 mr-2" />
-              Protected by device security
+              Protegido pela segurança do dispositivo
             </li>
           </ul>
         </div>
@@ -107,14 +137,14 @@ export default function BiometricRegistration({
         {isSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
             <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-            <span className="text-green-800">Biometric authentication enabled successfully!</span>
+            <span className="text-green-800">Biometria ativada com sucesso!</span>
           </div>
         )}
 
-        {error && (
+        {(error || biometricsError) && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
             <XCircle className="h-5 w-5 text-red-600 mr-2" />
-            <span className="text-red-800">{error}</span>
+            <span className="text-red-800">{error || biometricsError}</span>
           </div>
         )}
 
@@ -126,16 +156,16 @@ export default function BiometricRegistration({
           {isRegistering ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Setting up...
+              Ativando...
             </>
           ) : (
-            `Enable ${getPlatformName()}`
+            `Ativar Biometria`
           )}
         </Button>
 
         <div className="text-center">
           <Badge variant="outline" className="text-xs">
-            Requires {getPlatformName()} support
+            Requer biometria configurada no dispositivo
           </Badge>
         </div>
       </CardContent>
