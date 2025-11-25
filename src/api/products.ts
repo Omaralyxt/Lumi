@@ -208,9 +208,16 @@ export const getProductById = async (id: string): Promise<Product> => {
 };
 
 export const getSimilarProducts = async (category: string, excludeId?: string | number): Promise<Product[]> => {
-  const { data, error } = await baseProductQuery()
+  let queryBuilder = baseProductQuery()
     .eq('category', category)
     .limit(4);
+    
+  // Adicionar filtro para excluir o produto atual
+  if (excludeId) {
+    queryBuilder = queryBuilder.neq('id', excludeId);
+  }
+    
+  const { data, error } = await queryBuilder;
     
   if (error) {
     console.error("Erro ao buscar produtos similares:", error);
